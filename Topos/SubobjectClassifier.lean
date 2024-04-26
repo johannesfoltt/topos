@@ -11,7 +11,7 @@ import Topos.Category
 
 namespace CategoryTheory
 
-universe u v u₁ v₁
+universe u v
 
 open CategoryTheory Category Limits Functor
 

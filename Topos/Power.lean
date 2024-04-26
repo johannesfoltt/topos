@@ -1,4 +1,3 @@
--- import Mathlib.CategoryTheory.Closed.Cartesian
 import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Limits.Constructions.BinaryProducts
 import Mathlib.CategoryTheory.Limits.Constructions.FiniteProductsOfBinaryProducts
@@ -7,7 +6,7 @@ import Topos.SubobjectClassifier
 
 namespace CategoryTheory
 
-open CategoryTheory Limits Classifier
+open CategoryTheory Category Limits Classifier
 
 /-!
 # Power Objects
@@ -57,7 +56,6 @@ attribute [instance] HasPowerObjects.has_power_object
 variable [HasPowerObjects C]
 
 
-
 namespace Power
 
 /-- Notation for the power object of an object. -/
@@ -88,8 +86,52 @@ def P_transpose_swap {B A} (f : B ⨯ A ⟶ Ω C) : B ⟶ Pow A := P_transpose (
 -- not sure why this isn't computable either? It's just the composition of two maps.
 def toPredicate {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙 _) f) ≫ in_ B
 
-def PowFunctor {B A : C} (h : A ⟶ B) : Pow B ⟶ Pow A :=
+/--
+  The power object functor's action on arrows.
+  Sends `h : A ⟶ B` to the P-transpose of the map `h⨯1 ≫ ∈_B : A ⨯ Pow B ⟶ B ⨯ Pow B ⟶ Ω`.
+-/
+def Pow_map {B A : C} (h : A ⟶ B) : Pow B ⟶ Pow A :=
   P_transpose ((prod.map h (𝟙 (Pow B))) ≫ (in_ B))
+
+-- /-- A functor preserves identity morphisms. -/
+--   map_id : ∀ X : C, map (𝟙 X) = 𝟙 (obj X) := by aesop_cat
+--   /-- A functor preserves composition. -/
+--   map_comp : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = map f ≫ map g := by aesop_cat
+
+lemma Pow_map_Powerizes {B : C} (h : A ⟶ B) : Powerizes (in_ A) ((prod.map h (𝟙 (Pow B))) ≫ (in_ B)) (Pow_map h) := by
+  dsimp [Pow_map]
+  apply Pow_powerizes
+
+theorem Pow_map_square {B A : C} (h : A ⟶ B) : (prod.map h (𝟙 (Pow B))) ≫ (in_ B) = (prod.map (𝟙 A) (Pow_map h)) ≫ (in_ A) :=
+  Pow_map_Powerizes h
+
+/-- `Pow_map` sends the identity on an object `X` to the identity on `Pow X`. -/
+lemma Pow_map_id {B : C} : Pow_map (𝟙 B) = 𝟙 (Pow B) := by
+  apply Pow_unique; rfl
+
+
+/--
+  The Power object functor.
+  Sends objects `B` to their power objects `Pow B`.
+  Sends arrows `h : A ⟶ B` to the P-transpose of the map `h⨯1 ≫ ∈_B : A ⨯ Pow B ⟶ B ⨯ Pow B ⟶ Ω`.
+-/
+def PowFunctor : Cᵒᵖ ⥤ C where
+  obj := fun B ↦ Pow B.unop
+  map := fun {A B} (h : A ⟶ B) ↦ Pow_map h.unop
+  map_id := by
+    intro X
+    apply Pow_unique
+    trivial
+  map_comp := by
+    intro X Y Z f g
+    apply Pow_unique
+    calc
+      prod.map (f ≫ g).unop (𝟙 (Pow X.unop)) ≫ in_ X.unop
+      = (prod.map g.unop (𝟙 (Pow X.unop))) ≫ (prod.map f.unop (𝟙 (Pow X.unop))) ≫ in_ X.unop := by simp
+      _ = (prod.map g.unop (𝟙 (Pow X.unop))) ≫ (prod.map (𝟙 Y.unop) (Pow_map f.unop)) ≫ in_ Y.unop := by rw [Pow_map_Powerizes]
+      _ = (prod.map (𝟙 Z.unop) (Pow_map f.unop)) ≫ (prod.map g.unop (𝟙 (Pow Y.unop))) ≫ in_ Y.unop := by simp
+      _ = (prod.map (𝟙 Z.unop) (Pow_map f.unop)) ≫ (prod.map (𝟙 Z.unop) (Pow_map g.unop)) ≫ in_ Z.unop := by rw [Pow_map_Powerizes]
+      _ = prod.map (𝟙 Z.unop) (Pow_map f.unop ≫ Pow_map g.unop) ≫ in_ Z.unop := by simp
 
 end
 
