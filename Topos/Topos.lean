@@ -26,10 +26,31 @@ attribute [instance] Topos.finite_limits Topos.subobject_classifier Topos.cartes
 
 variable [Topos C] {C}
 
-namespace Predicate
+namespace Topos
 
-def true (B : C) : B ⟶ Ω C := (uniqueTo_Ω₀ B).default ≫ (t C)
+def Predicate.true_ (B : C) : B ⟶ Ω C := (uniqueTo_Ω₀ B).default ≫ (t C)
 
-end Predicate
+noncomputable section
 
+/--
+  The equality predicate on B ⨯ B.
+-/
+def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOf (diag B)
+
+/--
+  The "singleton" map {•}_B : B ⟶ Pow B.
+  In Set, this map sends b ∈ B to the singleton set {b}.
+-/
+def singleton (B : C) : B ⟶ Pow B := P_transpose (Predicate.eq B)
+
+
+instance singletonMono (B : C) : Mono (singleton B) where
+  right_cancellation := sorry -- TODO: fill in proof
+
+def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
+
+
+
+end
+end Topos
 end CategoryTheory

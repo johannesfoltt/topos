@@ -6,6 +6,7 @@ Authors: Charlie Conneen
 import Mathlib.CategoryTheory.Subobject.Basic
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.CategoryTheory.Functor.EpiMono
+import Mathlib.CategoryTheory.Limits.Constructions.BinaryProducts
 import Topos.Category
 
 
@@ -77,6 +78,7 @@ instance uniqueTo_Ω₀ (P : C) : Unique (P ⟶ Ω₀ C) := {
 def terminal_Ω₀ : IsTerminal (Ω₀ C) := IsTerminal.ofUnique (Ω₀ C)
 
 instance has_Terminal : HasTerminal C := hasTerminal_of_unique (Ω₀ C)
+
 
 
 instance truth_is_SplitMono : SplitMono (t C) where

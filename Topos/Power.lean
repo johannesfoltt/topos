@@ -1,6 +1,7 @@
 import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Limits.Constructions.BinaryProducts
 import Mathlib.CategoryTheory.Limits.Constructions.FiniteProductsOfBinaryProducts
+import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Topos.Category
 import Topos.SubobjectClassifier
 
@@ -26,6 +27,9 @@ variable {C : Type u} [Category.{v} C] [HasSubobjectClassifier C] [HasPullbacks 
 instance hasBinaryProducts : HasBinaryProducts C := hasBinaryProducts_of_hasTerminal_and_pullbacks C
 
 instance hasFiniteProducts : HasFiniteProducts C := hasFiniteProducts_of_has_binary_and_terminal
+
+
+
 
 /--
   We say that `f_hat : A ⟶ PB` "powerizes" `f : B ⨯ A ⟶ Ω C` if ∈_B ∘ (1 × f') = f.
@@ -136,5 +140,33 @@ def PowFunctor : Cᵒᵖ ⥤ C where
 end
 
 end Power
+
+open Power
+
+namespace Classifier
+
+noncomputable section
+
+theorem Iso_Ω₀_terminal : Ω₀ C ≅ ⊤_ C :=
+  (terminalIsoIsTerminal (terminal_Ω₀)).symm
+
+theorem prod_terminal_right (B : C) : B ⨯ ⊤_ C ≅ B:=
+  prod.rightUnitor B
+
+theorem prod_terminal_Ω₀_Iso (B : C) : B ⨯ Ω₀ C ≅ B ⨯ ⊤_ C :=
+  prod.mapIso (Iso.refl B) Iso_Ω₀_terminal
+
+abbrev from_prod_Ω₀_right (B : C) : B ⨯ Ω₀ C ⟶ B := (prod_terminal_Ω₀_Iso B).hom ≫ (prod_terminal_right B).hom
+
+/-- The name ⌈φ⌉ : • ⟶ Pow B of a predicate `φ : B ⟶ Ω C`. -/
+def Name {B} (φ : B ⟶ Ω C) : Ω₀ C ⟶ Pow B := P_transpose (from_prod_Ω₀_right B ≫ φ)
+
+def Name' {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose ((prod_terminal_right B).hom  ≫ φ)
+
+-- TODO: prove equivalence of the types (B ⟶ Ω C), (Ω₀ ⟶ Pow B), (T_ C ⟶ Pow B), and (Subobject B).
+
+end
+
+end Classifier
 
 end CategoryTheory
