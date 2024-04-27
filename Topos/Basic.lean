@@ -42,7 +42,13 @@ def singleton (B : C) : B ⟶ Pow B := P_transpose (Predicate.eq B)
 
 /-- The singleton map {•}_B : B ⟶ Pow B is a monomorphism. -/
 instance singletonMono (B : C) : Mono (singleton B) where
-  right_cancellation := sorry -- TODO: fill in proof
+  right_cancellation := by
+    intro X b b' h
+    rw [singleton] at h
+    have h₁ : prod.map (𝟙 _) (b ≫ P_transpose (Predicate.eq B)) ≫ in_ B = prod.map (𝟙 _) (b' ≫ P_transpose (Predicate.eq B)) ≫ in_ B :=
+      congrFun (congrArg CategoryStruct.comp (congrArg (prod.map (𝟙 B)) h)) (in_ B)
+
+    sorry
 
 def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
 
@@ -51,7 +57,7 @@ def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose ((prod.rightUni
 
 def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) := (prod.map (𝟙 _) φ') ≫ in_ B
 
--- TODO: prove equivalence of the types (B ⟶ Ω C), (Ω₀ ⟶ Pow B), (T_ C ⟶ Pow B), and (Subobject B).
+-- TODO: prove equivalence of the types (B ⟶ Ω C), (T_ C ⟶ Pow B), and (Subobject B).
 
 
 

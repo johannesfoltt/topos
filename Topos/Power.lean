@@ -28,9 +28,6 @@ instance hasBinaryProducts : HasBinaryProducts C := hasBinaryProducts_of_hasTerm
 
 instance hasFiniteProducts : HasFiniteProducts C := hasFiniteProducts_of_has_binary_and_terminal
 
-
-
-
 /--
   We say that `f_hat : A ⟶ PB` "powerizes" `f : B ⨯ A ⟶ Ω C` if ∈_B ∘ (1 × f') = f.
 -/
@@ -80,7 +77,7 @@ def Pow_unique (B : C) : ∀ {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B},
   Powerizes (in_ B) f hat' → P_transpose f = hat' :=
     (Pow_is_power B).unique'
 
-theorem transposeEquiv (B A : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
+theorem transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
   toFun := fun f => P_transpose f
   invFun := fun g => (prod.map (𝟙 _) g) ≫ in_ B
   left_inv := by
@@ -148,6 +145,6 @@ def PowFunctor : Cᵒᵖ ⥤ C where
       _ = (prod.map (𝟙 Z.unop) (Pow_map f.unop)) ≫ (prod.map (𝟙 Z.unop) (Pow_map g.unop)) ≫ in_ Z.unop := by rw [Pow_map_Powerizes]
       _ = prod.map (𝟙 Z.unop) (Pow_map f.unop ≫ Pow_map g.unop) ≫ in_ Z.unop := by simp
 
-end
 
+end
 end Power

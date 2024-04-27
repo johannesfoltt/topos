@@ -1,4 +1,3 @@
-import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Limits.Shapes.FiniteProducts
 import Mathlib.CategoryTheory.Limits.Shapes.CommSq
 
@@ -14,6 +13,7 @@ variable {J : Type v} [SmallCategory J]
 
 variable {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z}
 
+#check IsPullback
 
 structure HasPullbackTop (left : W ⟶ Y) (bottom : Y ⟶ Z) (right : X ⟶ Z) where
   top : W ⟶ X
