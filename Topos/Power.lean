@@ -17,7 +17,7 @@ Defines power objects for a category C with a subobject classifier and pullbacks
 
 universe u v
 
-variable {C : Type u} [Category.{v} C] [HasSubobjectClassifier C] [HasPullbacks C]
+variable {C : Type u} [Category.{v} C] [HasTerminal C] [HasSubobjectClassifier C] [HasPullbacks C]
 
 
 /--
@@ -80,12 +80,23 @@ def Pow_unique (B : C) : ∀ {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B},
   Powerizes (in_ B) f hat' → P_transpose f = hat' :=
     (Pow_is_power B).unique'
 
+theorem transposeEquiv (B A : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
+  toFun := fun f => P_transpose f
+  invFun := fun g => (prod.map (𝟙 _) g) ≫ in_ B
+  left_inv := by
+    intro f
+    exact (Pow_powerizes B f).symm
+  right_inv := by
+    intro g
+    apply Pow_unique
+    rw [Powerizes]
+
+
 noncomputable section
--- the stuff involving products is noncomputable because ???
 
 -- want a computable version of this
 /-- The map Hom(B⨯A,Ω) → Hom(B,P(A)). -/
-def P_transpose_swap {B A} (f : B ⨯ A ⟶ Ω C) : B ⟶ Pow A := P_transpose ((prod.braiding A B).1 ≫ f)
+def P_transpose_swap {B A} (f : B ⨯ A ⟶ Ω C) : B ⟶ Pow A := P_transpose ((prod.braiding A B).hom ≫ f)
 
 -- not sure why this isn't computable either? It's just the composition of two maps.
 def toPredicate {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙 _) f) ≫ in_ B
@@ -140,33 +151,3 @@ def PowFunctor : Cᵒᵖ ⥤ C where
 end
 
 end Power
-
-open Power
-
-namespace Classifier
-
-noncomputable section
-
-theorem Iso_Ω₀_terminal : Ω₀ C ≅ ⊤_ C :=
-  (terminalIsoIsTerminal (terminal_Ω₀)).symm
-
-theorem prod_terminal_right (B : C) : B ⨯ ⊤_ C ≅ B:=
-  prod.rightUnitor B
-
-theorem prod_terminal_Ω₀_Iso (B : C) : B ⨯ Ω₀ C ≅ B ⨯ ⊤_ C :=
-  prod.mapIso (Iso.refl B) Iso_Ω₀_terminal
-
-abbrev from_prod_Ω₀_right (B : C) : B ⨯ Ω₀ C ⟶ B := (prod_terminal_Ω₀_Iso B).hom ≫ (prod_terminal_right B).hom
-
-/-- The name ⌈φ⌉ : • ⟶ Pow B of a predicate `φ : B ⟶ Ω C`. -/
-def Name {B} (φ : B ⟶ Ω C) : Ω₀ C ⟶ Pow B := P_transpose (from_prod_Ω₀_right B ≫ φ)
-
-def Name' {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose ((prod_terminal_right B).hom  ≫ φ)
-
--- TODO: prove equivalence of the types (B ⟶ Ω C), (Ω₀ ⟶ Pow B), (T_ C ⟶ Pow B), and (Subobject B).
-
-end
-
-end Classifier
-
-end CategoryTheory

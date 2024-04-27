@@ -1,8 +1,4 @@
-/-
-Copyright (c) 2024 Charlie Conneen. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Charlie Conneen
--/
+
 import Mathlib.CategoryTheory.Closed.Cartesian
 import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
@@ -18,22 +14,23 @@ universe u v
 variable (C : Type u) [Category.{v} C]
 
 class Topos where
+  [has_terminal : HasTerminal C]
   [finite_limits : HasPullbacks C]
   [subobject_classifier : HasSubobjectClassifier C]
   [cartesian_closed : HasPowerObjects C]
 
-attribute [instance] Topos.finite_limits Topos.subobject_classifier Topos.cartesian_closed
+attribute [instance] Topos.has_terminal Topos.finite_limits Topos.subobject_classifier Topos.cartesian_closed
 
 variable [Topos C] {C}
 
 namespace Topos
 
-def Predicate.true_ (B : C) : B ⟶ Ω C := (uniqueTo_Ω₀ B).default ≫ (t C)
-
 noncomputable section
 
+def Predicate.true_ (B : C) : B ⟶ Ω C := terminal.from B ≫ (t C)
+
 /--
-  The equality predicate on B ⨯ B.
+  The equality predicate on `B ⨯ B`.
 -/
 def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOf (diag B)
 
@@ -43,11 +40,18 @@ def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOf (diag B)
 -/
 def singleton (B : C) : B ⟶ Pow B := P_transpose (Predicate.eq B)
 
-
+/-- The singleton map {•}_B : B ⟶ Pow B is a monomorphism. -/
 instance singletonMono (B : C) : Mono (singleton B) where
   right_cancellation := sorry -- TODO: fill in proof
 
 def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
+
+/-- The name ⌈φ⌉ : ⊤_ C ⟶ Pow B of a predicate `φ : B ⟶ Ω C`. -/
+def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose ((prod.rightUnitor B).hom ≫ φ)
+
+def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) := (prod.map (𝟙 _) φ') ≫ in_ B
+
+-- TODO: prove equivalence of the types (B ⟶ Ω C), (Ω₀ ⟶ Pow B), (T_ C ⟶ Pow B), and (Subobject B).
 
 
 

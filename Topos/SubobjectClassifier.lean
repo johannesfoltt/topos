@@ -1,8 +1,4 @@
-/-
-Copyright (c) 2024 Charlie Conneen. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Charlie Conneen
--/
+
 import Mathlib.CategoryTheory.Subobject.Basic
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.CategoryTheory.Functor.EpiMono
@@ -12,16 +8,16 @@ import Topos.Category
 
 namespace CategoryTheory
 
-universe u v
+universe u v u₀ v₀
 
 open CategoryTheory Category Limits Functor
 
-variable {C : Type u} [Category.{v} C]
+variable {C : Type u} [Category.{v} C] [HasTerminal C]
 
 abbrev classifying {Ω Ω₀ U X : C} (t : Ω₀ ⟶ Ω) (f : U ⟶ X) (χ : X ⟶ Ω) :=
   HasPullbackTop f χ t
 
-structure IsSubobjectClassifier {Ω Ω₀ : C} (t : Ω₀ ⟶ Ω) where
+structure IsSubobjectClassifier {Ω : C} (t : ⊤_ C ⟶ Ω) where
   classifier_of : ∀ {U X : C} (f : U ⟶ X) [Mono f], X ⟶ Ω
   classifies : ∀ {U X : C} (f : U ⟶ X) [Mono f], classifying t f (classifier_of f)
   unique' : ∀ {U X : C} (f : U ⟶ X) [Mono f] (χ : X ⟶ Ω), classifying t f χ → χ = classifier_of f
@@ -30,10 +26,10 @@ variable (C)
 
 class HasSubobjectClassifier where
   Ω : C
-  Ω₀ : C
-  t : Ω₀ ⟶ Ω
-  t_mono : Mono t
+  t : ⊤_ C ⟶ Ω
   is_subobject_classifier : IsSubobjectClassifier t
+  -- t_mono : Mono t := IsSplitMono.mono t
+  -- will un-comment this if an instance of `Mono (t C)` is necessary.
 
 variable [HasSubobjectClassifier C]
 
@@ -41,11 +37,9 @@ namespace Classifier
 
 abbrev Ω : C := HasSubobjectClassifier.Ω
 
-def Ω₀ : C := HasSubobjectClassifier.Ω₀
+def t : ⊤_ C ⟶ Ω C := HasSubobjectClassifier.t
 
-def t : Ω₀ C ⟶ Ω C := HasSubobjectClassifier.t
-
-instance t_mono : Mono (t C) := HasSubobjectClassifier.t_mono
+-- instance t_mono : Mono (t C) := HasSubobjectClassifier.t_mono
 
 def SubobjectClassifier_IsSubobjectClassifier : IsSubobjectClassifier (t C) := HasSubobjectClassifier.is_subobject_classifier
 
@@ -62,24 +56,16 @@ def unique {U X : C} (f : U ⟶ X) [Mono f] (χ : X ⟶ Ω C) (hχ : classifying
 
 end Classifier
 
-
-
 open Classifier
 
 variable {C}
 
-instance uniqueTo_Ω₀ (P : C) : Unique (P ⟶ Ω₀ C) := {
+instance uniqueTo_Ω₀ (P : C) : Unique (P ⟶ ⊤_ C) := {
   default := (Classifies (𝟙 _)).top,
   uniq := λ a => by
     rw [← cancel_mono (t C), default, (Classifies (𝟙 _)).comm, id_comp, unique (𝟙 P) (a ≫ t C)]
     exact left_iso_has_pullback_top a (𝟙 P) (t C) _ (id_comp _).symm
 }
-
-def terminal_Ω₀ : IsTerminal (Ω₀ C) := IsTerminal.ofUnique (Ω₀ C)
-
-instance has_Terminal : HasTerminal C := hasTerminal_of_unique (Ω₀ C)
-
-
 
 instance truth_is_SplitMono : SplitMono (t C) where
   retraction := default
@@ -104,7 +90,7 @@ instance : Balanced C where
   If the source of a faithful functor has a subobject classifier, the functor reflects
   isomorphisms. This holds for any balanced category.
 -/
-def reflectsIsomorphisms (D : Type u₂) [Category.{v₂} D] (F : C ⥤ D) [Faithful F] : ReflectsIsomorphisms F :=
+def reflectsIsomorphisms (D : Type u₀) [Category.{v₀} D] (F : C ⥤ D) [Faithful F] : ReflectsIsomorphisms F :=
   reflectsIsomorphisms_of_reflectsMonomorphisms_of_reflectsEpimorphisms F
 
 end CategoryTheory

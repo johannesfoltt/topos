@@ -38,6 +38,10 @@ def Exp (A B : C) : C :=
 /-- The map which, in Set, sends a function (A → B) ∈ B^A to its graph as a subset of A ⨯ B. -/
 def Exp_toGraph (A B : C) : Exp A B ⟶ Pow (A ⨯ B) := pullback.fst
 
+-- /-- To define-/
+-- lemma mem_classifier_pb (B : C) : IsPullback (singleton B) (terminal.from B ≫ Iso_Ω₀_terminal.inv)
+
+
 /-- The evaluation map eval : A ⨯ B^A ⟶ B. -/
 def eval (A B : C) : A ⨯ (Exp A B) ⟶ B := by
   let vert₁ : B ⨯ Exp A B ⟶ B ⨯ Ω₀ C := prod.map (𝟙 _) (terminal.from _ ≫ Iso_Ω₀_terminal.inv)
@@ -54,13 +58,15 @@ def eval (A B : C) : A ⨯ (Exp A B) ⟶ B := by
   let curly : A ⟶ Pow A := singleton A
   let uniq : A ⟶ Ω₀ C := terminal.from _ ≫ Iso_Ω₀_terminal.inv
 
-  have pb₁ : IsPullback curly uniq σ_A (t C) := sorry
+  have pb₁ : IsPullback curly uniq σ_A (t C) := by
+    dsimp [curly, uniq, σ_A, Topos.singleton]
+    sorry
 
   -- checking commutativity of the big rectangle. Gonna have to calc this one.
   have comm' : hori₁ ≫ v ≫ σ_A = vert₁ ≫ hori₂ ≫ in_ B := sorry
 
-  -- need to figure out how to use `comm'` to induce the map
-  -- gotta look through the Pullbacks file.
+  -- should be `pullback.lift (hori₁ ≫ v) (vert₁ ≫ hori₂) comm'`, composed with
+  -- an isomorphism between `pullback σ_A (in_ B)` and `B`.
 
   sorry
 
