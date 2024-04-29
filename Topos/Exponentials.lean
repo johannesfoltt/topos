@@ -37,7 +37,18 @@ def Exp (A B : C) : C :=
 /-- The map which, in Set, sends a function (A → B) ∈ B^A to its graph as a subset of B ⨯ A. -/
 def Exp_toGraph (A B : C) : Exp A B ⟶ Pow (B ⨯ A) := pullback.fst
 
-lemma singletonClassifier (B : C) : B ≅ pullback (Predicate.isSingleton B) (t C) := sorry
+variable (B : C)
+
+#check IsPullback
+
+lemma singletonClassifier (B : C) : B ≅ pullback (Predicate.isSingleton B) (t C) where
+  hom := pullback.lift (singleton B) (terminal.from B) (Classifies (singleton B)).comm
+  inv := by
+    sorry
+  hom_inv_id := by
+    sorry
+  inv_hom_id := by
+    sorry
 
 /-- The evaluation map eval : A ⨯ B^A ⟶ B. -/
 def eval (A B : C) : A ⨯ (Exp A B) ⟶ B := by
