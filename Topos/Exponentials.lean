@@ -31,43 +31,28 @@ noncomputable section
 /-- The exponential object B^A. -/
 def Exp (A B : C) : C :=
   pullback
-    (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (A ⨯ B)) ≫ Predicate.isSingleton A))
-    (Name (Predicate.true_ B))
+    (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B))
+    (Name (Predicate.true_ A))
 
-/-- The map which, in Set, sends a function (A → B) ∈ B^A to its graph as a subset of A ⨯ B. -/
-def Exp_toGraph (A B : C) : Exp A B ⟶ Pow (A ⨯ B) := pullback.fst
+/-- The map which, in Set, sends a function (A → B) ∈ B^A to its graph as a subset of B ⨯ A. -/
+def Exp_toGraph (A B : C) : Exp A B ⟶ Pow (B ⨯ A) := pullback.fst
 
--- /-- To define-/
--- lemma mem_classifier_pb (B : C) : IsPullback (singleton B) (terminal.from B ≫ Iso_Ω₀_terminal.inv)
-
+lemma singletonClassifier (B : C) : B ≅ pullback (Predicate.isSingleton B) (t C) := sorry
 
 /-- The evaluation map eval : A ⨯ B^A ⟶ B. -/
 def eval (A B : C) : A ⨯ (Exp A B) ⟶ B := by
-  let vert₁ : B ⨯ Exp A B ⟶ B ⨯ ⊤_ C := prod.map (𝟙 _) (terminal.from _)
-  let vert₂ : B ⨯ Pow (A ⨯ B) ⟶ B ⨯ Pow B := prod.map (𝟙 _) (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (A ⨯ B)) ≫ Predicate.isSingleton A))
-  let hori₁ : B ⨯ Exp A B ⟶ B ⨯ Pow (A ⨯ B) := prod.map (𝟙 _) (Exp_toGraph A B)
-  let hori₂ : B ⨯ ⊤_ C ⟶ B ⨯ Pow B := prod.map (𝟙 _) (Name (Predicate.true_ B))
-  -- The left square in the diagram is a pullback; this is just the definition of `Exp A B`
-  -- multiplied by `B` everywhere.
-  -- actually I don't think I need this fact?
-  have pb₀ : IsPullback vert₁ hori₁ hori₂ vert₂ := sorry
-
-  let v : B ⨯ Pow (A ⨯ B) ⟶ Pow A := P_transpose ((prod.associator _ _ _).inv ≫ in_ (A ⨯ B))
-  let σ_A : Pow A ⟶ Ω C := Predicate.isSingleton A
-  let curly : A ⟶ Pow A := singleton A
-
-  have pb₁ : IsPullback curly (terminal.from A) σ_A (t C) := by
-    dsimp [curly, σ_A, Topos.singleton]
-
-    sorry
-
+  let id_uniq : A ⨯ Exp A B ⟶ A ⨯ ⊤_ C := prod.map (𝟙 _) (terminal.from _)
+  let id_m : A ⨯ Exp A B ⟶ A ⨯ Pow (B ⨯ A) := prod.map (𝟙 _) (Exp_toGraph A B)
+  -- let id_nameOfTrue : A ⨯ ⊤_ C ⟶ A ⨯ Pow A := prod.map (𝟙 _) (Name (Predicate.true_ A))
+  -- #check in_ (A ⨯ B)
+  let v : A ⨯ Pow (B ⨯ A) ⟶ Pow B := P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
+  -- let u : Pow (B ⨯ A) ⟶ Pow A := P_transpose (v ≫ Predicate.isSingleton B)
+  -- let id_u : A ⨯ Pow (B ⨯ A) ⟶ A ⨯ Pow A := prod.map (𝟙 _) u
+  let σ_B : Pow B ⟶ Ω C := Predicate.isSingleton B
   -- checking commutativity of the big rectangle. Gonna have to calc this one.
-  have comm' : hori₁ ≫ v ≫ σ_A = vert₁ ≫ hori₂ ≫ in_ B := sorry
+  have comm' : (id_m ≫ v) ≫ σ_B = (id_uniq ≫ terminal.from (A ⨯ ⊤_ C)) ≫ t C := sorry
 
-  -- should be `pullback.lift (hori₁ ≫ v) (vert₁ ≫ hori₂) comm'`, composed with
-  -- an isomorphism between `pullback σ_A (in_ B)` and `B`.
-
-  sorry
+  exact (pullback.lift (id_m ≫ v) (id_uniq ≫ terminal.from (A ⨯ ⊤_ C)) comm') ≫ (singletonClassifier B).inv
 
 
 end
