@@ -47,7 +47,6 @@ instance singletonMono (B : C) : Mono (singleton B) where
     rw [singleton] at h
     have h₁ : prod.map (𝟙 _) (b ≫ P_transpose (Predicate.eq B)) ≫ in_ B = prod.map (𝟙 _) (b' ≫ P_transpose (Predicate.eq B)) ≫ in_ B :=
       congrFun (congrArg CategoryStruct.comp (congrArg (prod.map (𝟙 B)) h)) (in_ B)
-
     sorry
 
 def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
@@ -56,6 +55,9 @@ def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
 def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose ((prod.rightUnitor B).hom ≫ φ)
 
 def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) := (prod.map (𝟙 _) φ') ≫ in_ B
+
+def Predicate.NameDef {B} (φ : B ⟶ Ω C) : (prod.rightUnitor B).hom ≫ φ = (prod.map (𝟙 _) (Name φ)) ≫ (in_ B) :=
+  Pow_powerizes _ _
 
 -- TODO: prove equivalence of the types (B ⟶ Ω C), (T_ C ⟶ Pow B), and (Subobject B).
 
