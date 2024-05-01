@@ -1,5 +1,6 @@
 import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
 import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
+import Mathlib.CategoryTheory.Closed.Cartesian
 import Topos.Basic
 import Topos.Category
 
@@ -41,8 +42,6 @@ def Exp_comm (A B : C) : Exp_toGraph A B ≫ (P_transpose (P_transpose ((prod.as
   = terminal.from (Exp A B) ≫ Name (Predicate.true_ A) := by
     rw [←ExpConeSnd_Terminal]; exact pullback.condition
 
-variable (B : C)
-
 /-- The evaluation map eval : A ⨯ B^A ⟶ B. -/
 def eval (A B : C) : A ⨯ (Exp A B) ⟶ B := by
   let id_uniq : A ⨯ Exp A B ⟶ A ⨯ ⊤_ C := prod.map (𝟙 _) (terminal.from _)
@@ -58,7 +57,6 @@ def eval (A B : C) : A ⨯ (Exp A B) ⟶ B := by
     rw [prod.map_map, prod.map_map]
     ext; simp
     rw [prod.map_snd, prod.map_snd, Exp_comm]
-
   -- checking commutativity of the big rectangle.
   have h_terminal : (prod.map (𝟙 A) (terminal.from (Exp A B)) ≫ prod.fst) ≫ terminal.from A = terminal.from _ :=
       Unique.eq_default _
@@ -92,7 +90,46 @@ variable {C}
 
 attribute [instance] HasExponentialObjects.has_exponential_object
 
--- TODO: exhibit the type class instance `HasExponentialObjects C` for a topos `C`.
+-- ## TODO
+-- exhibit the type class instance `HasExponentialObjects C` for a topos `C`.
+
+def Exp_map {A B X : C} (f : A ⨯ X ⟶ B) : X ⟶ Exp A B := by
+  let id_f'diag : B ⨯ A ⨯ X ⟶ Ω C := (prod.map (𝟙 _) f) ≫ (Predicate.eq _)
+  let h : X ⟶ Pow (B ⨯ A) := P_transpose ((prod.associator _ _ _).hom ≫ id_f'diag)
+  apply pullback.lift h (terminal.from X)
+  have h_def : (prod.associator _ _ _).hom ≫ id_f'diag = (prod.map (prod.map (𝟙 _) (𝟙 _)) h) ≫ in_ _ := by
+    rw [prod.map_id_id]
+    apply Pow_powerizes
+  have singleton_def : Predicate.eq B = (prod.map (𝟙 _) (singleton B)) ≫ in_ B := by apply Pow_powerizes
+  let v : A ⨯ Pow (B ⨯ A) ⟶ Pow B := P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
+  let v_def : v = P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) := rfl
+  rw [←v_def]
+  -- ### TODO
+  -- fill in this proof. Shouldn't be too bad, just a lot of book-keeping.
+
+  sorry
+
+theorem Exp_Exponentiates {A B X : C} (f : A ⨯ X ⟶ B) : Exponentiates (eval A B) f (Exp_map f) := by
+  dsimp [Exponentiates, eval] -- yikes!
+
+  sorry
+
+
+instance Exp_isExponential (A B : C) : IsExponentialObject (eval A B) where
+  exp := fun {X} (f : A ⨯ X ⟶ B) ↦ Exp_map f
+  exponentiates := Exp_Exponentiates
+  unique' := fun {X} (f : A ⨯ X ⟶ B) {exp' : X ⟶ Exp A B} ↦ by {
+    intro h
+    dsimp [Exponentiates]
+    rw [Exponentiates] at h
+    #check (cancel_mono (singleton B)).mpr
+    have h_singleton := (cancel_mono (singleton _)).mpr h
+    -- rw [pullback.lift_fst] at h_singleton
+    sorry
+  }
+
+-- ## TODO
+-- exhibit `CartesianClosed C` for a topos `C`.
 
 
 

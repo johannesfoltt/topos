@@ -145,6 +145,7 @@ def PowFunctor : Cᵒᵖ ⥤ C where
       _ = (prod.map (𝟙 Z.unop) (Pow_map f.unop)) ≫ (prod.map (𝟙 Z.unop) (Pow_map g.unop)) ≫ in_ Z.unop := by rw [Pow_map_Powerizes]
       _ = prod.map (𝟙 Z.unop) (Pow_map f.unop ≫ Pow_map g.unop) ≫ in_ Z.unop := by simp
 
+#check PowFunctor.map_comp
 
 end
 end Power
