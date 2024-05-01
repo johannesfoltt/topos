@@ -25,10 +25,6 @@ namespace Topos
 
 noncomputable section
 
-#check prod.associator_hom
-
-#check terminal
-
 /-- The exponential object B^A. -/
 def Exp (A B : C) : C :=
   pullback
@@ -64,18 +60,41 @@ def eval (A B : C) : A ⨯ (Exp A B) ⟶ B := by
     rw [prod.map_snd, prod.map_snd, Exp_comm]
 
   -- checking commutativity of the big rectangle.
-  have comm : (id_m ≫ v) ≫ σ_B = Predicate.true_ (A ⨯ Exp A B) := by
-    rw [assoc, comm_middle, ←assoc, comm_left, assoc, Predicate.true_]
-    dsimp [id_uniq, id_nameOfTrue]
-    rw [←Predicate.NameDef]
-    dsimp [Predicate.true_]
-    rw [←assoc, ←assoc]
-    have h_terminal : (prod.map (𝟙 A) (terminal.from (Exp A B)) ≫ prod.fst) ≫ terminal.from A = terminal.from _ :=
+  have h_terminal : (prod.map (𝟙 A) (terminal.from (Exp A B)) ≫ prod.fst) ≫ terminal.from A = terminal.from _ :=
       Unique.eq_default _
-    rw [h_terminal]
+  have comm : (id_m ≫ v) ≫ σ_B = Predicate.true_ (A ⨯ Exp A B) := by
+    rw [assoc, comm_middle, ←assoc, comm_left, assoc, Predicate.true_, ←Predicate.NameDef]
+    dsimp [Predicate.true_]
+    rw [←assoc, ←assoc, h_terminal]
   exact ClassifierCone_into (singleton B) (id_m ≫ v) comm
 
--- TODO: define exponential objects as a structure which encodes the universal property, then show that (Exp A B, eval A B) satisfies it.
+
+
+abbrev Exponentiates {A B X HomAB : C}  (e : A ⨯ HomAB ⟶ B) (f : A ⨯ X ⟶ B) (f_exp : X ⟶ HomAB) :=
+  f = (prod.map (𝟙 _) f_exp) ≫ e
+
+structure IsExponentialObject {A B HomAB : C} (e : A ⨯ HomAB ⟶ B) where
+  exp : ∀ {X} (_ : A ⨯ X ⟶ B), X ⟶ HomAB
+  exponentiates : ∀ {X} (f : A ⨯ X ⟶ B), Exponentiates e f (exp f)
+  unique' : ∀ {X} {f : A ⨯ X ⟶ B} {exp' : X ⟶ HomAB}, Exponentiates e f exp' → exp f = exp'
+
+class HasExponentialObject (A B : C) where
+  HomAB : C
+  e : A ⨯ HomAB ⟶ B
+  is_exp : IsExponentialObject e
+
+variable (C)
+
+class HasExponentialObjects where
+  has_exponential_object : ∀ (A B : C), HasExponentialObject A B
+
+variable {C}
+
+attribute [instance] HasExponentialObjects.has_exponential_object
+
+-- TODO: exhibit the type class instance `HasExponentialObjects C` for a topos `C`.
+
+
 
 end
 end Topos
