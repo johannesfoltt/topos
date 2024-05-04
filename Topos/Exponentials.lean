@@ -116,7 +116,7 @@ theorem Exp_Exponentiates {A B X : C} (f : A ⨯ X ⟶ B) : Exponentiates (eval 
 
 
 instance Exp_isExponential (A B : C) : IsExponentialObject (eval A B) where
-  exp := fun {X} (f : A ⨯ X ⟶ B) ↦ Exp_map f
+  exp := fun f ↦ Exp_map f
   exponentiates := Exp_Exponentiates
   unique' := fun {X} (f : A ⨯ X ⟶ B) {exp' : X ⟶ Exp A B} ↦ by {
     intro h
@@ -132,6 +132,20 @@ instance Exp_isExponential (A B : C) : IsExponentialObject (eval A B) where
 -- ## TODO
 -- exhibit `CartesianClosed C` for a topos `C`.
 
+def ExpHom {X Y : C} (A : C) (f : X ⟶ Y) : Exp A X ⟶ Exp A Y := sorry
+
+def ExpFunctor (A : C) : C ⥤ C where
+  obj := fun B ↦ Exp A B
+  map := fun {X Y} (f : X ⟶ Y) ↦ ExpHom A f
+  map_id := sorry
+  map_comp := sorry
+
+
+instance CartesianClosed : CartesianClosed C := by
+  apply CartesianClosed.mk
+  intro B
+
+  sorry
 
 
 end

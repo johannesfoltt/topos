@@ -105,11 +105,6 @@ def toPredicate {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙 _)
 def Pow_map {B A : C} (h : A ⟶ B) : Pow B ⟶ Pow A :=
   P_transpose ((prod.map h (𝟙 (Pow B))) ≫ (in_ B))
 
--- /-- A functor preserves identity morphisms. -/
---   map_id : ∀ X : C, map (𝟙 X) = 𝟙 (obj X) := by aesop_cat
---   /-- A functor preserves composition. -/
---   map_comp : ∀ {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z), map (f ≫ g) = map f ≫ map g := by aesop_cat
-
 lemma Pow_map_Powerizes {B : C} (h : A ⟶ B) : Powerizes (in_ A) ((prod.map h (𝟙 (Pow B))) ≫ (in_ B)) (Pow_map h) := by
   dsimp [Pow_map]
   apply Pow_powerizes
@@ -129,9 +124,9 @@ lemma Pow_map_id {B : C} : Pow_map (𝟙 B) = 𝟙 (Pow B) := by
 -/
 def PowFunctor : Cᵒᵖ ⥤ C where
   obj := fun ⟨B⟩ ↦ Pow B
-  map := fun {A B} (⟨h⟩ : A ⟶ B) ↦ Pow_map h
+  map := fun ⟨h⟩ ↦ Pow_map h
   map_id := by
-    intro X
+    intro _
     apply Pow_unique
     trivial
   map_comp := by
@@ -139,11 +134,12 @@ def PowFunctor : Cᵒᵖ ⥤ C where
     apply Pow_unique
     calc
       prod.map (g ≫ f)  (𝟙 (Pow X)) ≫ in_ X
-      = (prod.map g (𝟙 (Pow X))) ≫ (prod.map f  (𝟙 (Pow X))) ≫ in_ X  := by simp
+        = (prod.map g (𝟙 (Pow X))) ≫ (prod.map f  (𝟙 (Pow X))) ≫ in_ X  := by simp
       _ = (prod.map g (𝟙 (Pow X))) ≫ (prod.map (𝟙 Y) (Pow_map f)) ≫ in_ Y := by rw [Pow_map_Powerizes]
       _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map g (𝟙 (Pow Y))) ≫ in_ Y := by simp
       _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map (𝟙 Z) (Pow_map g)) ≫ in_ Z := by rw [Pow_map_Powerizes]
       _ = prod.map (𝟙 Z) (Pow_map f ≫ Pow_map g ) ≫ in_ Z  := by simp
+
 
 end
 end Power
