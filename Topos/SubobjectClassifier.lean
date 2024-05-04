@@ -56,8 +56,6 @@ def Classifies : classifying (t C) f (ClassifierOf f) :=
 def unique (χ : X ⟶ Ω C) (hχ : classifying (t C) f χ) : χ = ClassifierOf f :=
   (SubobjectClassifier_IsSubobjectClassifier C).unique' f χ hχ
 
-#check IsLimit.lift
-
 noncomputable def ClassifierCone : PullbackCone (ClassifierOf f) (t C) :=
   PullbackCone.mk f (terminal.from U) (Classifies f).comm
 

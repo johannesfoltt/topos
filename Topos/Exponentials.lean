@@ -110,23 +110,21 @@ def Exp_map {A B X : C} (f : A ⨯ X ⟶ B) : X ⟶ Exp A B := by
   sorry
 
 theorem Exp_Exponentiates {A B X : C} (f : A ⨯ X ⟶ B) : Exponentiates (eval A B) f (Exp_map f) := by
-  dsimp [Exponentiates, eval] -- yikes!
-
   sorry
 
+theorem Exp_unique {A B X : C} (f : A ⨯ X ⟶ B) {exp' : X ⟶ Exp A B} (h : Exponentiates (eval A B) f exp') : Exp_map f = exp' := by
+  have h_exp := Exp_Exponentiates f
+  dsimp [Exponentiates] at h
+  dsimp [Exponentiates] at h_exp
+  have h₁ : f ≫ (singleton B) = (prod.map (𝟙 A) (Exp_map f) ≫ eval A B) ≫ (singleton B) := by rw [←h_exp]
+
+  sorry
 
 instance Exp_isExponential (A B : C) : IsExponentialObject (eval A B) where
   exp := fun {X} (f : A ⨯ X ⟶ B) ↦ Exp_map f
   exponentiates := Exp_Exponentiates
-  unique' := fun {X} (f : A ⨯ X ⟶ B) {exp' : X ⟶ Exp A B} ↦ by {
-    intro h
-    dsimp [Exponentiates]
-    rw [Exponentiates] at h
-    #check (cancel_mono (singleton B)).mpr
-    have h_singleton := (cancel_mono (singleton _)).mpr h
-    -- rw [pullback.lift_fst] at h_singleton
-    sorry
-  }
+  unique' := fun {X} (f : A ⨯ X ⟶ B) ↦ Exp_unique f
+
 
 -- ## TODO
 -- exhibit `CartesianClosed C` for a topos `C`.
