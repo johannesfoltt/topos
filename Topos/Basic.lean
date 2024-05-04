@@ -34,37 +34,21 @@ def Predicate.true_ (B : C) : B ⟶ Ω C := terminal.from B ≫ (t C)
 -/
 def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOf (diag B)
 
+-- B ⟶ P(B)
+-- b ↦ {b' ∈ B | (b', b) ↦ 1} = {b' ∈ B | b' = b } = {b}
+
+-- B ⨯ A ⟶ Ω
+-- A ⟶ P(B)
+-- a ↦ Uₐ
+
+-- B ⨯ {a} ⟶ Ω
+--  Uₐ ↣ B
+
 /--
   The "singleton" map {•}_B : B ⟶ Pow B.
   In Set, this map sends b ∈ B to the singleton set {b}.
 -/
 def singleton (B : C) : B ⟶ Pow B := P_transpose (Predicate.eq B)
-
--- lemma PullbackDiagRight {B X : C} (b : X ⟶ B) : IsPullback b (prod.lift b (𝟙 _)) (diag B) (prod.map (𝟙 _) b) where
---   w := by simp only [prod.comp_lift, comp_id, prod.lift_map, id_comp]
---   isLimit' := ⟨by
---     apply PullbackCone.IsLimit.mk (by simp only [prod.comp_lift, comp_id, prod.lift_map, id_comp]) (fun s ↦ (PullbackCone.snd s) ≫ prod.snd)
---     -- fac_left
---     intro s
---     have h₁ : (PullbackCone.snd s ≫ prod.map (𝟙 B) b) ≫ prod.snd = (PullbackCone.fst s ≫ diag B) ≫ prod.snd := by rw [PullbackCone.condition s]
---     simp at h₁
---     rw [assoc]; exact h₁
---     -- fac_right
---     intro s
---     have h₀ : (PullbackCone.snd s ≫ prod.map (𝟙 B) b) ≫ prod.fst = (PullbackCone.fst s ≫ diag B) ≫ prod.fst := by rw [PullbackCone.condition s]
---     have h₁ : (PullbackCone.snd s ≫ prod.map (𝟙 B) b) ≫ prod.snd = (PullbackCone.fst s ≫ diag B) ≫ prod.snd := by rw [PullbackCone.condition s]
---     ext
---     simp
---     simp at h₀
---     simp at h₁
---     exact h₁.trans h₀.symm
---     simp only [prod.comp_lift, assoc, comp_id, limit.lift_π, BinaryFan.mk_pt, BinaryFan.π_app_right, BinaryFan.mk_snd]
---     -- uniq
---     intro s m _ h'
---     have k₁ : (m ≫ prod.lift b (𝟙 X)) ≫ prod.snd = (PullbackCone.snd s) ≫ prod.snd := by rw [h']
---     simp only [prod.comp_lift, comp_id, limit.lift_π, BinaryFan.mk_pt, BinaryFan.π_app_right, BinaryFan.mk_snd] at k₁
---     assumption
---   ⟩
 
 lemma PullbackDiagRight {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (prod.lift b (𝟙 _)) (by
     show b ≫ diag B = prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b
@@ -91,6 +75,7 @@ lemma PullbackDiagRight {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (pr
     have k₁ : (m ≫ prod.lift b (𝟙 X)) ≫ prod.snd = (PullbackCone.snd s) ≫ prod.snd := by rw [h']
     simp only [prod.comp_lift, comp_id, limit.lift_π, BinaryFan.mk_pt, BinaryFan.π_app_right, BinaryFan.mk_snd] at k₁
     assumption
+
 
 
 /-- The singleton map {•}_B : B ⟶ Pow B is a monomorphism. -/

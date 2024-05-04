@@ -128,24 +128,22 @@ lemma Pow_map_id {B : C} : Pow_map (𝟙 B) = 𝟙 (Pow B) := by
   Sends arrows `h : A ⟶ B` to the P-transpose of the map `h⨯1 ≫ ∈_B : A ⨯ Pow B ⟶ B ⨯ Pow B ⟶ Ω`.
 -/
 def PowFunctor : Cᵒᵖ ⥤ C where
-  obj := fun B ↦ Pow B.unop
-  map := fun {A B} (h : A ⟶ B) ↦ Pow_map h.unop
+  obj := fun ⟨B⟩ ↦ Pow B
+  map := fun {A B} (⟨h⟩ : A ⟶ B) ↦ Pow_map h
   map_id := by
     intro X
     apply Pow_unique
     trivial
   map_comp := by
-    intro X Y Z f g
+    intro ⟨X⟩ ⟨Y⟩ ⟨Z⟩ ⟨f⟩ ⟨g⟩
     apply Pow_unique
     calc
-      prod.map (f ≫ g).unop (𝟙 (Pow X.unop)) ≫ in_ X.unop
-      = (prod.map g.unop (𝟙 (Pow X.unop))) ≫ (prod.map f.unop (𝟙 (Pow X.unop))) ≫ in_ X.unop := by simp
-      _ = (prod.map g.unop (𝟙 (Pow X.unop))) ≫ (prod.map (𝟙 Y.unop) (Pow_map f.unop)) ≫ in_ Y.unop := by rw [Pow_map_Powerizes]
-      _ = (prod.map (𝟙 Z.unop) (Pow_map f.unop)) ≫ (prod.map g.unop (𝟙 (Pow Y.unop))) ≫ in_ Y.unop := by simp
-      _ = (prod.map (𝟙 Z.unop) (Pow_map f.unop)) ≫ (prod.map (𝟙 Z.unop) (Pow_map g.unop)) ≫ in_ Z.unop := by rw [Pow_map_Powerizes]
-      _ = prod.map (𝟙 Z.unop) (Pow_map f.unop ≫ Pow_map g.unop) ≫ in_ Z.unop := by simp
-
-#check PowFunctor.map_comp
+      prod.map (g ≫ f)  (𝟙 (Pow X)) ≫ in_ X
+      = (prod.map g (𝟙 (Pow X))) ≫ (prod.map f  (𝟙 (Pow X))) ≫ in_ X  := by simp
+      _ = (prod.map g (𝟙 (Pow X))) ≫ (prod.map (𝟙 Y) (Pow_map f)) ≫ in_ Y := by rw [Pow_map_Powerizes]
+      _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map g (𝟙 (Pow Y))) ≫ in_ Y := by simp
+      _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map (𝟙 Z) (Pow_map g)) ≫ in_ Z := by rw [Pow_map_Powerizes]
+      _ = prod.map (𝟙 Z) (Pow_map f ≫ Pow_map g ) ≫ in_ Z  := by simp
 
 end
 end Power

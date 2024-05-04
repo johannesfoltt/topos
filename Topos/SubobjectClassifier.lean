@@ -14,9 +14,6 @@ open CategoryTheory Category Limits Functor
 
 variable {C : Type u} [Category.{v} C] [HasTerminal C]
 
--- abbrev classifying {Ω Ω₀ U X : C} (t : Ω₀ ⟶ Ω) (f : U ⟶ X) (χ : X ⟶ Ω) :=
---   HasPullbackTop f χ t
-
 structure classifying {U X Ω : C} (t : ⊤_ C ⟶ Ω) (f : U ⟶ X) (χ : X ⟶ Ω) where
   comm : f ≫ χ = (terminal.from U) ≫ t
   pb : IsLimit (PullbackCone.mk f (terminal.from U) comm)
