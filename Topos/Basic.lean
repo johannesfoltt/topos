@@ -50,10 +50,13 @@ def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOf (diag B)
 -/
 def singleton (B : C) : B ⟶ Pow B := P_transpose (Predicate.eq B)
 
-lemma PullbackDiagRight {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (prod.lift b (𝟙 _)) (by
-    show b ≫ diag B = prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b
-    simp only [prod.comp_lift, comp_id, prod.lift_map, id_comp]
-  )) := by
+-- example (B X : C) (b b' : X ⟶ B) (h : b)
+
+lemma PullbackDiagRightComm {B X : C} (b : X ⟶ B) : b ≫ diag B = prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b := by
+  simp only [prod.comp_lift, comp_id, prod.lift_map, id_comp]
+
+
+lemma PullbackDiagRight {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (prod.lift b (𝟙 _)) (PullbackDiagRightComm b)) := by
     apply PullbackCone.IsLimit.mk _ (fun s ↦ (PullbackCone.snd s) ≫ prod.snd)
     -- fac_left
     intro s
@@ -76,7 +79,21 @@ lemma PullbackDiagRight {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (pr
     simp only [prod.comp_lift, comp_id, limit.lift_π, BinaryFan.mk_pt, BinaryFan.π_app_right, BinaryFan.mk_snd] at k₁
     assumption
 
+lemma _BigSquare_comm {B X : C} (b : X ⟶ B) : (prod.lift b (𝟙 _)) ≫ ((prod.map (𝟙 _) b) ≫ (Predicate.eq B)) = terminal.from X ≫ (t C) := by
+  have sq_left_comm_b : b ≫ diag B = prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b := by simp only [prod.comp_lift, comp_id, prod.lift_map, id_comp]
+  calc
+    prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b ≫ Predicate.eq B
+      = b ≫ diag B ≫ Predicate.eq B := by rw [←assoc, ←assoc, sq_left_comm_b]
+    _ = b ≫ (terminal.from B) ≫ (t C) := by
+      dsimp only [Predicate.eq]
+      rw [(Classifies (diag B)).comm]
+    _ = terminal.from X ≫ t C := by rw [←assoc, terminal.comp_from b]
 
+lemma _BigSquare_pb {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk (prod.lift b (𝟙 _)) (terminal.from X) (_BigSquare_comm b)) := by
+  let BigSquare_pb := bigSquareIsPullback _ _ _ _ _ _ _
+    (by simp only [PullbackCone.mk_pt, PullbackCone.mk_π_app, prod.lift_map, comp_id, id_comp, prod.comp_lift]) (Classifies (diag B)).comm
+    (Classifies (diag B)).pb (PullbackCone.flipIsLimit (PullbackDiagRight b))
+  simp only [Unique.eq_default] at BigSquare_pb; assumption
 
 /-- The singleton map {•}_B : B ⟶ Pow B is a monomorphism. -/
 instance singletonMono (B : C) : Mono (singleton B) where
@@ -85,13 +102,44 @@ instance singletonMono (B : C) : Mono (singleton B) where
     rw [singleton] at h
     have h₁ : prod.map (𝟙 _) (b ≫ P_transpose (Predicate.eq B)) ≫ in_ B = prod.map (𝟙 _) (b' ≫ P_transpose (Predicate.eq B)) ≫ in_ B :=
       congrFun (congrArg CategoryStruct.comp (congrArg (prod.map (𝟙 B)) h)) (in_ B)
+    rw [prod.map_id_comp, assoc, ←(Pow_powerizes B (Predicate.eq B))] at h₁
+    rw [prod.map_id_comp, assoc, ←(Pow_powerizes B (Predicate.eq B))] at h₁
+    have sq_left_comm_b : b ≫ diag B = prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b := by simp only [prod.comp_lift, comp_id, prod.lift_map, id_comp]
+    have sq_left_comm_b' : b' ≫ diag B = prod.lift b' (𝟙 X) ≫ prod.map (𝟙 B) b' := by simp only [prod.comp_lift, comp_id, prod.lift_map, id_comp]
     have sq_right := (Classifies (diag B)).pb
-    have big_square_b := bigSquareIsPullback b _ _ _ _ _ _ _ _ sq_right (PullbackCone.flipIsLimit (PullbackDiagRight b))
-    have big_square_b' := bigSquareIsPullback b' _ _ _ _ _ _ _ _ sq_right (PullbackCone.flipIsLimit (PullbackDiagRight b'))
-    simp at big_square_b
-    simp at big_square_b'
+    have big_square_b_comm := _BigSquare_comm b
+    let cone_b := PullbackCone.mk (prod.lift b (𝟙 _)) (terminal.from X) big_square_b_comm
+    let big_square_b := _BigSquare_pb b
 
-    sorry
+    have big_square_b'_comm : (prod.lift b' (𝟙 _)) ≫ ((prod.map (𝟙 _) b) ≫ (Predicate.eq B)) = terminal.from X ≫ (t C) := by
+      rw [h₁]
+      exact _BigSquare_comm b'
+
+    let cone_b' := PullbackCone.mk (prod.lift b' (𝟙 _)) (terminal.from X) big_square_b'_comm
+    have big_square_b' : IsLimit cone_b' := by
+      dsimp only [cone_b']
+      let answer := _BigSquare_pb b'
+      -- (prod.lift b (𝟙 _)) ≫ ((prod.map (𝟙 _) b) ≫ (Predicate.eq B)) = terminal.from X ≫ (t C)
+      -- prod.lift b' (𝟙 X) ≫ prod.map (𝟙 B) b ≫ Predicate.eq B = terminal.from X ≫ t C
+      fapply PullbackCone.IsLimit.mk
+      intro s
+      repeat sorry
+
+    let cone_iso := IsLimit.conePointUniqueUpToIso big_square_b big_square_b'
+
+    have triangle : cone_iso.hom ≫ (prod.lift b' (𝟙 _)) = (prod.lift b (𝟙 _)) :=
+      IsLimit.conePointUniqueUpToIso_hom_comp big_square_b big_square_b' (some WalkingPair.left)
+    rw [prod.comp_lift, comp_id] at triangle
+    let t₁ : prod.lift (cone_iso.hom ≫ b') cone_iso.hom ≫ prod.fst = prod.lift b (𝟙 X) ≫ prod.fst := by rw [triangle]; rfl
+    let t₂ : prod.lift (cone_iso.hom ≫ b') cone_iso.hom ≫ prod.snd = prod.lift b (𝟙 X) ≫ prod.snd := by rw [triangle]; rfl
+    simp at t₁
+    simp at t₂
+    rw [t₂] at t₁
+    -- for some reason this doesn't work??
+    -- rw [id_comp] at t₁
+    have id' : 𝟙 X ≫ b' = b' := by rw [id_comp]
+    rw [id'] at t₁
+    exact t₁.symm
 
 def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
 
