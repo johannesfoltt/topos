@@ -129,14 +129,22 @@ instance Exp_isExponential (A B : C) : IsExponentialObject (eval A B) where
     sorry
   }
 
+variable (X Y : C)
+
+#check (prod.braiding X (Exp X Y)).hom
+
+
+def InternalComposition {X Y Z : C} : (Exp X Y) ⨯ (Exp Y Z) ⟶ Exp X Z :=
+  Exp_map ((prod.associator X (Exp X Y) (Exp Y Z)).inv ≫ (prod.map (eval X Y) (𝟙 _)) ≫ eval Y Z)
+
 -- ## TODO
 -- exhibit `CartesianClosed C` for a topos `C`.
 
-def ExpHom {X Y : C} (A : C) (f : X ⟶ Y) : Exp A X ⟶ Exp A Y := sorry
+def ExpHom {X Y : C} (A : C) (f : X ⟶ Y) : Exp A Y ⟶ Exp A X := sorry
 
-def ExpFunctor (A : C) : C ⥤ C where
-  obj := fun B ↦ Exp A B
-  map := fun {X Y} (f : X ⟶ Y) ↦ ExpHom A f
+def ExpFunctor (A : C) : Cᵒᵖ ⥤ C where
+  obj := fun ⟨B⟩ ↦ Exp A B
+  map := fun {X Y} ⟨f⟩ ↦ ExpHom A f
   map_id := sorry
   map_comp := sorry
 
