@@ -1,7 +1,9 @@
 import Mathlib.CategoryTheory.Category.Basic
+import Mathlib.CategoryTheory.Adjunction.Basic
 import Mathlib.CategoryTheory.Limits.Constructions.BinaryProducts
 import Mathlib.CategoryTheory.Limits.Constructions.FiniteProductsOfBinaryProducts
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
+import Mathlib.CategoryTheory.Monad.Monadicity
 import Topos.Category
 import Topos.SubobjectClassifier
 
@@ -91,7 +93,6 @@ theorem transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
 
 noncomputable section
 
--- want a computable version of this
 /-- The map Hom(B⨯A,Ω) → Hom(B,P(A)). -/
 def P_transpose_swap {B A} (f : B ⨯ A ⟶ Ω C) : B ⟶ Pow A := P_transpose ((prod.braiding A B).hom ≫ f)
 
@@ -117,10 +118,16 @@ lemma Pow_map_id {B : C} : Pow_map (𝟙 B) = 𝟙 (Pow B) := by
   apply Pow_unique; rfl
 
 
+
+
+
+variable (C)
+
 /--
   The Power object functor.
   Sends objects `B` to their power objects `Pow B`.
-  Sends arrows `h : A ⟶ B` to the P-transpose of the map `h⨯1 ≫ ∈_B : A ⨯ Pow B ⟶ B ⨯ Pow B ⟶ Ω`.
+  Sends arrows `h : A ⟶ B` to the P-transpose of the map `h⨯1 ≫ ∈_B : A ⨯ Pow B ⟶ B ⨯ Pow B ⟶ Ω`,
+  which is the "preimage" morphism `P(h) : Pow B ⟶ Pow A`.
 -/
 def PowFunctor : Cᵒᵖ ⥤ C where
   obj := fun ⟨B⟩ ↦ Pow B
@@ -139,6 +146,29 @@ def PowFunctor : Cᵒᵖ ⥤ C where
       _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map g (𝟙 (Pow Y))) ≫ in_ Y := by simp
       _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map (𝟙 Z) (Pow_map g)) ≫ in_ Z := by rw [Pow_map_Powerizes]
       _ = prod.map (𝟙 Z) (Pow_map f ≫ Pow_map g ) ≫ in_ Z  := by simp
+
+def PowFunctorOp : C ⥤ Cᵒᵖ where
+  obj := fun B ↦ ⟨Pow B⟩
+  map := fun h ↦ ⟨Pow_map h⟩
+  map_id := by
+    intro _
+    apply congrArg Opposite.op
+    apply (PowFunctor C).map_id
+  map_comp := by
+    intro _ _ _ f g
+    apply congrArg Opposite.op
+    show Pow_map (f ≫ g) = (Pow_map g) ≫ (Pow_map f)
+    apply (PowFunctor C).map_comp
+
+
+-- ## TODO
+-- Prove the self-adjunction.
+def PowSelfAdj : PowFunctor C ⊣ PowFunctorOp C where
+  homEquiv := sorry
+  unit := sorry
+  counit := sorry
+  homEquiv_unit := sorry
+  homEquiv_counit := sorry
 
 
 end
