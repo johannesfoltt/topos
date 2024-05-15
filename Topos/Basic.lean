@@ -34,16 +34,6 @@ def Predicate.true_ (B : C) : B ⟶ Ω C := terminal.from B ≫ (t C)
 -/
 def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOf (diag B)
 
--- B ⟶ P(B)
--- b ↦ {b' ∈ B | (b', b) ↦ 1} = {b' ∈ B | b' = b } = {b}
-
--- B ⨯ A ⟶ Ω
--- A ⟶ P(B)
--- a ↦ Uₐ
-
--- B ⨯ {a} ⟶ Ω
---  Uₐ ↣ B
-
 /--
   The "singleton" map {•}_B : B ⟶ Pow B.
   In Set, this map sends b ∈ B to the singleton set {b}.
@@ -53,30 +43,34 @@ def singleton (B : C) : B ⟶ Pow B := P_transpose (Predicate.eq B)
 -- example (B X : C) (b b' : X ⟶ B) (h : b)
 
 lemma PullbackDiagRightComm {B X : C} (b : X ⟶ B) : b ≫ diag B = prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b := by
-  simp only [prod.comp_lift, comp_id, prod.lift_map, id_comp]
+  rw [prod.comp_diag, prod.lift_map, id_comp, comp_id]
 
 
 lemma PullbackDiagRight {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (prod.lift b (𝟙 _)) (PullbackDiagRightComm b)) := by
-    apply PullbackCone.IsLimit.mk _ (fun s ↦ (PullbackCone.snd s) ≫ prod.snd)
+    apply PullbackCone.IsLimit.mk _ (fun s ↦ s.snd ≫ prod.snd)
     -- fac_left
     intro s
-    have h₁ : (PullbackCone.snd s ≫ prod.map (𝟙 B) b) ≫ prod.snd = (PullbackCone.fst s ≫ diag B) ≫ prod.snd := by rw [PullbackCone.condition s]
-    simp at h₁
-    rw [assoc]; exact h₁
+    rw [assoc, ←prod.map_snd (𝟙 _), ←s.condition_assoc prod.snd, ←assoc, prod.comp_diag, prod.lift_snd]
     -- fac_right
     intro s
-    have h₀ : (PullbackCone.snd s ≫ prod.map (𝟙 B) b) ≫ prod.fst = (PullbackCone.fst s ≫ diag B) ≫ prod.fst := by rw [PullbackCone.condition s]
-    have h₁ : (PullbackCone.snd s ≫ prod.map (𝟙 B) b) ≫ prod.snd = (PullbackCone.fst s ≫ diag B) ≫ prod.snd := by rw [PullbackCone.condition s]
     ext
-    simp
-    simp at h₀
-    simp at h₁
-    exact h₁.trans h₀.symm
-    simp only [prod.comp_lift, assoc, comp_id, limit.lift_π, BinaryFan.mk_pt, BinaryFan.π_app_right, BinaryFan.mk_snd]
+    rw [assoc, prod.lift_fst, assoc]
+    calc
+      s.snd ≫ prod.snd ≫ b
+        = (s.snd ≫ prod.map (𝟙 B) b) ≫ prod.snd := by rw [assoc, prod.map_snd]
+      _ = (s.fst ≫ diag B) ≫ prod.snd := by rw [s.condition]
+      _ = s.fst := by rw [assoc, prod.lift_snd, comp_id]
+      _ = (s.fst ≫ diag B) ≫ prod.fst := by rw [assoc, prod.lift_fst, comp_id]
+      _ = (s.snd ≫ prod.map (𝟙 B) b) ≫ prod.fst := by rw [s.condition]
+      _ = s.snd ≫ prod.fst := by rw [assoc, prod.map_fst, comp_id]
+    calc
+      ((s.snd ≫ prod.snd) ≫ prod.lift b (𝟙 X)) ≫ prod.snd
+        = (s.snd ≫ prod.snd) ≫ (𝟙 X) := by rw [assoc, prod.lift_snd]
+      _ = (s.snd ≫ prod.snd) := by rw [comp_id]
     -- uniq
-    intro s m _ h'
-    have k₁ : (m ≫ prod.lift b (𝟙 X)) ≫ prod.snd = (PullbackCone.snd s) ≫ prod.snd := by rw [h']
-    simp only [prod.comp_lift, comp_id, limit.lift_π, BinaryFan.mk_pt, BinaryFan.π_app_right, BinaryFan.mk_snd] at k₁
+    intro s m _ h
+    have k : (m ≫ prod.lift b (𝟙 X)) ≫ prod.snd = PullbackCone.snd s ≫ prod.snd := congrArg (fun r ↦ r ≫ prod.snd) h
+    rw [assoc, prod.lift_snd, comp_id] at k
     assumption
 
 lemma _BigSquare_comm {B X : C} (b : X ⟶ B) : (prod.lift b (𝟙 _)) ≫ ((prod.map (𝟙 _) b) ≫ (Predicate.eq B)) = terminal.from X ≫ (t C) := by
@@ -109,12 +103,14 @@ instance singletonMono (B : C) : Mono (singleton B) where
     have sq_right := (Classifies (diag B)).pb
     have big_square_b_comm := _BigSquare_comm b
     let cone_b := PullbackCone.mk (prod.lift b (𝟙 _)) (terminal.from X) big_square_b_comm
-    let big_square_b := _BigSquare_pb b
-
+    have big_square_b := _BigSquare_pb b
+    #check IsLimit.lift
     have big_square_b'_comm : (prod.lift b' (𝟙 _)) ≫ ((prod.map (𝟙 _) b) ≫ (Predicate.eq B)) = terminal.from X ≫ (t C) := by
       rw [h₁]
       exact _BigSquare_comm b'
     let cone_b' := PullbackCone.mk (prod.lift b' (𝟙 _)) (terminal.from X) big_square_b'_comm
+
+    save
     have big_square_b' : IsLimit cone_b' := by
       dsimp only [cone_b']
       let answer := _BigSquare_pb b'
@@ -122,6 +118,16 @@ instance singletonMono (B : C) : Mono (singleton B) where
       -- prod.lift b' (𝟙 X) ≫ prod.map (𝟙 B) b ≫ Predicate.eq B = terminal.from X ≫ t C
       fapply PullbackCone.IsLimit.mk
       intro s
+      apply PullbackCone.IsLimit.lift answer s.fst s.snd
+      rw [←h₁]
+      exact s.condition
+      -- #check PullbackCone.condition s
+      save
+
+      intro s
+
+
+
       repeat sorry
 
     let cone_iso := IsLimit.conePointUniqueUpToIso big_square_b big_square_b'
