@@ -78,6 +78,7 @@ theorem Mono_is_RegularMono {A B : C} (m : A ⟶ B) [Mono m] : RegularMono m :=
 /-- A category with a subobject classifier is balanced. -/
 def balanced {A B : C} (f : A ⟶ B) [ef : Epi f] [Mono f] : IsIso f :=
   @isIso_limit_cone_parallelPair_of_epi _ _ _ _ _ _ _ (Mono_is_RegularMono f).isLimit ef
+  -- isIso_limit_cone_parallelPair_of_epi (h := (Mono_is_RegularMono f).isLimit)
 
 instance : Balanced C where
   isIso_of_mono_of_epi := λ f => balanced f

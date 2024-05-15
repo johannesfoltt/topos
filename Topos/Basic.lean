@@ -114,7 +114,6 @@ instance singletonMono (B : C) : Mono (singleton B) where
     have big_square_b'_comm : (prod.lift b' (𝟙 _)) ≫ ((prod.map (𝟙 _) b) ≫ (Predicate.eq B)) = terminal.from X ≫ (t C) := by
       rw [h₁]
       exact _BigSquare_comm b'
-
     let cone_b' := PullbackCone.mk (prod.lift b' (𝟙 _)) (terminal.from X) big_square_b'_comm
     have big_square_b' : IsLimit cone_b' := by
       dsimp only [cone_b']
