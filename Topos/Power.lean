@@ -79,19 +79,21 @@ def Pow_unique (B : C) : ∀ {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B},
   Powerizes (in_ B) f hat' → P_transpose f = hat' :=
     (Pow_is_power B).unique'
 
-theorem transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
+
+
+noncomputable section
+
+def transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
   toFun := fun f => P_transpose f
   invFun := fun g => (prod.map (𝟙 _) g) ≫ in_ B
   left_inv := by
     intro f
-    exact (Pow_powerizes B f).symm
+    exact (Pow_powerizes _ f).symm
   right_inv := by
     intro g
     apply Pow_unique
     rw [Powerizes]
 
-
-noncomputable section
 
 /-- The map Hom(B⨯A,Ω) → Hom(B,P(A)). -/
 def P_transpose_swap {B A} (f : B ⨯ A ⟶ Ω C) : B ⟶ Pow A := P_transpose ((prod.braiding A B).hom ≫ f)
@@ -116,9 +118,6 @@ theorem Pow_map_square {B A : C} (h : A ⟶ B) : (prod.map h (𝟙 (Pow B))) ≫
 /-- `Pow_map` sends the identity on an object `X` to the identity on `Pow X`. -/
 lemma Pow_map_id {B : C} : Pow_map (𝟙 B) = 𝟙 (Pow B) := by
   apply Pow_unique; rfl
-
-
-
 
 
 variable (C)
@@ -159,7 +158,6 @@ def PowFunctorOp : C ⥤ Cᵒᵖ where
     apply congrArg Opposite.op
     show Pow_map (f ≫ g) = (Pow_map g) ≫ (Pow_map f)
     apply (PowFunctor C).map_comp
-
 
 -- ## TODO
 -- Prove the self-adjunction.

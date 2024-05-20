@@ -59,8 +59,7 @@ theorem ClassifierPullback : IsPullback f (terminal.from U) (ClassifierOf f) (t 
   IsPullback.of_isLimit (Classifies f).pb
 
 noncomputable def ClassifierCone_into {Z : C} (g : Z ⟶ X) (comm' : g ≫ (ClassifierOf f) = (terminal.from Z ≫ t C)) :
-  Z ⟶ U := IsLimit.lift (Classifies f).pb (PullbackCone.mk g (terminal.from Z) comm')
-
+  Z ⟶ U := PullbackCone.IsLimit.lift (Classifies f).pb _ _ comm'
 
 end Classifier
 

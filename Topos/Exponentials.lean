@@ -34,6 +34,8 @@ def Exp (A B : C) : C :=
 /-- The map which, in Set, sends a function (A → B) ∈ B^A to its graph as a subset of B ⨯ A. -/
 def Exp_toGraph (A B : C) : Exp A B ⟶ Pow (B ⨯ A) := pullback.fst
 
+instance Exp_toGraph_Mono {A B : C} : Mono (Exp_toGraph A B) := pullback.fst_of_mono
+
 lemma ExpConeSnd_Terminal (A B : C) : pullback.snd = terminal.from (Exp A B) := Unique.eq_default _
 
 lemma Exp_comm (A B : C) : Exp_toGraph A B ≫ (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B))
@@ -64,6 +66,7 @@ def eval (A B : C) : A ⨯ (Exp A B) ⟶ B :=
   ClassifierCone_into (singleton B)
     (prod.map (𝟙 _) (Exp_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)))
     (EvalDef_comm A B)
+
 
 
 abbrev Exponentiates {A B X HomAB : C}  (e : A ⨯ HomAB ⟶ B) (f : A ⨯ X ⟶ B) (f_exp : X ⟶ HomAB) :=
@@ -150,6 +153,7 @@ lemma ExpMapSquareComm (f : A ⨯ X ⟶ B) :
     rw [(Classifies (singleton _)).comm, ←assoc, f_terminal, ←assoc, rightUnitor_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
 
 
+
 def Exp_map (f : A ⨯ X ⟶ B) : X ⟶ Exp A B :=
   pullback.lift (h_map f) (terminal.from X) (ExpMapSquareComm f)
 
@@ -162,32 +166,66 @@ theorem Exp_Exponentiates (f : A ⨯ X ⟶ B) : Exponentiates (eval A B) f (Exp_
 instance Exp_isExponential : IsExponentialObject (eval A B) where
   exp := fun f ↦ Exp_map f
   exponentiates := Exp_Exponentiates
-  unique' := fun {X} (f : A ⨯ X ⟶ B) {exp' : X ⟶ Exp A B} ↦ by {
+  unique' := fun {X} (f : A ⨯ X ⟶ B) {exp' : X ⟶ Exp A B} ↦ by
     intro h
     simp only
-    rw [Exponentiates] at h
+    dsimp only [Exponentiates] at h
     have h_singleton := congrArg (fun k ↦ k ≫ singleton B) h
     simp only at h_singleton
     let v : A ⨯ Pow (B ⨯ A) ⟶ Pow B := P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
     -- want to rewrite (1⨯g) ≫ eval A B ≫ singleton B = (1⨯(g≫m)) ≫ v
 
-    -- this is kinda just directly the definition of eval? Can't seem to find the right lemma for it.
-    have rhs : eval A B ≫ singleton B = prod.map (𝟙 _) (Exp_toGraph A B) ≫ v := sorry
+    have rhs : eval A B ≫ singleton B = prod.map (𝟙 _) (Exp_toGraph A B) ≫ v := by
+      apply PullbackCone.IsLimit.lift_fst
     rw [assoc, rhs, ←assoc, ←prod.map_id_comp] at h_singleton
 
     let id_f'eq : B ⨯ A ⨯ X ⟶ Ω C := prod.map (𝟙 _) f ≫ Predicate.eq _
-    let u := P_transpose (v ≫ Predicate.isSingleton B)
-    let id_u := prod.map (𝟙 A) u
-    have u_condition : v ≫ Predicate.isSingleton B = id_u ≫ in_ _  := Pow_powerizes _ _
 
     have h₁ : P_transpose (id_f'eq) = f ≫ singleton B := by
-      sorry
+      apply Pow_unique
+      dsimp only [Powerizes, id_f'eq, singleton]
+      rw [prod.map_id_comp, assoc, ←(Pow_powerizes _ (Predicate.eq B))]
     have h₂ : P_transpose (prod.map (𝟙 _) (prod.map (𝟙 _) (exp' ≫ Exp_toGraph A B)) ≫ (prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
       = prod.map (𝟙 _) (exp' ≫ Exp_toGraph A B) ≫ v := by
-        sorry
+        apply Pow_unique
+        dsimp only [Powerizes]
+        nth_rewrite 2 [prod.map_id_comp]
+        rw [assoc, ←(Pow_powerizes _ _)]
 
-    sorry
-  }
+    have h₃ := Pow_powerizes _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (exp' ≫ Exp_toGraph A B)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
+    dsimp only [Powerizes] at h₃
+    rw [h₂, ←h_singleton, ←h₁, ←(Pow_powerizes _ id_f'eq), ←assoc] at h₃
+
+    have h' := Exp_Exponentiates f
+    dsimp only [Exponentiates] at h'
+    have h'_singleton := congrArg (fun k ↦ k ≫ singleton B) h'
+    simp only at h'_singleton
+    rw [assoc, rhs, ←assoc, ←prod.map_id_comp] at h'_singleton
+
+    have h₂' : P_transpose (prod.map (𝟙 _) (prod.map (𝟙 _) (Exp_map f ≫ Exp_toGraph A B)) ≫ (prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
+      = prod.map (𝟙 _) (Exp_map f ≫ Exp_toGraph A B) ≫ v := by
+        apply Pow_unique
+        dsimp only [Powerizes]
+        nth_rewrite 2 [prod.map_id_comp]
+        rw [assoc, ←(Pow_powerizes _ _)]
+    have h₃' := Pow_powerizes _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (Exp_map f ≫ Exp_toGraph A B)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
+    dsimp only [Powerizes] at h₃'
+    rw [h₂', ←h'_singleton, ←h₁, ←(Pow_powerizes _ id_f'eq), ←assoc] at h₃'
+
+    have hx := h₃.trans h₃'.symm
+    have c₀ : prod.map (𝟙 B) (prod.map (𝟙 A) (exp' ≫ Exp_toGraph A B)) ≫ (prod.associator _ _ _).inv
+      = (prod.associator _ _ _).inv ≫ (prod.map (𝟙 _) (exp' ≫ Exp_toGraph A B)) := by simp
+    have c₁ : prod.map (𝟙 B) (prod.map (𝟙 A) (Exp_map f ≫ Exp_toGraph A B)) ≫ (prod.associator _ _ _).inv
+      = (prod.associator _ _ _).inv ≫ (prod.map (𝟙 _) (Exp_map f ≫ Exp_toGraph A B)) := by simp
+    rw [c₀, c₁] at hx
+    have hy := congrArg (fun k ↦ (prod.associator B A X).hom ≫ k) hx
+    simp only at hy
+    rw [←assoc, ←assoc, Iso.hom_inv_id, id_comp, ←assoc, ←assoc, Iso.hom_inv_id, id_comp] at hy
+    have hz := congrArg (fun k ↦ P_transpose k) hy
+    simp only at hz
+    rw [transposeEquiv.proof_4, transposeEquiv.proof_4] at hz
+    rw [cancel_mono] at hz
+    exact hz.symm
 
 
 def InternalComposition {X Y Z : C} : (Exp X Y) ⨯ (Exp Y Z) ⟶ Exp X Z :=
