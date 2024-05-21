@@ -84,7 +84,7 @@ def Pow_unique (B : C) : ∀ {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B},
 noncomputable section
 
 def transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
-  toFun := fun f => P_transpose f
+  toFun := P_transpose
   invFun := fun g => (prod.map (𝟙 _) g) ≫ in_ B
   left_inv := by
     intro f
