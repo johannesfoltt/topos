@@ -29,17 +29,17 @@ noncomputable def ofIsPullback
   {left : W ⟶ Y} {bottom : Y ⟶ Z} {top : W ⟶ X} {right : X ⟶ Z}
   {comm : top ≫ right = left ≫ bottom }
   (pb : IsPullback top left right bottom) :
-  HasPullbackTop left bottom right := {
-  top := top,
-  comm := comm,
-  pb := Classical.choice pb.isLimit'
-}
+  HasPullbackTop left bottom right where
+    top := top
+    comm := comm
+    pb := Classical.choice pb.isLimit'
+
 
 def uniqueTop (left : W ⟶ Y) (bottom : Y ⟶ Z) (right : X ⟶ Z) [Mono right]
-  (P Q : HasPullbackTop left bottom right) : P.top = Q.top := by {
+  (P Q : HasPullbackTop left bottom right) : P.top = Q.top := by
     rw [←cancel_mono right]
     rw [P.comm, Q.comm]
-}
+
 
 end HasPullbackTop
 
@@ -88,8 +88,7 @@ theorem PullbackSquareOfLeftIsIso {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h :
     exact ⟨s.snd ≫ inv g, by erw [assoc, IsIso.inv_hom_id g, comp_id]⟩
 
 theorem left_iso_has_pullback_top {W X Y Z : C} (f : W ⟶ X) (g : W ⟶ Y) (h : X ⟶ Z) (k : Y ⟶ Z) [Mono h] [IsIso g] (comm : f ≫ h = g ≫ k) :
-  HasPullbackTop g k h := {
-  top := f,
-  comm := comm,
-  pb := PullbackSquareOfLeftIsIso f g h k comm
-}
+  HasPullbackTop g k h where
+    top := f
+    comm := comm
+    pb := PullbackSquareOfLeftIsIso f g h k comm

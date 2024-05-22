@@ -83,20 +83,43 @@ def Pow_unique (B : C) : ∀ {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B},
 
 noncomputable section
 
+/-- Equivalence between Hom(B⨯A,Ω) and Hom(A,P(B)). -/
 def transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
   toFun := P_transpose
   invFun := fun g => (prod.map (𝟙 _) g) ≫ in_ B
   left_inv := by
-    intro f
-    exact (Pow_powerizes _ f).symm
+    intro
+    exact (Pow_powerizes _ _).symm
   right_inv := by
     intro g
     apply Pow_unique
-    rw [Powerizes]
+    dsimp only [Powerizes]
 
 
 /-- The map Hom(B⨯A,Ω) → Hom(B,P(A)). -/
-def P_transpose_swap {B A} (f : B ⨯ A ⟶ Ω C) : B ⟶ Pow A := P_transpose ((prod.braiding A B).hom ≫ f)
+def P_transpose_symm {B A} (f : B ⨯ A ⟶ Ω C) : B ⟶ Pow A := P_transpose ((prod.braiding A B).hom ≫ f)
+
+/-- Equivalence between Hom(B⨯A,Ω) and Hom(B,P(A)). -/
+def transposeEquivSymm (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (B ⟶ Pow A) where
+  toFun := P_transpose_symm
+  invFun := fun g => (prod.braiding A B).inv ≫ (prod.map (𝟙 _) g) ≫ in_ A
+  left_inv := by
+    intro f
+    dsimp only [P_transpose_symm]
+    rw [←Pow_powerizes, ←assoc, Iso.inv_hom_id, id_comp]
+  right_inv := by
+    intro g
+    apply Pow_unique
+    rw [←assoc, Iso.hom_inv_id, id_comp]
+
+/--
+  Equivalence between Hom(A,P(B)) and Hom(B, P(A)).
+  This is just the composition of `transposeEquiv` and `transposeEquivSymm`.
+-/
+def transpose_transpose_Equiv (A B : C) : (B ⟶ Pow A) ≃ (A ⟶ Pow B) :=
+  -- (transposeEquivSymm A B).symm.trans (transposeEquiv A B)
+  Equiv.trans (transposeEquivSymm A B).symm (transposeEquiv A B)
+
 
 -- not sure why this isn't computable either? It's just the composition of two maps.
 def toPredicate {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙 _) f) ≫ in_ B
@@ -120,6 +143,7 @@ lemma Pow_map_id {B : C} : Pow_map (𝟙 B) = 𝟙 (Pow B) := by
   apply Pow_unique; rfl
 
 
+
 variable (C)
 
 /--
@@ -134,17 +158,17 @@ def PowFunctor : Cᵒᵖ ⥤ C where
   map_id := by
     intro _
     apply Pow_unique
-    trivial
+    rfl
   map_comp := by
     intro ⟨X⟩ ⟨Y⟩ ⟨Z⟩ ⟨f⟩ ⟨g⟩
     apply Pow_unique
     calc
       prod.map (g ≫ f)  (𝟙 (Pow X)) ≫ in_ X
-        = (prod.map g (𝟙 (Pow X))) ≫ (prod.map f  (𝟙 (Pow X))) ≫ in_ X  := by simp
+        = (prod.map g (𝟙 (Pow X))) ≫ (prod.map f  (𝟙 (Pow X))) ≫ in_ X  := by rw [←assoc, ←prod.map_comp_id]
       _ = (prod.map g (𝟙 (Pow X))) ≫ (prod.map (𝟙 Y) (Pow_map f)) ≫ in_ Y := by rw [Pow_map_Powerizes]
-      _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map g (𝟙 (Pow Y))) ≫ in_ Y := by simp
+      _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map g (𝟙 (Pow Y))) ≫ in_ Y := by repeat rw [prod.map_map_assoc, comp_id, id_comp]
       _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map (𝟙 Z) (Pow_map g)) ≫ in_ Z := by rw [Pow_map_Powerizes]
-      _ = prod.map (𝟙 Z) (Pow_map f ≫ Pow_map g ) ≫ in_ Z  := by simp
+      _ = prod.map (𝟙 Z) (Pow_map f ≫ Pow_map g ) ≫ in_ Z  := by rw [←assoc, prod.map_id_comp]
 
 def PowFunctorOp : C ⥤ Cᵒᵖ where
   obj := fun B ↦ ⟨Pow B⟩
@@ -156,18 +180,76 @@ def PowFunctorOp : C ⥤ Cᵒᵖ where
   map_comp := by
     intro _ _ _ f g
     apply congrArg Opposite.op
-    show Pow_map (f ≫ g) = (Pow_map g) ≫ (Pow_map f)
     apply (PowFunctor C).map_comp
 
 -- ## TODO
 -- Prove the self-adjunction.
-def PowSelfAdj : PowFunctor C ⊣ PowFunctorOp C where
-  homEquiv := sorry
+def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
+  apply Adjunction.mkOfHomEquiv
+  fapply Adjunction.CoreHomEquiv.mk
+
+  -- homEquiv step
+  intro X ⟨Y⟩
+  fapply Equiv.mk
+  exact fun ⟨f⟩ => (transpose_transpose_Equiv X Y).toFun f
+  exact fun g => ⟨(transpose_transpose_Equiv X Y).invFun g⟩
+  intro ⟨f⟩
+  simp only
+  rw [Equiv.left_inv]
+  intro g
+  simp only
+  rw [Equiv.right_inv]
+
+  intro X' X ⟨Y⟩ f g
+  simp
+  have h : (PowFunctorOp C).map f ≫ { unop := (transpose_transpose_Equiv X Y).symm g }
+    = { unop := (transpose_transpose_Equiv X Y).symm g ≫ (Pow_map f)} := rfl
+  rw [h]
+
+  have h' : (transpose_transpose_Equiv X' Y).symm (f ≫ g)
+    = (transpose_transpose_Equiv X Y).symm g ≫ Pow_map f := by
+      dsimp only [transpose_transpose_Equiv, transposeEquivSymm, transposeEquiv]
+      simp
+      dsimp only [P_transpose_symm, Pow_map]
+      apply Pow_unique
+      dsimp only [Powerizes]
+      sorry
+  rw [h']
+
+
+  intro X ⟨Y⟩ ⟨Y'⟩ f_ g_
+  dsimp only [transpose_transpose_Equiv, transposeEquiv, transposeEquivSymm]
+
+  simp only [prod.lift_map_assoc, comp_id, Equiv.toFun_as_coe, Equiv.trans_apply,
+    Equiv.coe_fn_symm_mk, Equiv.coe_fn_mk, Equiv.invFun_as_coe, Equiv.symm_trans_apply,
+    Equiv.symm_symm]
+
+  have h : f_ ≫ g_ = Opposite.mk (g_.unop ≫ f_.unop) := rfl
+  rw [h]
+  simp only
+  let ⟨f⟩ := f_
+  let ⟨g⟩ := g_
+  rw [prod.map_id_comp]
+
+  save
+  sorry
+
+def PowerSelfAdj' : PowFunctorOp C ⊣ PowFunctor C where
+  homEquiv := by
+    intro X ⟨Y⟩
+    fapply Equiv.mk
+    exact fun ⟨f⟩ => (transpose_transpose_Equiv X Y).toFun f
+    exact fun g => ⟨(transpose_transpose_Equiv X Y).invFun g⟩
+    intro ⟨f⟩
+    simp only
+    rw [Equiv.left_inv]
+    intro g
+    simp only
+    rw [Equiv.right_inv]
   unit := sorry
   counit := sorry
   homEquiv_unit := sorry
   homEquiv_counit := sorry
-
 
 end
 end Power
