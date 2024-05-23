@@ -83,10 +83,13 @@ def Pow_unique (B : C) : ∀ {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B},
 
 noncomputable section
 
+
+abbrev toPredicate {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙 _) f) ≫ in_ B
+
 /-- Equivalence between Hom(B⨯A,Ω) and Hom(A,P(B)). -/
 def transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
   toFun := P_transpose
-  invFun := fun g => (prod.map (𝟙 _) g) ≫ in_ B
+  invFun := fun g => toPredicate g
   left_inv := by
     intro
     exact (Pow_powerizes _ _).symm
@@ -102,10 +105,10 @@ def P_transpose_symm {B A} (f : B ⨯ A ⟶ Ω C) : B ⟶ Pow A := P_transpose (
 /-- Equivalence between Hom(B⨯A,Ω) and Hom(B,P(A)). -/
 def transposeEquivSymm (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (B ⟶ Pow A) where
   toFun := P_transpose_symm
-  invFun := fun g => (prod.braiding A B).inv ≫ (prod.map (𝟙 _) g) ≫ in_ A
+  invFun := fun g => (prod.braiding A B).inv ≫ (toPredicate g)
   left_inv := by
     intro f
-    dsimp only [P_transpose_symm]
+    dsimp only [P_transpose_symm, toPredicate]
     rw [←Pow_powerizes, ←assoc, Iso.inv_hom_id, id_comp]
   right_inv := by
     intro g
@@ -120,9 +123,6 @@ def transpose_transpose_Equiv (A B : C) : (B ⟶ Pow A) ≃ (A ⟶ Pow B) :=
   -- (transposeEquivSymm A B).symm.trans (transposeEquiv A B)
   Equiv.trans (transposeEquivSymm A B).symm (transposeEquiv A B)
 
-
--- not sure why this isn't computable either? It's just the composition of two maps.
-def toPredicate {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙 _) f) ≫ in_ B
 
 /--
   The power object functor's action on arrows.
@@ -139,6 +139,7 @@ theorem Pow_map_square {B A : C} (h : A ⟶ B) : (prod.map h (𝟙 (Pow B))) ≫
   Pow_map_Powerizes h
 
 /-- `Pow_map` sends the identity on an object `X` to the identity on `Pow X`. -/
+@[simp]
 lemma Pow_map_id {B : C} : Pow_map (𝟙 B) = 𝟙 (Pow B) := by
   apply Pow_unique; rfl
 
@@ -182,8 +183,6 @@ def PowFunctorOp : C ⥤ Cᵒᵖ where
     apply congrArg Opposite.op
     apply (PowFunctor C).map_comp
 
--- ## TODO
--- Prove the self-adjunction.
 def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
   apply Adjunction.mkOfHomEquiv
   fapply Adjunction.CoreHomEquiv.mk
@@ -205,6 +204,19 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
   have h : (PowFunctorOp C).map f ≫ { unop := (transpose_transpose_Equiv X Y).symm g }
     = { unop := (transpose_transpose_Equiv X Y).symm g ≫ (Pow_map f)} := rfl
   rw [h]
+  have h₀ :
+    prod.map (𝟙 Y) (f ≫ g) ≫ in_ Y =
+    (prod.braiding X' Y).inv ≫ prod.map (𝟙 X') (P_transpose ((prod.braiding X Y).hom ≫ prod.map (𝟙 Y) g ≫ in_ Y) ≫ P_transpose (prod.map f (𝟙 (Pow X)) ≫ in_ X)) ≫ in_ X'
+    →
+    (prod.braiding X' Y).hom ≫ prod.map (𝟙 Y) (f ≫ g) ≫ in_ Y =
+    prod.map (𝟙 X') (P_transpose ((prod.braiding X Y).hom ≫ prod.map (𝟙 Y) g ≫ in_ Y) ≫ P_transpose (prod.map f (𝟙 (Pow X)) ≫ in_ X)) ≫ in_ X'
+      := by
+      intro h'
+      have h'' := congrArg (fun k ↦ (prod.braiding X' Y).hom ≫ k) h'
+      simp only at h''
+      nth_rw 2 [←assoc] at h''
+      rw [Iso.hom_inv_id, id_comp] at h''
+      assumption
 
   have h' : (transpose_transpose_Equiv X' Y).symm (f ≫ g)
     = (transpose_transpose_Equiv X Y).symm g ≫ Pow_map f := by
@@ -213,66 +225,60 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
       dsimp only [P_transpose_symm, Pow_map]
       apply Pow_unique
       dsimp only [Powerizes]
-      have h :
-        prod.map (𝟙 Y) (f ≫ g) ≫ in_ Y =
-        (prod.braiding X' Y).inv ≫ prod.map (𝟙 X') (P_transpose ((prod.braiding X Y).hom ≫ prod.map (𝟙 Y) g ≫ in_ Y) ≫ P_transpose (prod.map f (𝟙 (Pow X)) ≫ in_ X)) ≫ in_ X'
-        →
-        (prod.braiding X' Y).hom ≫ prod.map (𝟙 Y) (f ≫ g) ≫ in_ Y =
-        prod.map (𝟙 X') (P_transpose ((prod.braiding X Y).hom ≫ prod.map (𝟙 Y) g ≫ in_ Y) ≫ P_transpose (prod.map f (𝟙 (Pow X)) ≫ in_ X)) ≫ in_ X'
-          := by
-          intro h'
-          have h'' := congrArg (fun k ↦ (prod.braiding X' Y).hom ≫ k) h'
-          simp only at h''
-          nth_rewrite 2 [←assoc] at h''
-          rw [Iso.hom_inv_id, id_comp] at h''
-          assumption
-      apply h
-
-      sorry
+      apply h₀
+      nth_rw 2 [prod.map_id_comp]
+      repeat rw [assoc]
+      rw [←(Pow_powerizes _ _)]
+      nth_rw 2 [←assoc]
+      rw [prod.map_map, id_comp, comp_id]
+      have k' : prod.map f (P_transpose ((prod.braiding X Y).hom ≫ prod.map (𝟙 Y) g ≫ in_ Y))
+        = prod.map (f) (𝟙 _) ≫ prod.map (𝟙 _) (P_transpose ((prod.braiding X Y).hom ≫ prod.map (𝟙 Y) g ≫ in_ Y)) := by simp
+      rw [k']
+      repeat rw [assoc]
+      rw [←(Pow_powerizes _ _)]
+      rw [←assoc]
+      have k'' : (prod.braiding X' Y).inv ≫ prod.map f (𝟙 Y)
+        = prod.map (𝟙 _) f ≫ (prod.braiding _ _).inv := by simp
+      rw [k'', assoc]
+      nth_rw 2 [←assoc]
+      rw [Iso.inv_hom_id, id_comp, ←assoc, prod.map_map, id_comp]
   rw [h']
-
 
   intro X ⟨Y⟩ ⟨Y'⟩ f_ g_
   dsimp only [transpose_transpose_Equiv, transposeEquiv, transposeEquivSymm]
-
   simp only [prod.lift_map_assoc, comp_id, Equiv.toFun_as_coe, Equiv.trans_apply,
     Equiv.coe_fn_symm_mk, Equiv.coe_fn_mk, Equiv.invFun_as_coe, Equiv.symm_trans_apply,
     Equiv.symm_symm]
-
   have h : f_ ≫ g_ = Opposite.mk (g_.unop ≫ f_.unop) := rfl
   rw [h]
   simp only
   let ⟨f⟩ := f_
   let ⟨g⟩ := g_
-  rw [prod.map_id_comp]
+  rw [toPredicate, prod.map_id_comp]
 
   simp only
   apply Pow_unique
   dsimp only [Powerizes]
+  show (prod.braiding X Y').inv ≫ (prod.map (𝟙 X) g ≫ prod.map (𝟙 X) f) ≫ in_ X =
+    prod.map (𝟙 Y') (P_transpose ((prod.braiding X Y).inv ≫ toPredicate f) ≫ Pow_map g) ≫ in_ Y'
+  rw [prod.map_map, id_comp, Pow_map, toPredicate]
+  nth_rw 2 [prod.map_id_comp]
+  repeat rw [assoc]
+  rw [←(Pow_powerizes _ _)]
+  nth_rw 2 [←assoc]
+  rw [prod.map_map, id_comp, comp_id]
 
-
-
-  sorry
-
-
-def PowerSelfAdj' : PowFunctorOp C ⊣ PowFunctor C where
-  homEquiv := fun X ⟨Y⟩ => {
-    toFun := fun ⟨f⟩ => (transpose_transpose_Equiv X Y).toFun f
-    invFun := fun g => ⟨(transpose_transpose_Equiv X Y).invFun g⟩
-    left_inv := fun ⟨g⟩ => by simp
-    right_inv := fun f => by simp
-  }
-  unit := {
-    app := fun X => P_transpose ((prod.braiding (Pow X) X).hom ≫ in_ X)
-    naturality := by
-      intro X Y f
-      simp only [Functor.id_map, Functor.comp_map]
-
-      sorry
-  }
-  counit := sorry
-  homEquiv_unit := sorry
-  homEquiv_counit := sorry
+  have k' : prod.map g (P_transpose ((prod.braiding X Y).inv ≫ prod.map (𝟙 X) f ≫ in_ X))
+    = prod.map g (𝟙 _) ≫ prod.map (𝟙 _) (P_transpose ((prod.braiding X Y).inv ≫ prod.map (𝟙 X) f ≫ in_ X)) := by simp
+  rw [k']
+  repeat rw [assoc]
+  rw [←(Pow_powerizes _ _)]
+  nth_rw 2 [←assoc]
+  have k'' : prod.map g (𝟙 X) ≫ (prod.braiding X Y).inv
+    = (prod.braiding _ _).inv ≫ prod.map (𝟙 _) g := by simp
+  rw [k'', assoc]
+  nth_rw 3 [←assoc]
+  rw [prod.map_map, id_comp]
 
 end
 end Power
