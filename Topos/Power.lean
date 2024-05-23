@@ -178,7 +178,7 @@ def PowFunctorOp : C ⥤ Cᵒᵖ where
     apply congrArg Opposite.op
     apply (PowFunctor C).map_id
   map_comp := by
-    intro _ _ _ f g
+    intros
     apply congrArg Opposite.op
     apply (PowFunctor C).map_comp
 
@@ -213,6 +213,21 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
       dsimp only [P_transpose_symm, Pow_map]
       apply Pow_unique
       dsimp only [Powerizes]
+      have h :
+        prod.map (𝟙 Y) (f ≫ g) ≫ in_ Y =
+        (prod.braiding X' Y).inv ≫ prod.map (𝟙 X') (P_transpose ((prod.braiding X Y).hom ≫ prod.map (𝟙 Y) g ≫ in_ Y) ≫ P_transpose (prod.map f (𝟙 (Pow X)) ≫ in_ X)) ≫ in_ X'
+        →
+        (prod.braiding X' Y).hom ≫ prod.map (𝟙 Y) (f ≫ g) ≫ in_ Y =
+        prod.map (𝟙 X') (P_transpose ((prod.braiding X Y).hom ≫ prod.map (𝟙 Y) g ≫ in_ Y) ≫ P_transpose (prod.map f (𝟙 (Pow X)) ≫ in_ X)) ≫ in_ X'
+          := by
+          intro h'
+          have h'' := congrArg (fun k ↦ (prod.braiding X' Y).hom ≫ k) h'
+          simp only at h''
+          nth_rewrite 2 [←assoc] at h''
+          rw [Iso.hom_inv_id, id_comp] at h''
+          assumption
+      apply h
+
       sorry
   rw [h']
 
@@ -231,22 +246,30 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
   let ⟨g⟩ := g_
   rw [prod.map_id_comp]
 
-  save
+  simp only
+  apply Pow_unique
+  dsimp only [Powerizes]
+
+
+
   sorry
 
+
 def PowerSelfAdj' : PowFunctorOp C ⊣ PowFunctor C where
-  homEquiv := by
-    intro X ⟨Y⟩
-    fapply Equiv.mk
-    exact fun ⟨f⟩ => (transpose_transpose_Equiv X Y).toFun f
-    exact fun g => ⟨(transpose_transpose_Equiv X Y).invFun g⟩
-    intro ⟨f⟩
-    simp only
-    rw [Equiv.left_inv]
-    intro g
-    simp only
-    rw [Equiv.right_inv]
-  unit := sorry
+  homEquiv := fun X ⟨Y⟩ => {
+    toFun := fun ⟨f⟩ => (transpose_transpose_Equiv X Y).toFun f
+    invFun := fun g => ⟨(transpose_transpose_Equiv X Y).invFun g⟩
+    left_inv := fun ⟨g⟩ => by simp
+    right_inv := fun f => by simp
+  }
+  unit := {
+    app := fun X => P_transpose ((prod.braiding (Pow X) X).hom ≫ in_ X)
+    naturality := by
+      intro X Y f
+      simp only [Functor.id_map, Functor.comp_map]
+
+      sorry
+  }
   counit := sorry
   homEquiv_unit := sorry
   homEquiv_counit := sorry

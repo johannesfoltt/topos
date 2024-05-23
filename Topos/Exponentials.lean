@@ -252,7 +252,11 @@ def ExpHom {X Y : C} (A : C) (f : X ⟶ Y) : Exp A X ⟶ Exp A Y :=
 def ExpFunctor (A : C) : C ⥤ C where
   obj := fun B ↦ Exp A B
   map := fun {X Y} f ↦ ExpHom A f
-  map_id := sorry
+  map_id := by
+    intro X
+    simp
+    dsimp only [ExpHom, InternalComposition]
+    sorry
   map_comp := sorry
 
 instance ToposMonoidal : MonoidalCategory C := monoidalOfHasFiniteProducts C
