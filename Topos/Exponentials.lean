@@ -256,6 +256,8 @@ def ExpFunctor (A : C) : C ⥤ C where
     intro X
     simp
     dsimp only [ExpHom, InternalComposition]
+    rw [comp_id, ←assoc]
+
     sorry
   map_comp := sorry
 
