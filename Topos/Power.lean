@@ -2,14 +2,15 @@ import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Adjunction.Basic
 import Mathlib.CategoryTheory.Limits.Constructions.BinaryProducts
 import Mathlib.CategoryTheory.Limits.Constructions.FiniteProductsOfBinaryProducts
+import Mathlib.CategoryTheory.Limits.Constructions.Equalizers
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Mathlib.CategoryTheory.Monad.Monadicity
-import Topos.Category
 import Topos.SubobjectClassifier
 
 namespace CategoryTheory
 
 open CategoryTheory Category Limits Classifier
+
 
 /-!
 # Power Objects
@@ -17,10 +18,9 @@ open CategoryTheory Category Limits Classifier
 Defines power objects for a category C with a subobject classifier and pullbacks.
 -/
 
-universe u v
-
 variable {C : Type u} [Category.{v} C] [HasTerminal C] [HasSubobjectClassifier C] [HasPullbacks C]
 
+namespace Power
 
 /--
   Having a subobject classifier implies having terminal objects.
@@ -29,6 +29,10 @@ variable {C : Type u} [Category.{v} C] [HasTerminal C] [HasSubobjectClassifier C
 instance hasBinaryProducts : HasBinaryProducts C := hasBinaryProducts_of_hasTerminal_and_pullbacks C
 
 instance hasFiniteProducts : HasFiniteProducts C := hasFiniteProducts_of_has_binary_and_terminal
+
+instance hasEqualizers : HasEqualizers C := hasEqualizers_of_hasPullbacks_and_binary_products
+
+end Power
 
 /--
   We say that `f_hat : A ⟶ PB` "powerizes" `f : B ⨯ A ⟶ Ω C` if ∈_B ∘ (1 × f') = f.

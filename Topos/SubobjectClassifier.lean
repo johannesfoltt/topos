@@ -67,6 +67,8 @@ open Classifier
 
 variable {C}
 
+namespace Topos
+
 noncomputable instance truth_is_RegularMono : RegularMono (t C) :=
   RegularMono.ofIsSplitMono (t C)
 
@@ -81,6 +83,8 @@ def balanced {A B : C} (f : A ⟶ B) [ef : Epi f] [Mono f] : IsIso f :=
 instance : Balanced C where
   isIso_of_mono_of_epi := λ f => balanced f
 
+instance : Balanced Cᵒᵖ := balanced_opposite
+
 /--
   If the source of a faithful functor has a subobject classifier, the functor reflects
   isomorphisms. This holds for any balanced category.
@@ -88,4 +92,12 @@ instance : Balanced C where
 def reflectsIsomorphisms (D : Type u₀) [Category.{v₀} D] (F : C ⥤ D) [Faithful F] : ReflectsIsomorphisms F :=
   reflectsIsomorphisms_of_reflectsMonomorphisms_of_reflectsEpimorphisms F
 
+/--
+  If the source of a faithful functor is the opposite category of one with a subobject classifier,
+  the same holds -- the functor reflects isomorphisms.
+-/
+def reflectsIsomorphismsOp (D : Type u₀) [Category.{v₀} D] (F : Cᵒᵖ ⥤ D) [Faithful F] : ReflectsIsomorphisms F :=
+  reflectsIsomorphisms_of_reflectsMonomorphisms_of_reflectsEpimorphisms F
+
+end Topos
 end CategoryTheory

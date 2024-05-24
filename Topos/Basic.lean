@@ -25,6 +25,10 @@ variable [Topos C] {C}
 
 namespace Topos
 
+instance hasBinaryProducts : HasBinaryProducts C := hasBinaryProducts_of_hasTerminal_and_pullbacks C
+instance hasFiniteProducts : HasFiniteProducts C := hasFiniteProducts_of_has_binary_and_terminal
+instance hasEqualizers     : HasEqualizers C     := hasEqualizers_of_hasPullbacks_and_binary_products
+
 noncomputable section
 
 def Predicate.true_ (B : C) : B ⟶ Ω C := terminal.from B ≫ (t C)
