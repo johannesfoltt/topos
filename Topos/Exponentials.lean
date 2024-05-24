@@ -210,7 +210,7 @@ theorem Exp_Unique (f : A ⨯ X ⟶ B) : ∀ {exp' : X ⟶ Exp A B}, Exponentiat
   rw [←assoc, ←assoc, Iso.hom_inv_id, id_comp, ←assoc, ←assoc, Iso.hom_inv_id, id_comp] at hy
   have hz := congrArg (fun k ↦ P_transpose k) hy
   simp only at hz
-  rw [transposeEquiv.proof_4, transposeEquiv.proof_4] at hz
+  rw [transposeEquiv.proof_3, transposeEquiv.proof_3] at hz
   rw [cancel_mono] at hz
   exact hz.symm
 
