@@ -38,6 +38,21 @@ def Predicate.true_ (B : C) : B ⟶ Ω C := terminal.from B ≫ (t C)
 -/
 def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOf (diag B)
 
+lemma Predicate.lift_eq {X B : C} (b : X ⟶ B) : prod.lift b b ≫ Predicate.eq B = Predicate.true_ X := by
+  dsimp only [eq, true_]
+  rw [←prod.comp_diag b, assoc, (Classifies (diag B)).comm, ←assoc, terminal.comp_from]
+
+lemma Predicate.eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : prod.lift b b' ≫ Predicate.eq B = Predicate.true_ X) : b = b' := by
+  dsimp only [eq, true_] at comm'
+  let cone_lift := ClassifierCone_into (comm' := comm')
+  have t : cone_lift ≫ diag _ = prod.lift b b' := ClassifierCone_into_comm (comm' := comm')
+  rw [prod.comp_diag] at t
+  have t₁ := congrArg (fun k ↦ k ≫ prod.fst) t
+  have t₂ := congrArg (fun k ↦ k ≫ prod.snd) t
+  simp at t₁
+  simp at t₂
+  exact t₁.symm.trans t₂
+
 /--
   The "singleton" map {•}_B : B ⟶ Pow B.
   In Set, this map sends b ∈ B to the singleton set {b}.
@@ -59,6 +74,8 @@ lemma PullbackLimitTransfer_eq_right {W X Y Z : C} {k : Y ⟶ Z} {h h' : X ⟶ Z
 lemma PullbackDiagRightComm {B X : C} (b : X ⟶ B) : b ≫ diag B = prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b := by
   rw [prod.comp_diag, prod.lift_map, id_comp, comp_id]
 
+lemma PullbackDiagRightCommSymm {B X : C} (b : X ⟶ B) : b ≫ diag B = prod.lift (𝟙 X) b ≫ prod.map b (𝟙 B) := by
+  rw [prod.comp_diag, prod.lift_map, id_comp, comp_id]
 
 lemma PullbackDiagRight {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (prod.lift b (𝟙 _)) (PullbackDiagRightComm b)) := by
     apply PullbackCone.IsLimit.mk _ (fun s ↦ s.snd ≫ prod.snd)
@@ -77,24 +94,41 @@ lemma PullbackDiagRight {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (pr
       _ = (s.fst ≫ diag B) ≫ prod.fst := by rw [assoc, prod.lift_fst, comp_id]
       _ = (s.snd ≫ prod.map (𝟙 B) b) ≫ prod.fst := by rw [s.condition]
       _ = s.snd ≫ prod.fst := by rw [assoc, prod.map_fst, comp_id]
-    calc
-      ((s.snd ≫ prod.snd) ≫ prod.lift b (𝟙 X)) ≫ prod.snd
-        = (s.snd ≫ prod.snd) ≫ (𝟙 X) := by rw [assoc, prod.lift_snd]
-      _ = (s.snd ≫ prod.snd) := by rw [comp_id]
+    rw [assoc, prod.lift_snd, comp_id]
     -- uniq
     intro s m _ h
     have k : (m ≫ prod.lift b (𝟙 X)) ≫ prod.snd = PullbackCone.snd s ≫ prod.snd := congrArg (fun r ↦ r ≫ prod.snd) h
     rw [assoc, prod.lift_snd, comp_id] at k
     assumption
 
+lemma PullbackDiagRightSymm {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (prod.lift (𝟙 _) b) (PullbackDiagRightCommSymm b)) := by
+  apply PullbackCone.IsLimit.mk _ (fun s ↦ s.snd ≫ prod.fst)
+  -- fac_left
+  intro s
+  rw [assoc, ←prod.map_fst b (𝟙 _), ←s.condition_assoc, ←assoc, prod.comp_diag, prod.lift_fst]
+  -- fac_right
+  intro s
+  ext
+  rw [assoc, prod.lift_fst, comp_id]
+
+  rw [assoc, assoc, prod.lift_snd, ←prod.map_fst b (𝟙 _), ←assoc, ←s.condition, assoc, prod.lift_fst, comp_id]
+  have h := congrArg (fun k ↦ k ≫ prod.snd) s.condition
+  simp only at h
+  rw [assoc, prod.lift_snd, comp_id, assoc, prod.map_snd, comp_id] at h
+  assumption
+  --uniq
+  intro s m _ h
+  have h' := congrArg (fun r ↦ r ≫ prod.fst) h
+  simp only at h'
+  rw [assoc, prod.lift_fst, comp_id] at h'
+  assumption
+
 lemma _BigSquare_comm {B X : C} (b : X ⟶ B) : (prod.lift b (𝟙 _)) ≫ ((prod.map (𝟙 _) b) ≫ (Predicate.eq B)) = terminal.from X ≫ (t C) := by
   have sq_left_comm_b : b ≫ diag B = prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b := by simp only [prod.comp_lift, comp_id, prod.lift_map, id_comp]
   calc
     prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b ≫ Predicate.eq B
       = b ≫ diag B ≫ Predicate.eq B := by rw [←assoc, ←assoc, sq_left_comm_b]
-    _ = b ≫ (terminal.from B) ≫ (t C) := by
-      dsimp only [Predicate.eq]
-      rw [(Classifies (diag B)).comm]
+    _ = b ≫ (terminal.from B) ≫ (t C) := by dsimp only [Predicate.eq]; rw [(Classifies (diag B)).comm]
     _ = terminal.from X ≫ t C := by rw [←assoc, terminal.comp_from b]
 
 lemma _BigSquare_pb {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk (prod.lift b (𝟙 _)) (terminal.from X) (_BigSquare_comm b)) := by

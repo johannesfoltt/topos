@@ -1,6 +1,5 @@
 import Mathlib.CategoryTheory.Monad.Monadicity
 import Topos.Basic
--- import Topos.Power
 
 namespace CategoryTheory
 
@@ -30,8 +29,11 @@ instance PowFaithful : Faithful (PowFunctor C) where
     rw [prod.map_id_comp, prod.map_id_comp, Category.assoc, Category.assoc, ←Pow_map_Powerizes, ←Pow_map_Powerizes,
       ←Category.assoc, prod.map_map, ←Category.assoc, prod.map_map, id_comp, id_comp, comp_id, ←comp_id f,
       ←id_comp (singleton _), ←comp_id g, ←prod.map_map, ←prod.map_map, assoc, assoc, singleton, ←Pow_powerizes] at h''
+    have comm₁ : (f ≫ terminal.from _) ≫ t C = prod.lift (𝟙 _) f ≫ prod.map f (𝟙 _) ≫ Predicate.eq _ := by
+      rw [terminal.comp_from, ←assoc, prod.lift_map, comp_id, id_comp, Predicate.lift_eq, Predicate.true_]
+    rw [terminal.comp_from, h'', ←assoc, prod.lift_map, id_comp, comp_id] at comm₁
+    exact (Predicate.eq_of_lift_eq comm₁.symm).symm
 
-    sorry
 
 instance hasCoreflexiveEqualizers : HasCoreflexiveEqualizers C :=
   hasCoreflexiveEqualizers_of_hasEqualizers C
@@ -46,11 +48,22 @@ instance PowPreservesCoproductOfReflexivePair : Monad.PreservesColimitOfIsReflex
   out := by
     intro ⟨A⟩ ⟨B⟩ ⟨f⟩ ⟨g⟩ h₀
     change (B ⟶ A) at f; change (B ⟶ A) at g
+    have h₁ := h₀.common_section'
+    let s := h₁.choose
+    have hs₁ := congrArg (fun k ↦ k.unop) h₁.choose_spec.1
+    have hs₂ := congrArg (fun k ↦ k.unop) h₁.choose_spec.2
+    change (f ≫ s.unop = 𝟙 _) at hs₁
+    change (g ≫ s.unop = 𝟙 _) at hs₂
+    refine PreservesColimit.mk ?_
+    intro ⟨pt, ι⟩ hc
+
+
     sorry
 
 instance PowFunctorMonadic : MonadicRightAdjoint (PowFunctor C) :=
   Monad.monadicOfHasPreservesReflexiveCoequalizersOfReflectsIsomorphisms
 
+-- TODO: Use `PowFunctorMonadic` to show that a topos has finite colimits.
 
 end
 end Topos

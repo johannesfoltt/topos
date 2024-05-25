@@ -1,8 +1,8 @@
 import Mathlib.CategoryTheory.Subobject.Basic
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
+import Mathlib.CategoryTheory.Limits.Shapes.CommSq
 import Mathlib.CategoryTheory.Functor.EpiMono
 import Mathlib.CategoryTheory.Limits.Constructions.BinaryProducts
-import Topos.Category
 
 
 namespace CategoryTheory
@@ -49,17 +49,27 @@ def ClassifierOf : X ⟶ Ω C :=
 def Classifies : classifying (t C) f (ClassifierOf f) :=
   (SubobjectClassifier_IsSubobjectClassifier C).classifies f
 
+def ClassifierComm : f ≫ ClassifierOf f = terminal.from _ ≫ t C :=
+  ((SubobjectClassifier_IsSubobjectClassifier C).classifies f).comm
+
+def ClassifierPb : IsLimit (PullbackCone.mk f (terminal.from _) (ClassifierComm _)) :=
+  ((SubobjectClassifier_IsSubobjectClassifier C).classifies f).pb
+
 def unique (χ : X ⟶ Ω C) (hχ : classifying (t C) f χ) : χ = ClassifierOf f :=
   (SubobjectClassifier_IsSubobjectClassifier C).unique' f χ hχ
 
 noncomputable def ClassifierCone : PullbackCone (ClassifierOf f) (t C) :=
-  PullbackCone.mk f (terminal.from U) (Classifies f).comm
+  PullbackCone.mk f (terminal.from U) (ClassifierComm f)
 
 theorem ClassifierPullback : IsPullback f (terminal.from U) (ClassifierOf f) (t C) :=
-  IsPullback.of_isLimit (Classifies f).pb
+  IsPullback.of_isLimit (ClassifierPb f)
 
 noncomputable def ClassifierCone_into {Z : C} (g : Z ⟶ X) (comm' : g ≫ (ClassifierOf f) = (terminal.from Z ≫ t C)) :
   Z ⟶ U := PullbackCone.IsLimit.lift (Classifies f).pb _ _ comm'
+
+def ClassifierCone_into_comm {Z : C} (g : Z ⟶ X) (comm' : g ≫ (ClassifierOf f) = (terminal.from Z ≫ t C)) :
+  ClassifierCone_into (comm' := comm') ≫ f = g :=
+    PullbackCone.IsLimit.lift_fst (ht := ClassifierPb f) (h := g) (k := terminal.from _) (w := comm')
 
 end Classifier
 

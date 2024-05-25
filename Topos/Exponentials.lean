@@ -2,7 +2,6 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
 import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
 import Mathlib.CategoryTheory.Closed.Cartesian
 import Topos.Basic
-import Topos.Category
 
 
 namespace CategoryTheory
