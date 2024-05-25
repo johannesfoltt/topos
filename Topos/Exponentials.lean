@@ -67,7 +67,6 @@ def eval (A B : C) : A ⨯ (Exp A B) ⟶ B :=
     (EvalDef_comm A B)
 
 
-
 abbrev Exponentiates {A B X HomAB : C}  (e : A ⨯ HomAB ⟶ B) (f : A ⨯ X ⟶ B) (f_exp : X ⟶ HomAB) :=
   f = (prod.map (𝟙 _) f_exp) ≫ e
 

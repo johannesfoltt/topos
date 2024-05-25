@@ -15,11 +15,11 @@ variable (C : Type u) [Category.{v} C]
 
 class Topos where
   [has_terminal : HasTerminal C]
-  [finite_limits : HasPullbacks C]
+  [has_pullbacks : HasPullbacks C]
   [subobject_classifier : HasSubobjectClassifier C]
   [cartesian_closed : HasPowerObjects C]
 
-attribute [instance] Topos.has_terminal Topos.finite_limits Topos.subobject_classifier Topos.cartesian_closed
+attribute [instance] Topos.has_terminal Topos.has_pullbacks Topos.subobject_classifier Topos.cartesian_closed
 
 variable [Topos C] {C}
 
@@ -71,97 +71,21 @@ lemma PullbackLimitTransfer_eq_right {W X Y Z : C} {k : Y ⟶ Z} {h h' : X ⟶ Z
     subst eq
     assumption
 
-lemma PullbackDiagRightComm {B X : C} (b : X ⟶ B) : b ≫ diag B = prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b := by
-  rw [prod.comp_diag, prod.lift_map, id_comp, comp_id]
 
-lemma PullbackDiagRightCommSymm {B X : C} (b : X ⟶ B) : b ≫ diag B = prod.lift (𝟙 X) b ≫ prod.map b (𝟙 B) := by
-  rw [prod.comp_diag, prod.lift_map, id_comp, comp_id]
-
-lemma PullbackDiagRight {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (prod.lift b (𝟙 _)) (PullbackDiagRightComm b)) := by
-    apply PullbackCone.IsLimit.mk _ (fun s ↦ s.snd ≫ prod.snd)
-    -- fac_left
-    intro s
-    rw [assoc, ←prod.map_snd (𝟙 _), ←s.condition_assoc prod.snd, ←assoc, prod.comp_diag, prod.lift_snd]
-    -- fac_right
-    intro s
-    ext
-    rw [assoc, prod.lift_fst, assoc]
-    calc
-      s.snd ≫ prod.snd ≫ b
-        = (s.snd ≫ prod.map (𝟙 B) b) ≫ prod.snd := by rw [assoc, prod.map_snd]
-      _ = (s.fst ≫ diag B) ≫ prod.snd := by rw [s.condition]
-      _ = s.fst := by rw [assoc, prod.lift_snd, comp_id]
-      _ = (s.fst ≫ diag B) ≫ prod.fst := by rw [assoc, prod.lift_fst, comp_id]
-      _ = (s.snd ≫ prod.map (𝟙 B) b) ≫ prod.fst := by rw [s.condition]
-      _ = s.snd ≫ prod.fst := by rw [assoc, prod.map_fst, comp_id]
-    rw [assoc, prod.lift_snd, comp_id]
-    -- uniq
-    intro s m _ h
-    have k : (m ≫ prod.lift b (𝟙 X)) ≫ prod.snd = PullbackCone.snd s ≫ prod.snd := congrArg (fun r ↦ r ≫ prod.snd) h
-    rw [assoc, prod.lift_snd, comp_id] at k
-    assumption
-
-lemma PullbackDiagRightSymm {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk b (prod.lift (𝟙 _) b) (PullbackDiagRightCommSymm b)) := by
-  apply PullbackCone.IsLimit.mk _ (fun s ↦ s.snd ≫ prod.fst)
-  -- fac_left
-  intro s
-  rw [assoc, ←prod.map_fst b (𝟙 _), ←s.condition_assoc, ←assoc, prod.comp_diag, prod.lift_fst]
-  -- fac_right
-  intro s
-  ext
-  rw [assoc, prod.lift_fst, comp_id]
-
-  rw [assoc, assoc, prod.lift_snd, ←prod.map_fst b (𝟙 _), ←assoc, ←s.condition, assoc, prod.lift_fst, comp_id]
-  have h := congrArg (fun k ↦ k ≫ prod.snd) s.condition
-  simp only at h
-  rw [assoc, prod.lift_snd, comp_id, assoc, prod.map_snd, comp_id] at h
-  assumption
-  --uniq
-  intro s m _ h
-  have h' := congrArg (fun r ↦ r ≫ prod.fst) h
-  simp only at h'
-  rw [assoc, prod.lift_fst, comp_id] at h'
-  assumption
-
-lemma _BigSquare_comm {B X : C} (b : X ⟶ B) : (prod.lift b (𝟙 _)) ≫ ((prod.map (𝟙 _) b) ≫ (Predicate.eq B)) = terminal.from X ≫ (t C) := by
-  have sq_left_comm_b : b ≫ diag B = prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b := by simp only [prod.comp_lift, comp_id, prod.lift_map, id_comp]
-  calc
-    prod.lift b (𝟙 X) ≫ prod.map (𝟙 B) b ≫ Predicate.eq B
-      = b ≫ diag B ≫ Predicate.eq B := by rw [←assoc, ←assoc, sq_left_comm_b]
-    _ = b ≫ (terminal.from B) ≫ (t C) := by dsimp only [Predicate.eq]; rw [(Classifies (diag B)).comm]
-    _ = terminal.from X ≫ t C := by rw [←assoc, terminal.comp_from b]
-
-lemma _BigSquare_pb {B X : C} (b : X ⟶ B) : IsLimit (PullbackCone.mk (prod.lift b (𝟙 _)) (terminal.from X) (_BigSquare_comm b)) := by
-  let BigSquare_pb := bigSquareIsPullback _ _ _ _ _ _ _
-    (by simp only [PullbackCone.mk_pt, PullbackCone.mk_π_app, prod.lift_map, comp_id, id_comp, prod.comp_lift]) (Classifies (diag B)).comm
-    (Classifies (diag B)).pb (PullbackCone.flipIsLimit (PullbackDiagRight b))
-  simp only [Unique.eq_default] at BigSquare_pb; assumption
-
-/-- The singleton map {•}_B : B ⟶ Pow B is a monomorphism. -/
+/--
+  `singleton B : B ⟶ Pow B` is a monomorphism.
+-/
 instance singletonMono (B : C) : Mono (singleton B) where
   right_cancellation := by
     intro X b b' h
     rw [singleton] at h
     have h₁ : prod.map (𝟙 _) (b ≫ P_transpose (Predicate.eq B)) ≫ in_ B = prod.map (𝟙 _) (b' ≫ P_transpose (Predicate.eq B)) ≫ in_ B :=
       congrFun (congrArg CategoryStruct.comp (congrArg (prod.map (𝟙 B)) h)) (in_ B)
-    repeat rw [prod.map_id_comp, assoc, ←(Pow_powerizes B (Predicate.eq B))] at h₁
-    have big_square_b := _BigSquare_pb b
-    have big_square_b'_comm : (prod.lift b' (𝟙 _)) ≫ ((prod.map (𝟙 _) b) ≫ (Predicate.eq B)) = terminal.from X ≫ (t C) := by
-      rw [h₁]
-      exact _BigSquare_comm b'
-    have big_square_b' : IsLimit (PullbackCone.mk (prod.lift b' (𝟙 _)) (terminal.from X) big_square_b'_comm) :=
-      PullbackLimitTransfer_eq_right h₁.symm _ (_BigSquare_pb b')
-
-    let cone_iso := IsLimit.conePointUniqueUpToIso big_square_b big_square_b'
-    have triangle : cone_iso.hom ≫ (prod.lift b' (𝟙 _)) = (prod.lift b (𝟙 _)) :=
-      IsLimit.conePointUniqueUpToIso_hom_comp big_square_b big_square_b' (some WalkingPair.left)
-    rw [prod.comp_lift, comp_id] at triangle
-    have t₁ : prod.lift (cone_iso.hom ≫ b') cone_iso.hom ≫ prod.fst = prod.lift b (𝟙 X) ≫ prod.fst := by rw [triangle]; rfl
-    have t₂ : prod.lift (cone_iso.hom ≫ b') cone_iso.hom ≫ prod.snd = prod.lift b (𝟙 X) ≫ prod.snd := by rw [triangle]; rfl
-    simp at t₁
-    simp at t₂
-    rw [t₂, id_comp] at t₁
-    exact t₁.symm
+    rw [prod.map_id_comp, assoc, ←Pow_powerizes, prod.map_id_comp, assoc, ←Pow_powerizes] at h₁
+    have comm : (b ≫ terminal.from _) ≫ t C = prod.lift b (𝟙 _) ≫ prod.map (𝟙 _) b ≫ Predicate.eq _ := by
+      rw [terminal.comp_from, ←assoc, prod.lift_map, comp_id, id_comp, Predicate.lift_eq, Predicate.true_]
+    rw [terminal.comp_from, h₁, ←assoc, prod.lift_map, id_comp, comp_id] at comm
+    exact Predicate.eq_of_lift_eq comm.symm
 
 def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
 

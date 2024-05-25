@@ -231,7 +231,7 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
   nth_rw 2 [←comp_id g]
   have h : prod.map g (𝟙 X) ≫ (prod.braiding X Y).inv = (prod.braiding _ _).inv ≫ prod.map (𝟙 _) g := by simp
   rw [←id_comp (P_transpose _), ←prod.map_map, assoc, ←Pow_powerizes, ←assoc (prod.map g _), h]
-  simp
+  simp only [prod.braiding_inv, prod.lift_map_assoc, comp_id, prod.lift_map, assoc]
 
 end
 end Power
