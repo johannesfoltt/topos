@@ -59,19 +59,6 @@ lemma Predicate.eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : prod.lift b b'
 -/
 def singleton (B : C) : B ⟶ Pow B := P_transpose (Predicate.eq B)
 
--- example (B X : C) (b b' : X ⟶ B) (h : b)
-
--- TODO: Clean up proofs in this file so that this lemma is no longer necessary.
-lemma PullbackLimitTransfer_eq_right {W X Y Z : C} {k : Y ⟶ Z} {h h' : X ⟶ Z} {f : W ⟶ X} {g : W ⟶ Y} (eq : h = h') (comm : f ≫ h = g ≫ k)
-  (lim : IsLimit (PullbackCone.mk f g comm)) : IsLimit (PullbackCone.mk f g (by
-    show f ≫ h' = g ≫ k
-    rw [←eq]
-    assumption
-  )) := by
-    subst eq
-    assumption
-
-
 /--
   `singleton B : B ⟶ Pow B` is a monomorphism.
 -/
