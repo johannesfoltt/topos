@@ -62,10 +62,10 @@ lemma EvalDef_comm (A B : C) :
 
 /-- The evaluation map eval : A ⨯ B^A ⟶ B. -/
 def eval (A B : C) : A ⨯ (Exp A B) ⟶ B :=
-  ClassifierCone_into (singleton B)
-    (prod.map (𝟙 _) (Exp_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)))
-    (EvalDef_comm A B)
+  ClassifierCone_into (comm' := EvalDef_comm A B)
 
+lemma evalCondition (A B : C) : eval A B ≫ singleton B = prod.map (𝟙 _) (Exp_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) :=
+  ClassifierCone_into_comm _ _ _
 
 abbrev Exponentiates {A B X HomAB : C}  (e : A ⨯ HomAB ⟶ B) (f : A ⨯ X ⟶ B) (f_exp : X ⟶ HomAB) :=
   f = (prod.map (𝟙 _) f_exp) ≫ e
@@ -94,8 +94,7 @@ attribute [instance] HasExponentialObjects.has_exponential_object
 
 variable {A B X : C}
 
-
-abbrev h_map (f : A ⨯ X ⟶ B) := P_transpose ((prod.associator _ _ _).hom ≫ prod.map (𝟙 _) f ≫ Predicate.eq _)
+abbrev h_map (f : A ⨯ X ⟶ B) : X ⟶ Pow (B ⨯ A) := P_transpose ((prod.associator _ _ _).hom ≫ prod.map (𝟙 _) f ≫ Predicate.eq _)
 
 lemma ExpMapSquareComm (f : A ⨯ X ⟶ B) :
   h_map f ≫ P_transpose (P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B) =
@@ -153,11 +152,25 @@ lemma ExpMapSquareComm (f : A ⨯ X ⟶ B) :
 def Exp_map (f : A ⨯ X ⟶ B) : X ⟶ Exp A B :=
   pullback.lift (h_map f) (terminal.from X) (ExpMapSquareComm f)
 
+@[simp]
+lemma Exp_mapCondition (f : A ⨯ X ⟶ B) : Exp_map f ≫ (Exp_toGraph A B) = h_map f :=
+  pullback.lift_fst _ _ _
+
 theorem Exp_Exponentiates (f : A ⨯ X ⟶ B) : Exponentiates (eval A B) f (Exp_map f) := by
-  dsimp only [Exponentiates, eval, ClassifierCone_into]
-
-
-  sorry
+  dsimp only [Exponentiates]
+  rw [←cancel_mono (singleton B), assoc, evalCondition, ←assoc, prod.map_map, id_comp, Exp_mapCondition]
+  have h : toPredicate (f ≫ singleton B) = toPredicate (prod.map (𝟙 A) (h_map f) ≫ P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A))) := by
+    rw [toPredicate, toPredicate, prod.map_id_comp, assoc, singleton, ←Pow_powerizes, prod.map_id_comp, assoc, ←Pow_powerizes, ←assoc]
+    have h' : (prod.map (𝟙 B) (prod.map (𝟙 A) (h_map f)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv)
+      = (prod.associator B A X).inv ≫ (prod.map (𝟙 _) (h_map f)) := by simp
+    rw [h', assoc, h_map, ←Pow_powerizes, ←assoc, Iso.inv_hom_id, id_comp]
+  have h₀ := congrArg (fun k => P_transpose k) h
+  have t₁ : P_transpose (toPredicate (f ≫ singleton B)) = f ≫ singleton B := (transposeEquiv _ _).right_inv _
+  have t₂ : P_transpose (toPredicate ((prod.map (𝟙 A) (h_map f) ≫ P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))))
+    = (prod.map (𝟙 A) (h_map f) ≫ P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A))) :=
+      (transposeEquiv _ _).right_inv _
+  simp only [t₁, t₂] at h₀
+  assumption
 
 theorem Exp_Unique (f : A ⨯ X ⟶ B) : ∀ {exp' : X ⟶ Exp A B}, Exponentiates (eval A B) f exp' → Exp_map f = exp' := by
   intro exp' h

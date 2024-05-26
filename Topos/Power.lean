@@ -93,7 +93,7 @@ abbrev toPredicate {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙
 /-- Equivalence between Hom(B⨯A,Ω) and Hom(A,P(B)). -/
 def transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
   toFun := P_transpose
-  invFun := fun g => toPredicate g
+  invFun := toPredicate
   left_inv := by
     intro
     exact (Pow_powerizes _ _).symm
