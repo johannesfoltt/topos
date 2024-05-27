@@ -255,7 +255,7 @@ def ExpAdjEquiv (A B X : C) : (A ⨯ X ⟶ B) ≃ (X ⟶ Exp A B) where
 -- Show that internal composition (defined above) is associative.
 -- Fill out proofs below.
 
-variable (A X Y : C) (f : X ⟶ Y)
+variable (A X Y) (f : X ⟶ Y)
 
 def ExpHom {X Y : C} (A : C) (f : X ⟶ Y) : Exp A X ⟶ Exp A Y :=
   (prod.rightUnitor _).inv ≫ (prod.map (𝟙 (Exp A X)) (Exp_map ((prod.rightUnitor X).hom ≫ f))) ≫ InternalComposition
@@ -270,18 +270,35 @@ def ExpFunctor (A : C) : C ⥤ C where
     rw [comp_id, ←assoc]
 
     sorry
-  map_comp := sorry
+  map_comp := by
+    intro X Y Z f g
+    change ExpHom A (f ≫ g) = ExpHom A f ≫ ExpHom A g
+    dsimp only [ExpHom]
+    rw [←cancel_epi (prod.rightUnitor (Exp A X)).hom, ←assoc, Iso.hom_inv_id, id_comp]
+    conv =>
+      enter [2];
+      repeat rw [←assoc]
+      rw [Iso.hom_inv_id, id_comp]
+      repeat rw [assoc]
+
+    sorry
 
 instance ToposMonoidal : MonoidalCategory C := monoidalOfHasFiniteProducts C
 
-def TensorHomAdjunction (A : C) : MonoidalCategory.tensorLeft A ⊣ ExpFunctor A where
-  homEquiv := by
-    intro X B
-    exact ExpAdjEquiv A B X
-  unit := sorry
-  counit := sorry
-  homEquiv_unit := sorry
-  homEquiv_counit := sorry
+def TensorHomAdjunction (A : C) : MonoidalCategory.tensorLeft A ⊣ ExpFunctor A := by
+  apply Adjunction.mkOfHomEquiv
+  fapply Adjunction.CoreHomEquiv.mk
+
+  intro X B
+  exact ExpAdjEquiv A B X
+
+  intro X X' Y f g
+  change (X' ⟶ Exp A Y) at g
+  sorry
+
+  intro X Y Y' f g
+  change (A ⨯ X ⟶ Y) at f
+  sorry
 
 instance CartesianClosed : CartesianClosed C where
   closed := by
