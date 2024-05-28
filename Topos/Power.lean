@@ -38,7 +38,7 @@ end Power
   We say that `f_hat : A ⟶ PB` "powerizes" `f : B ⨯ A ⟶ Ω C` if ∈_B ∘ (1 × f') = f.
 -/
 abbrev Powerizes {B PB : C} (in_B : B ⨯ PB ⟶ Ω C) (f : B ⨯ A ⟶ Ω C) (f_hat : A ⟶ PB) :=
-  f = (prod.map (𝟙 B) f_hat) ≫ in_B
+  (prod.map (𝟙 B) f_hat) ≫ in_B = f
 
 structure IsPowerObject {B PB : C} (in_B : B ⨯ PB ⟶ Ω C) where
   hat : ∀ {A} (_ : B ⨯ A ⟶ Ω C), A ⟶ PB
@@ -94,13 +94,11 @@ abbrev toPredicate {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙
 def transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
   toFun := P_transpose
   invFun := toPredicate
-  left_inv := by
-    intro
-    exact (Pow_powerizes _ _).symm
+  left_inv := fun f => Pow_powerizes _ _
   right_inv := by
     intro g
     apply Pow_unique
-    dsimp only [Powerizes]
+    rfl
 
 
 /-- The map Hom(B⨯A,Ω) → Hom(B,P(A)). -/
@@ -113,7 +111,7 @@ def transposeEquivSymm (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (B ⟶ Pow A) where
   left_inv := by
     intro f
     dsimp only [P_transpose_symm, toPredicate]
-    rw [←Pow_powerizes, ←assoc, Iso.inv_hom_id, id_comp]
+    rw [Pow_powerizes, ←assoc, Iso.inv_hom_id, id_comp]
   right_inv := by
     intro g
     apply Pow_unique
@@ -139,7 +137,7 @@ lemma Pow_map_Powerizes {B : C} (h : A ⟶ B) : Powerizes (in_ A) ((prod.map h (
   dsimp [Pow_map]
   apply Pow_powerizes
 
-theorem Pow_map_square {B A : C} (h : A ⟶ B) : (prod.map h (𝟙 (Pow B))) ≫ (in_ B) = (prod.map (𝟙 A) (Pow_map h)) ≫ (in_ A) :=
+theorem Pow_map_square {B A : C} (h : A ⟶ B) : (prod.map (𝟙 A) (Pow_map h)) ≫ (in_ A) = (prod.map h (𝟙 (Pow B))) ≫ (in_ B) :=
   Pow_map_Powerizes h
 
 /-- `Pow_map` sends the identity on an object `X` to the identity on `Pow X`. -/
@@ -174,6 +172,7 @@ def PowFunctor : Cᵒᵖ ⥤ C where
       _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map g (𝟙 (Pow Y))) ≫ in_ Y := by repeat rw [prod.map_map_assoc, comp_id, id_comp]
       _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map (𝟙 Z) (Pow_map g)) ≫ in_ Z := by rw [Pow_map_Powerizes]
       _ = prod.map (𝟙 Z) (Pow_map f ≫ Pow_map g ) ≫ in_ Z  := by rw [←assoc, prod.map_id_comp]
+    rfl
 
 def PowFunctorOp : C ⥤ Cᵒᵖ where
   obj := fun B ↦ ⟨Pow B⟩
@@ -210,9 +209,8 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
   simp
   dsimp only [P_transpose_symm, toPredicate, Pow_map]
   apply Pow_unique
-  rw [Powerizes, prod.map_id_comp _ (P_transpose _), assoc _ _ (in_ X'), ←Pow_powerizes, ←assoc _ _ (in_ X), prod.map_map, id_comp, comp_id]
-  nth_rw 2 [←comp_id f]
-  rw [←id_comp (P_transpose _), ←prod.map_map, assoc, ←Pow_powerizes]
+  rw [Powerizes, prod.map_id_comp _ (P_transpose _), assoc _ _ (in_ X'), Pow_powerizes, ←assoc _ _ (in_ X), prod.map_map, id_comp, comp_id,
+    ←comp_id f, ←id_comp (P_transpose _), ←prod.map_map, assoc, Pow_powerizes]
   have h : prod.map f (𝟙 Y) ≫ (prod.braiding X Y).hom = (prod.braiding _ _).hom ≫ prod.map (𝟙 _) f := by simp
   rw [←assoc (prod.map f (𝟙 _)), h]
   simp
@@ -227,10 +225,9 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
     P_transpose ((prod.braiding X Y).inv ≫ prod.map (𝟙 X) f ≫ in_ X) ≫ Pow_map g
   dsimp only [toPredicate, Pow_map]
   apply Pow_unique
-  rw [Powerizes, prod.map_id_comp (P_transpose _), assoc, ←Pow_powerizes, ←assoc _ _ (in_ Y), prod.map_map, id_comp, comp_id]
-  nth_rw 2 [←comp_id g]
+  rw [Powerizes, prod.map_id_comp (P_transpose _), assoc, Pow_powerizes, ←assoc _ _ (in_ Y), prod.map_map, id_comp, comp_id, ←comp_id g]
   have h : prod.map g (𝟙 X) ≫ (prod.braiding X Y).inv = (prod.braiding _ _).inv ≫ prod.map (𝟙 _) g := by simp
-  rw [←id_comp (P_transpose _), ←prod.map_map, assoc, ←Pow_powerizes, ←assoc (prod.map g _), h]
+  rw [←id_comp (P_transpose _), ←prod.map_map, assoc, Pow_powerizes, ←assoc (prod.map g _), h]
   simp only [prod.braiding_inv, prod.lift_map_assoc, comp_id, prod.lift_map, assoc]
 
 end

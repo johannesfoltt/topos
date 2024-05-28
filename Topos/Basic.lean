@@ -68,7 +68,7 @@ instance singletonMono (B : C) : Mono (singleton B) where
     rw [singleton] at h
     have h₁ : prod.map (𝟙 _) (b ≫ P_transpose (Predicate.eq B)) ≫ in_ B = prod.map (𝟙 _) (b' ≫ P_transpose (Predicate.eq B)) ≫ in_ B :=
       congrFun (congrArg CategoryStruct.comp (congrArg (prod.map (𝟙 B)) h)) (in_ B)
-    rw [prod.map_id_comp, assoc, ←Pow_powerizes, prod.map_id_comp, assoc, ←Pow_powerizes] at h₁
+    rw [prod.map_id_comp, assoc, Pow_powerizes, prod.map_id_comp, assoc, Pow_powerizes] at h₁
     have comm : (b ≫ terminal.from _) ≫ t C = prod.lift b (𝟙 _) ≫ prod.map (𝟙 _) b ≫ Predicate.eq _ := by
       rw [terminal.comp_from, ←assoc, prod.lift_map, comp_id, id_comp, Predicate.lift_eq, Predicate.true_]
     rw [terminal.comp_from, h₁, ←assoc, prod.lift_map, id_comp, comp_id] at comm
@@ -81,7 +81,7 @@ def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose ((prod.rightUni
 
 def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) := (prod.map (𝟙 _) φ') ≫ in_ B
 
-def Predicate.NameDef {B} (φ : B ⟶ Ω C) : (prod.rightUnitor B).hom ≫ φ = (prod.map (𝟙 _) (Name φ)) ≫ (in_ B) :=
+def Predicate.NameDef {B} (φ : B ⟶ Ω C) : (prod.map (𝟙 _) (Name φ)) ≫ (in_ B) = (prod.rightUnitor B).hom ≫ φ :=
   Pow_powerizes _ _
 
 -- TODO: prove equivalence of the types (B ⟶ Ω C), (T_ C ⟶ Pow B), and (Subobject B).

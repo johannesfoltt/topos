@@ -25,26 +25,26 @@ namespace Topos
 noncomputable section
 
 /-- The exponential object B^A. -/
-def Exp (A B : C) : C :=
+def Hom (A B : C) : C :=
   pullback
     (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B))
     (Name (Predicate.true_ A))
 
 /-- The map which, in Set, sends a function (A → B) ∈ B^A to its graph as a subset of B ⨯ A. -/
-def Exp_toGraph (A B : C) : Exp A B ⟶ Pow (B ⨯ A) := pullback.fst
+def Hom_toGraph (A B : C) : Hom A B ⟶ Pow (B ⨯ A) := pullback.fst
 
-instance Exp_toGraph_Mono {A B : C} : Mono (Exp_toGraph A B) := pullback.fst_of_mono
+instance Hom_toGraph_Mono {A B : C} : Mono (Hom_toGraph A B) := pullback.fst_of_mono
 
-lemma ExpConeSnd_Terminal (A B : C) : pullback.snd = terminal.from (Exp A B) := Unique.eq_default _
+lemma ExpConeSnd_Terminal (A B : C) : pullback.snd = terminal.from (Hom A B) := Unique.eq_default _
 
-lemma Exp_comm (A B : C) : Exp_toGraph A B ≫ (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B))
-  = terminal.from (Exp A B) ≫ Name (Predicate.true_ A) := by
+lemma Hom_comm (A B : C) : Hom_toGraph A B ≫ (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B))
+  = terminal.from (Hom A B) ≫ Name (Predicate.true_ A) := by
     rw [←ExpConeSnd_Terminal]; exact pullback.condition
 
-lemma EvalDef_comm (A B : C) :
-  (prod.map (𝟙 A) (Exp_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))) ≫ Predicate.isSingleton B
-  = Predicate.true_ (A ⨯ Exp A B) := by
-    let id_m : A ⨯ Exp A B ⟶ A ⨯ Pow (B ⨯ A) := prod.map (𝟙 _) (Exp_toGraph A B)
+lemma evalDef_comm (A B : C) :
+  (prod.map (𝟙 A) (Hom_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))) ≫ Predicate.isSingleton B
+  = Predicate.true_ (A ⨯ Hom A B) := by
+    let id_m : A ⨯ Hom A B ⟶ A ⨯ Pow (B ⨯ A) := prod.map (𝟙 _) (Hom_toGraph A B)
     let v := P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
     let σ_B := Predicate.isSingleton B
     let u := P_transpose (v ≫ Predicate.isSingleton B)
@@ -53,22 +53,22 @@ lemma EvalDef_comm (A B : C) :
     have comm_left : id_m ≫ id_u =  prod.map (𝟙 _) (terminal.from _) ≫ prod.map (𝟙 _) (Name (Predicate.true_ A)) := by
       rw [prod.map_map, prod.map_map]
       ext; simp
-      rw [prod.map_snd, prod.map_snd, Exp_comm]
-    have h_terminal : (prod.map (𝟙 A) (terminal.from (Exp A B)) ≫ prod.fst) ≫ terminal.from A = terminal.from _ :=
+      rw [prod.map_snd, prod.map_snd, Hom_comm]
+    have h_terminal : (prod.map (𝟙 A) (terminal.from (Hom A B)) ≫ prod.fst) ≫ terminal.from A = terminal.from _ :=
       Unique.eq_default _
     rw [assoc, comm_middle, ←assoc, comm_left, assoc, ←Predicate.NameDef]
     dsimp [Predicate.true_]
     rw [←assoc, ←assoc, h_terminal]
 
 /-- The evaluation map eval : A ⨯ B^A ⟶ B. -/
-def eval (A B : C) : A ⨯ (Exp A B) ⟶ B :=
-  ClassifierCone_into (comm' := EvalDef_comm A B)
+def eval (A B : C) : A ⨯ (Hom A B) ⟶ B :=
+  ClassifierCone_into (comm' := evalDef_comm A B)
 
-lemma evalCondition (A B : C) : eval A B ≫ singleton B = prod.map (𝟙 _) (Exp_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) :=
+lemma evalCondition (A B : C) : eval A B ≫ singleton B = prod.map (𝟙 _) (Hom_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) :=
   ClassifierCone_into_comm _ _ _
 
 abbrev Exponentiates {A B X HomAB : C}  (e : A ⨯ HomAB ⟶ B) (f : A ⨯ X ⟶ B) (f_exp : X ⟶ HomAB) :=
-  f = (prod.map (𝟙 _) f_exp) ≫ e
+  (prod.map (𝟙 _) f_exp) ≫ e = f
 
 structure IsExponentialObject {A B HomAB : C} (e : A ⨯ HomAB ⟶ B) where
   exp : ∀ {X} (_ : A ⨯ X ⟶ B), X ⟶ HomAB
@@ -92,11 +92,11 @@ attribute [instance] HasExponentialObjects.has_exponential_object
 -- ## TODO
 -- exhibit the type class instance `HasExponentialObjects C` for a topos `C`.
 
-variable {A B X : C}
+variable {A B X : C} (f : A ⨯ X ⟶ B)
 
-abbrev h_map (f : A ⨯ X ⟶ B) : X ⟶ Pow (B ⨯ A) := P_transpose ((prod.associator _ _ _).hom ≫ prod.map (𝟙 _) f ≫ Predicate.eq _)
+abbrev h_map : X ⟶ Pow (B ⨯ A) := P_transpose ((prod.associator _ _ _).hom ≫ prod.map (𝟙 _) f ≫ Predicate.eq _)
 
-lemma ExpMapSquareComm (f : A ⨯ X ⟶ B) :
+lemma HomMapSquareComm :
   h_map f ≫ P_transpose (P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B) =
   terminal.from X ≫ Name (Predicate.true_ A) := by
     -- consider (1⨯f) ≫ (eq B) : B ⨯ A ⨯ X ⟶ Ω C.
@@ -149,16 +149,16 @@ lemma ExpMapSquareComm (f : A ⨯ X ⟶ B) :
     have obv : terminal.from (A ⨯ ⊤_ C) ≫ t C = prod.map (𝟙 A) (P_transpose (terminal.from (A ⨯ ⊤_ C) ≫ t C)) ≫ in_ A := Pow_powerizes _ _
     rw [(Classifies (singleton _)).comm, ←assoc, f_terminal, ←assoc, rightUnitor_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
 
-def Exp_map (f : A ⨯ X ⟶ B) : X ⟶ Exp A B :=
-  pullback.lift (h_map f) (terminal.from X) (ExpMapSquareComm f)
+def Hom_map : X ⟶ Hom A B :=
+  pullback.lift (h_map f) (terminal.from X) (HomMapSquareComm f)
 
 @[simp]
-lemma Exp_mapCondition (f : A ⨯ X ⟶ B) : Exp_map f ≫ (Exp_toGraph A B) = h_map f :=
+lemma Hom_mapCondition : Hom_map f ≫ (Hom_toGraph A B) = h_map f :=
   pullback.lift_fst _ _ _
 
-theorem Exp_Exponentiates (f : A ⨯ X ⟶ B) : Exponentiates (eval A B) f (Exp_map f) := by
+theorem Hom_Exponentiates : Exponentiates (eval A B) f (Hom_map f) := by
   dsimp only [Exponentiates]
-  rw [←cancel_mono (singleton B), assoc, evalCondition, ←assoc, prod.map_map, id_comp, Exp_mapCondition]
+  rw [←cancel_mono (singleton B), assoc, evalCondition, ←assoc, prod.map_map, id_comp, Hom_mapCondition]
   have h : toPredicate (f ≫ singleton B) = toPredicate (prod.map (𝟙 A) (h_map f) ≫ P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A))) := by
     rw [toPredicate, toPredicate, prod.map_id_comp, assoc, singleton, ←Pow_powerizes, prod.map_id_comp, assoc, ←Pow_powerizes, ←assoc]
     have h' : (prod.map (𝟙 B) (prod.map (𝟙 A) (h_map f)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv)
@@ -170,16 +170,16 @@ theorem Exp_Exponentiates (f : A ⨯ X ⟶ B) : Exponentiates (eval A B) f (Exp_
     = (prod.map (𝟙 A) (h_map f) ≫ P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A))) :=
       (transposeEquiv _ _).right_inv _
   simp only [t₁, t₂] at h₀
-  assumption
+  exact h₀.symm
 
-theorem Exp_Unique (f : A ⨯ X ⟶ B) : ∀ {exp' : X ⟶ Exp A B}, Exponentiates (eval A B) f exp' → Exp_map f = exp' := by
+theorem Hom_Unique : ∀ {exp' : X ⟶ Hom A B}, Exponentiates (eval A B) f exp' → Hom_map f = exp' := by
   intro exp' h
   dsimp only [Exponentiates] at h
   have h_singleton := congrArg (fun k ↦ k ≫ singleton B) h
   simp only at h_singleton
   let v : A ⨯ Pow (B ⨯ A) ⟶ Pow B := P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
   -- want to rewrite (1⨯g) ≫ eval A B ≫ singleton B = (1⨯(g≫m)) ≫ v
-  have rhs : eval A B ≫ singleton B = prod.map (𝟙 _) (Exp_toGraph A B) ≫ v := by
+  have rhs : eval A B ≫ singleton B = prod.map (𝟙 _) (Hom_toGraph A B) ≫ v := by
     apply PullbackCone.IsLimit.lift_fst
   rw [assoc, rhs, ←assoc, ←prod.map_id_comp] at h_singleton
   let id_f'eq : B ⨯ A ⨯ X ⟶ Ω C := prod.map (𝟙 _) f ≫ Predicate.eq _
@@ -187,34 +187,34 @@ theorem Exp_Unique (f : A ⨯ X ⟶ B) : ∀ {exp' : X ⟶ Exp A B}, Exponentiat
     apply Pow_unique
     dsimp only [Powerizes, id_f'eq, singleton]
     rw [prod.map_id_comp, assoc, ←(Pow_powerizes _ (Predicate.eq B))]
-  have h₂ : P_transpose (prod.map (𝟙 _) (prod.map (𝟙 _) (exp' ≫ Exp_toGraph A B)) ≫ (prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
-    = prod.map (𝟙 _) (exp' ≫ Exp_toGraph A B) ≫ v := by
+  have h₂ : P_transpose (prod.map (𝟙 _) (prod.map (𝟙 _) (exp' ≫ Hom_toGraph A B)) ≫ (prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
+    = prod.map (𝟙 _) (exp' ≫ Hom_toGraph A B) ≫ v := by
       apply Pow_unique
       dsimp only [Powerizes]
       nth_rewrite 2 [prod.map_id_comp]
       rw [assoc, ←(Pow_powerizes _ _)]
-  have h₃ := Pow_powerizes _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (exp' ≫ Exp_toGraph A B)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
+  have h₃ := Pow_powerizes _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (exp' ≫ Hom_toGraph A B)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
   dsimp only [Powerizes] at h₃
-  rw [h₂, ←h_singleton, ←h₁, ←(Pow_powerizes _ id_f'eq), ←assoc] at h₃
-  have h' := Exp_Exponentiates f
+  rw [h₂, h_singleton, ←h₁, ←(Pow_powerizes _ id_f'eq), ←assoc] at h₃
+  have h' := Hom_Exponentiates f
   dsimp only [Exponentiates] at h'
   have h'_singleton := congrArg (fun k ↦ k ≫ singleton B) h'
   simp only at h'_singleton
   rw [assoc, rhs, ←assoc, ←prod.map_id_comp] at h'_singleton
-  have h₂' : P_transpose (prod.map (𝟙 _) (prod.map (𝟙 _) (Exp_map f ≫ Exp_toGraph A B)) ≫ (prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
-    = prod.map (𝟙 _) (Exp_map f ≫ Exp_toGraph A B) ≫ v := by
+  have h₂' : P_transpose (prod.map (𝟙 _) (prod.map (𝟙 _) (Hom_map f ≫ Hom_toGraph A B)) ≫ (prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
+    = prod.map (𝟙 _) (Hom_map f ≫ Hom_toGraph A B) ≫ v := by
       apply Pow_unique
       dsimp only [Powerizes]
       nth_rewrite 2 [prod.map_id_comp]
       rw [assoc, ←(Pow_powerizes _ _)]
-  have h₃' := Pow_powerizes _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (Exp_map f ≫ Exp_toGraph A B)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
+  have h₃' := Pow_powerizes _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (Hom_map f ≫ Hom_toGraph A B)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
   dsimp only [Powerizes] at h₃'
-  rw [h₂', ←h'_singleton, ←h₁, ←(Pow_powerizes _ id_f'eq), ←assoc] at h₃'
+  rw [h₂', h'_singleton, ←h₁, ←(Pow_powerizes _ id_f'eq), ←assoc] at h₃'
   have hx := h₃.trans h₃'.symm
-  have c₀ : prod.map (𝟙 B) (prod.map (𝟙 A) (exp' ≫ Exp_toGraph A B)) ≫ (prod.associator _ _ _).inv
-    = (prod.associator _ _ _).inv ≫ (prod.map (𝟙 _) (exp' ≫ Exp_toGraph A B)) := by simp
-  have c₁ : prod.map (𝟙 B) (prod.map (𝟙 A) (Exp_map f ≫ Exp_toGraph A B)) ≫ (prod.associator _ _ _).inv
-    = (prod.associator _ _ _).inv ≫ (prod.map (𝟙 _) (Exp_map f ≫ Exp_toGraph A B)) := by simp
+  have c₀ : prod.map (𝟙 B) (prod.map (𝟙 A) (exp' ≫ Hom_toGraph A B)) ≫ (prod.associator _ _ _).inv
+    = (prod.associator _ _ _).inv ≫ (prod.map (𝟙 _) (exp' ≫ Hom_toGraph A B)) := by simp
+  have c₁ : prod.map (𝟙 B) (prod.map (𝟙 A) (Hom_map f ≫ Hom_toGraph A B)) ≫ (prod.associator _ _ _).inv
+    = (prod.associator _ _ _).inv ≫ (prod.map (𝟙 _) (Hom_map f ≫ Hom_toGraph A B)) := by simp
   rw [c₀, c₁] at hx
   have hy := congrArg (fun k ↦ (prod.associator B A X).hom ≫ k) hx
   simp only at hy
@@ -226,62 +226,63 @@ theorem Exp_Unique (f : A ⨯ X ⟶ B) : ∀ {exp' : X ⟶ Exp A B}, Exponentiat
   exact hz.symm
 
 
-instance Exp_isExponential : IsExponentialObject (eval A B) where
-  exp := Exp_map
-  exponentiates := Exp_Exponentiates
-  unique' := by apply Exp_Unique
+instance Hom_isExponential : IsExponentialObject (eval A B) where
+  exp := Hom_map
+  exponentiates := Hom_Exponentiates
+  unique' := by apply Hom_Unique
 
 instance ExponentialObject_inst (A B : C) : HasExponentialObject A B where
-  HomAB := Exp A B
+  HomAB := Hom A B
   e := eval A B
-  is_exp := Exp_isExponential
+  is_exp := Hom_isExponential
 
 instance ToposHasExponentials : HasExponentialObjects C where
   has_exponential_object := ExponentialObject_inst
 
-def InternalComposition {X Y Z : C} : (Exp X Y) ⨯ (Exp Y Z) ⟶ Exp X Z :=
-  Exp_map ((prod.associator X (Exp X Y) (Exp Y Z)).inv ≫ (prod.map (eval X Y) (𝟙 _)) ≫ eval Y Z)
+variable (X Y Z W)
 
-def ExpAdjEquiv (A B X : C) : (A ⨯ X ⟶ B) ≃ (X ⟶ Exp A B) where
-  toFun := Exp_map
-  invFun := fun g ↦ (prod.map (𝟙 _) g) ≫ eval A B
-  left_inv := fun f => (Exp_Exponentiates f).symm
+def InternalComposition : (Hom X Y) ⨯ (Hom Y Z) ⟶ Hom X Z :=
+  Hom_map ((prod.associator X (Hom X Y) (Hom Y Z)).inv ≫ (prod.map (eval X Y) (𝟙 _)) ≫ eval Y Z)
+
+variable {X Y Z W}
+
+def FnName (f : X ⟶ Y) : ⊤_ C ⟶ Hom X Y :=
+  Hom_map (prod.fst ≫ f)
+
+abbrev Hom_map_inv (f : X ⟶ Hom Y Z) := prod.map (𝟙 _) f ≫ eval _ _
+
+def ExpAdjEquiv (A B X : C) : (A ⨯ X ⟶ B) ≃ (X ⟶ Hom A B) where
+  toFun := Hom_map
+  invFun := Hom_map_inv
+  left_inv := fun f => Hom_Exponentiates f
   right_inv := by
     intro g
-    apply Exp_Unique
+    apply Hom_Unique
     rw [Exponentiates]
 
--- ## TODO
--- Show that internal composition (defined above) is associative.
--- Fill out proofs below.
+variable (X Y)
 
-variable (A X Y) (f : X ⟶ Y)
 
-def ExpHom {X Y : C} (A : C) (f : X ⟶ Y) : Exp A X ⟶ Exp A Y :=
-  (prod.rightUnitor _).inv ≫ (prod.map (𝟙 (Exp A X)) (Exp_map ((prod.rightUnitor X).hom ≫ f))) ≫ InternalComposition
+def ExpHom {X Y : C} (A : C) (f : X ⟶ Y) : Hom A X ⟶ Hom A Y := Hom_map (eval A _ ≫ f)
+
 
 def ExpFunctor (A : C) : C ⥤ C where
-  obj := fun B ↦ Exp A B
+  obj := fun B ↦ Hom A B
   map := fun {X Y} f ↦ ExpHom A f
   map_id := by
     intro X
-    simp
-    dsimp only [ExpHom, InternalComposition]
-    rw [comp_id, ←assoc]
-
-    sorry
+    dsimp only [ExpHom]
+    rw [comp_id]
+    apply Hom_Unique
+    dsimp only [Exponentiates]
+    rw [prod.map_id_id, id_comp]
   map_comp := by
     intro X Y Z f g
     change ExpHom A (f ≫ g) = ExpHom A f ≫ ExpHom A g
     dsimp only [ExpHom]
-    rw [←cancel_epi (prod.rightUnitor (Exp A X)).hom, ←assoc, Iso.hom_inv_id, id_comp]
-    conv =>
-      enter [2];
-      repeat rw [←assoc]
-      rw [Iso.hom_inv_id, id_comp]
-      repeat rw [assoc]
-
-    sorry
+    apply Hom_Unique
+    dsimp only [Exponentiates]
+    rw [prod.map_id_comp, assoc, Hom_Exponentiates, ←assoc, Hom_Exponentiates, assoc]
 
 instance ToposMonoidal : MonoidalCategory C := monoidalOfHasFiniteProducts C
 
@@ -293,12 +294,14 @@ def TensorHomAdjunction (A : C) : MonoidalCategory.tensorLeft A ⊣ ExpFunctor A
   exact ExpAdjEquiv A B X
 
   intro X X' Y f g
-  change (X' ⟶ Exp A Y) at g
-  sorry
+  change prod.map (𝟙 _) (f ≫ g) ≫ eval _ _ = (prod.map (𝟙 _) f) ≫ prod.map (𝟙 _) g ≫ eval _ _
+  rw [←assoc, prod.map_map, id_comp]
 
   intro X Y Y' f g
-  change (A ⨯ X ⟶ Y) at f
-  sorry
+  change Hom_map (f ≫ g) = Hom_map f ≫ ExpHom A g
+  apply Hom_Unique
+  dsimp only [Exponentiates, ExpHom]
+  rw [prod.map_id_comp, assoc, Hom_Exponentiates, ←assoc, Hom_Exponentiates]
 
 instance CartesianClosed : CartesianClosed C where
   closed := by
