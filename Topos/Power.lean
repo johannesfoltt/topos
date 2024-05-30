@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2024 Charlie Conneen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Charlie Conneen
+-/
 import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Adjunction.Basic
 import Mathlib.CategoryTheory.Limits.Constructions.BinaryProducts
@@ -88,34 +93,44 @@ def Pow_unique (B : C) : ∀ {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B},
 noncomputable section
 
 
-abbrev toPredicate {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙 _) f) ≫ in_ B
+abbrev P_transpose_inv {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙 _) f) ≫ in_ B
 
 /-- Equivalence between Hom(B⨯A,Ω) and Hom(A,P(B)). -/
 def transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
   toFun := P_transpose
-  invFun := toPredicate
+  invFun := P_transpose_inv
   left_inv := fun f => Pow_powerizes _ _
   right_inv := by
     intro g
     apply Pow_unique
     rfl
 
+lemma P_transpose_left_inv {B A} (f : B ⨯ A ⟶ Ω C) : P_transpose_inv (P_transpose f) = f := (transposeEquiv _ _).left_inv _
+
+lemma P_transpose_right_inv {B A : C} (f : A ⟶ Pow B) : P_transpose (P_transpose_inv f) = f := (transposeEquiv _ _).right_inv _
 
 /-- The map Hom(B⨯A,Ω) → Hom(B,P(A)). -/
 def P_transpose_symm {B A} (f : B ⨯ A ⟶ Ω C) : B ⟶ Pow A := P_transpose ((prod.braiding A B).hom ≫ f)
 
+abbrev P_transpose_symm_inv {B A} (f : B ⟶ Pow A) : B ⨯ A ⟶ Ω C :=
+  (prod.braiding A B).inv ≫ (P_transpose_inv f)
+
 /-- Equivalence between Hom(B⨯A,Ω) and Hom(B,P(A)). -/
 def transposeEquivSymm (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (B ⟶ Pow A) where
   toFun := P_transpose_symm
-  invFun := fun g => (prod.braiding A B).inv ≫ (toPredicate g)
+  invFun := P_transpose_symm_inv
   left_inv := by
     intro f
-    dsimp only [P_transpose_symm, toPredicate]
+    dsimp only [P_transpose_symm, P_transpose_inv, P_transpose_symm_inv]
     rw [Pow_powerizes, ←assoc, Iso.inv_hom_id, id_comp]
   right_inv := by
     intro g
     apply Pow_unique
     rw [←assoc, Iso.hom_inv_id, id_comp]
+
+lemma P_transpose_symm_left_inv {B A} (f : B ⨯ A ⟶ Ω C) : P_transpose_symm_inv (P_transpose_symm f) = f := (transposeEquivSymm _ _).left_inv _
+
+lemma P_transpose_symm_right_inv {B A : C} (f : B ⟶ Pow A) : P_transpose_symm (P_transpose_symm_inv f) = f := (transposeEquivSymm _ _).right_inv _
 
 /--
   Equivalence between Hom(A,P(B)) and Hom(B, P(A)).
@@ -207,7 +222,7 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
     (transpose_transpose_Equiv X Y).symm g ≫ Pow_map f
   dsimp only [transpose_transpose_Equiv, transposeEquivSymm, transposeEquiv]
   simp
-  dsimp only [P_transpose_symm, toPredicate, Pow_map]
+  dsimp only [P_transpose_symm, P_transpose_inv, Pow_map]
   apply Pow_unique
   rw [Powerizes, prod.map_id_comp _ (P_transpose _), assoc _ _ (in_ X'), Pow_powerizes, ←assoc _ _ (in_ X), prod.map_map, id_comp, comp_id,
     ←comp_id f, ←id_comp (P_transpose _), ←prod.map_map, assoc, Pow_powerizes]
@@ -223,7 +238,7 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
     Equiv.symm_symm]
   show P_transpose ((prod.braiding X Y').inv ≫ prod.map (𝟙 X) (g ≫ f) ≫ in_ X) =
     P_transpose ((prod.braiding X Y).inv ≫ prod.map (𝟙 X) f ≫ in_ X) ≫ Pow_map g
-  dsimp only [toPredicate, Pow_map]
+  dsimp only [P_transpose_inv, Pow_map]
   apply Pow_unique
   rw [Powerizes, prod.map_id_comp (P_transpose _), assoc, Pow_powerizes, ←assoc _ _ (in_ Y), prod.map_map, id_comp, comp_id, ←comp_id g]
   have h : prod.map g (𝟙 X) ≫ (prod.braiding X Y).inv = (prod.braiding _ _).inv ≫ prod.map (𝟙 _) g := by simp

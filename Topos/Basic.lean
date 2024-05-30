@@ -1,4 +1,8 @@
-
+/-
+Copyright (c) 2024 Charlie Conneen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Charlie Conneen
+-/
 import Mathlib.CategoryTheory.Closed.Cartesian
 import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
 import Mathlib.CategoryTheory.Limits.Shapes.Terminal
@@ -17,9 +21,9 @@ class Topos where
   [has_terminal : HasTerminal C]
   [has_pullbacks : HasPullbacks C]
   [subobject_classifier : HasSubobjectClassifier C]
-  [cartesian_closed : HasPowerObjects C]
+  [has_power_objects : HasPowerObjects C]
 
-attribute [instance] Topos.has_terminal Topos.has_pullbacks Topos.subobject_classifier Topos.cartesian_closed
+attribute [instance] Topos.has_terminal Topos.has_pullbacks Topos.subobject_classifier Topos.has_power_objects
 
 variable [Topos C] {C}
 
@@ -79,13 +83,22 @@ def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
 /-- The name ⌈φ⌉ : ⊤_ C ⟶ Pow B of a predicate `φ : B ⟶ Ω C`. -/
 def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose ((prod.rightUnitor B).hom ≫ φ)
 
-def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) := (prod.map (𝟙 _) φ') ≫ in_ B
+def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) : B ⟶ Ω C := (prod.rightUnitor B).inv ≫ P_transpose_inv φ'
 
 def Predicate.NameDef {B} (φ : B ⟶ Ω C) : (prod.map (𝟙 _) (Name φ)) ≫ (in_ B) = (prod.rightUnitor B).hom ≫ φ :=
   Pow_powerizes _ _
 
--- TODO: prove equivalence of the types (B ⟶ Ω C), (T_ C ⟶ Pow B), and (Subobject B).
-
+def Predicate.NameEquiv (B : C) : (B ⟶ Ω C) ≃ (⊤_ C ⟶ Pow B) where
+  toFun := Name
+  invFun := fromName
+  left_inv := by
+    intro φ
+    dsimp [Name, fromName]
+    rw [P_transpose_left_inv, ←assoc, prod.lift_fst, id_comp]
+  right_inv := by
+    intro φ'
+    dsimp only [Name, fromName]
+    rw [←assoc, Iso.hom_inv_id, id_comp, P_transpose_right_inv]
 
 
 end

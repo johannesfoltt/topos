@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2024 Charlie Conneen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Charlie Conneen
+-/
 import Mathlib.CategoryTheory.Subobject.Basic
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.CategoryTheory.Limits.Shapes.CommSq
@@ -41,7 +46,7 @@ def SubobjectClassifier_IsSubobjectClassifier : IsSubobjectClassifier (t C) :=
   HasSubobjectClassifier.is_subobject_classifier
 
 variable {C}
-variable {U X : C} (f : U ⟶ X) [Mono f]
+variable {U X : C} (χ : X ⟶ Ω C) (f : U ⟶ X) [Mono f]
 
 def ClassifierOf : X ⟶ Ω C :=
   (SubobjectClassifier_IsSubobjectClassifier C).classifier_of f

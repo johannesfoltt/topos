@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2024 Charlie Conneen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Charlie Conneen
+-/
 import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
 import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
 import Mathlib.CategoryTheory.Closed.Cartesian
@@ -49,14 +54,14 @@ lemma evalDef_comm (A B : C) :
     let σ_B := Predicate.isSingleton B
     let u := P_transpose (v ≫ Predicate.isSingleton B)
     let id_u := prod.map (𝟙 A) u
-    have comm_middle : v ≫ σ_B = id_u ≫ (in_ A) := Pow_powerizes A (v ≫ σ_B)
+    have comm_middle : v ≫ σ_B = id_u ≫ (in_ A) := (Pow_powerizes A (v ≫ σ_B)).symm
     have comm_left : id_m ≫ id_u =  prod.map (𝟙 _) (terminal.from _) ≫ prod.map (𝟙 _) (Name (Predicate.true_ A)) := by
       rw [prod.map_map, prod.map_map]
       ext; simp
       rw [prod.map_snd, prod.map_snd, Hom_comm]
     have h_terminal : (prod.map (𝟙 A) (terminal.from (Hom A B)) ≫ prod.fst) ≫ terminal.from A = terminal.from _ :=
       Unique.eq_default _
-    rw [assoc, comm_middle, ←assoc, comm_left, assoc, ←Predicate.NameDef]
+    rw [assoc, comm_middle, ←assoc, comm_left, assoc, Predicate.NameDef]
     dsimp [Predicate.true_]
     rw [←assoc, ←assoc, h_terminal]
 
@@ -109,6 +114,7 @@ lemma HomMapSquareComm :
     -- h is by definition a P-transpose
     have h_condition : (prod.associator _ _ _).hom ≫ id_f'eq = (prod.map (prod.map (𝟙 _) (𝟙 _)) h) ≫ in_ _ := by
       rw [prod.map_id_id]
+      symm
       apply Pow_powerizes
     -- moving the associator to the rhs of `h_condition`.
     have h_condition₂ : id_f'eq = (prod.associator _ _ _).inv ≫ (prod.map (prod.map (𝟙 _) (𝟙 _)) h) ≫ in_ _ := by
@@ -116,11 +122,11 @@ lemma HomMapSquareComm :
     -- this is the map v: A ⨯ P(B⨯A) ⟶ P(B) which was used in the definition of `Exp A B`.
     let v : A ⨯ Pow (B ⨯ A) ⟶ Pow B := P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
     -- v is by definition a P-transpose
-    have v_condition : (prod.associator _ _ _).inv ≫ in_ (B ⨯ A) = prod.map (𝟙 _) v ≫ in_ _ := Pow_powerizes _ _
+    have v_condition : (prod.associator _ _ _).inv ≫ in_ (B ⨯ A) = prod.map (𝟙 _) v ≫ in_ _ := (Pow_powerizes _ _).symm
     have lhs : P_transpose (prod.map (𝟙 A) h ≫ v ≫ Predicate.isSingleton B) = h ≫ P_transpose (v ≫ Predicate.isSingleton B) := by
       apply Pow_unique
       dsimp only [Powerizes]
-      rw [prod.map_id_comp, assoc _ _ (in_ A), ←Pow_powerizes _ _, ←assoc]
+      rw [prod.map_id_comp, assoc _ _ (in_ A), Pow_powerizes, ←assoc]
     rw [←lhs]
     -- Claim that f ≫ {•}_B = (1⨯h) ≫ v.
     -- This is obtained by showing that both maps are the P-transpose of (1⨯f) ≫ (eq B).
@@ -128,7 +134,7 @@ lemma HomMapSquareComm :
     have transpose₁ : P_transpose id_f'eq = f ≫ singleton _ := by
       apply Pow_unique
       dsimp only [Powerizes, Topos.singleton]
-      rw [prod.map_id_comp, assoc, ←(Pow_powerizes B (Predicate.eq B))]
+      rw [prod.map_id_comp, assoc, (Pow_powerizes B (Predicate.eq B))]
     have shuffle_h_around : (prod.associator B A X).inv ≫ (prod.map (prod.map (𝟙 _) (𝟙 _)) h) = prod.map (𝟙 _) (prod.map (𝟙 _) h) ≫ (prod.associator _ _ _).inv := by simp
     have transpose₂ : P_transpose id_f'eq = (prod.map (𝟙 _) h) ≫ v := by
       apply Pow_unique
@@ -139,15 +145,14 @@ lemma HomMapSquareComm :
     have eqn₂ : f ≫ singleton _ ≫ Predicate.isSingleton _ = (prod.map (𝟙 _) h) ≫ v ≫ Predicate.isSingleton _ := by
       rw [←assoc, ←assoc, eqn₁]
     rw [←eqn₂]
-
     -- from here, the argument is mostly definition unpacking.
     apply Pow_unique
     dsimp only [Name, Predicate.true_, Powerizes, Predicate.isSingleton]
     have f_terminal : f ≫ terminal.from B = terminal.from _ := Unique.eq_default _
     have rightUnitor_terminal : (prod.rightUnitor A).hom ≫ terminal.from A = terminal.from _ := Unique.eq_default _
     have A_X_terminal : prod.map (𝟙 A) (terminal.from X) ≫ terminal.from (A ⨯ ⊤_ C) = terminal.from _ := Unique.eq_default _
-    have obv : terminal.from (A ⨯ ⊤_ C) ≫ t C = prod.map (𝟙 A) (P_transpose (terminal.from (A ⨯ ⊤_ C) ≫ t C)) ≫ in_ A := Pow_powerizes _ _
-    rw [(Classifies (singleton _)).comm, ←assoc, f_terminal, ←assoc, rightUnitor_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
+    have obv : terminal.from (A ⨯ ⊤_ C) ≫ t C = prod.map (𝟙 A) (P_transpose (terminal.from (A ⨯ ⊤_ C) ≫ t C)) ≫ in_ A := (Pow_powerizes _ _).symm
+    rw [(Classifies (singleton _)).comm, ←assoc, rightUnitor_terminal, ←assoc, f_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
 
 def Hom_map : X ⟶ Hom A B :=
   pullback.lift (h_map f) (terminal.from X) (HomMapSquareComm f)
@@ -159,16 +164,16 @@ lemma Hom_mapCondition : Hom_map f ≫ (Hom_toGraph A B) = h_map f :=
 theorem Hom_Exponentiates : Exponentiates (eval A B) f (Hom_map f) := by
   dsimp only [Exponentiates]
   rw [←cancel_mono (singleton B), assoc, evalCondition, ←assoc, prod.map_map, id_comp, Hom_mapCondition]
-  have h : toPredicate (f ≫ singleton B) = toPredicate (prod.map (𝟙 A) (h_map f) ≫ P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A))) := by
-    rw [toPredicate, toPredicate, prod.map_id_comp, assoc, singleton, ←Pow_powerizes, prod.map_id_comp, assoc, ←Pow_powerizes, ←assoc]
+  have h : P_transpose_inv (f ≫ singleton B) = P_transpose_inv (prod.map (𝟙 A) (h_map f) ≫ P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A))) := by
+    rw [P_transpose_inv, P_transpose_inv, prod.map_id_comp, assoc, singleton, Pow_powerizes, prod.map_id_comp, assoc, Pow_powerizes, ←assoc]
     have h' : (prod.map (𝟙 B) (prod.map (𝟙 A) (h_map f)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv)
       = (prod.associator B A X).inv ≫ (prod.map (𝟙 _) (h_map f)) := by simp
-    rw [h', assoc, h_map, ←Pow_powerizes, ←assoc, Iso.inv_hom_id, id_comp]
+    rw [h', assoc, h_map, Pow_powerizes, ←assoc, Iso.inv_hom_id, id_comp]
   have h₀ := congrArg (fun k => P_transpose k) h
-  have t₁ : P_transpose (toPredicate (f ≫ singleton B)) = f ≫ singleton B := (transposeEquiv _ _).right_inv _
-  have t₂ : P_transpose (toPredicate ((prod.map (𝟙 A) (h_map f) ≫ P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))))
+  have t₁ : P_transpose (P_transpose_inv (f ≫ singleton B)) = f ≫ singleton B := (transposeEquiv _ _).right_inv _
+  have t₂ : P_transpose (P_transpose_inv ((prod.map (𝟙 A) (h_map f) ≫ P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))))
     = (prod.map (𝟙 A) (h_map f) ≫ P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A))) :=
-      (transposeEquiv _ _).right_inv _
+      P_transpose_right_inv _
   simp only [t₁, t₂] at h₀
   exact h₀.symm
 
@@ -186,16 +191,15 @@ theorem Hom_Unique : ∀ {exp' : X ⟶ Hom A B}, Exponentiates (eval A B) f exp'
   have h₁ : P_transpose (id_f'eq) = f ≫ singleton B := by
     apply Pow_unique
     dsimp only [Powerizes, id_f'eq, singleton]
-    rw [prod.map_id_comp, assoc, ←(Pow_powerizes _ (Predicate.eq B))]
+    rw [prod.map_id_comp, assoc, Pow_powerizes _ (Predicate.eq B)]
   have h₂ : P_transpose (prod.map (𝟙 _) (prod.map (𝟙 _) (exp' ≫ Hom_toGraph A B)) ≫ (prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
-    = prod.map (𝟙 _) (exp' ≫ Hom_toGraph A B) ≫ v := by
-      apply Pow_unique
-      dsimp only [Powerizes]
-      nth_rewrite 2 [prod.map_id_comp]
-      rw [assoc, ←(Pow_powerizes _ _)]
+      = prod.map (𝟙 _) (exp' ≫ Hom_toGraph A B) ≫ v := by
+    apply Pow_unique
+    dsimp only [Powerizes]
+    rw [prod.map_id_comp, assoc, Pow_powerizes]
   have h₃ := Pow_powerizes _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (exp' ≫ Hom_toGraph A B)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
   dsimp only [Powerizes] at h₃
-  rw [h₂, h_singleton, ←h₁, ←(Pow_powerizes _ id_f'eq), ←assoc] at h₃
+  rw [h₂, h_singleton, ←h₁, Pow_powerizes _ id_f'eq, ←assoc] at h₃
   have h' := Hom_Exponentiates f
   dsimp only [Exponentiates] at h'
   have h'_singleton := congrArg (fun k ↦ k ≫ singleton B) h'
@@ -205,12 +209,12 @@ theorem Hom_Unique : ∀ {exp' : X ⟶ Hom A B}, Exponentiates (eval A B) f exp'
     = prod.map (𝟙 _) (Hom_map f ≫ Hom_toGraph A B) ≫ v := by
       apply Pow_unique
       dsimp only [Powerizes]
-      nth_rewrite 2 [prod.map_id_comp]
-      rw [assoc, ←(Pow_powerizes _ _)]
+      rw [prod.map_id_comp, assoc, Pow_powerizes]
   have h₃' := Pow_powerizes _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (Hom_map f ≫ Hom_toGraph A B)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
   dsimp only [Powerizes] at h₃'
-  rw [h₂', h'_singleton, ←h₁, ←(Pow_powerizes _ id_f'eq), ←assoc] at h₃'
-  have hx := h₃.trans h₃'.symm
+  rw [h₂', h'_singleton, ←h₁, Pow_powerizes _ id_f'eq, ←assoc] at h₃'
+
+  have hx := h₃'.symm.trans h₃
   have c₀ : prod.map (𝟙 B) (prod.map (𝟙 A) (exp' ≫ Hom_toGraph A B)) ≫ (prod.associator _ _ _).inv
     = (prod.associator _ _ _).inv ≫ (prod.map (𝟙 _) (exp' ≫ Hom_toGraph A B)) := by simp
   have c₁ : prod.map (𝟙 B) (prod.map (𝟙 A) (Hom_map f ≫ Hom_toGraph A B)) ≫ (prod.associator _ _ _).inv
@@ -221,9 +225,9 @@ theorem Hom_Unique : ∀ {exp' : X ⟶ Hom A B}, Exponentiates (eval A B) f exp'
   rw [←assoc, ←assoc, Iso.hom_inv_id, id_comp, ←assoc, ←assoc, Iso.hom_inv_id, id_comp] at hy
   have hz := congrArg (fun k ↦ P_transpose k) hy
   simp only at hz
-  rw [transposeEquiv.proof_3, transposeEquiv.proof_3] at hz
+  rw [P_transpose_right_inv, P_transpose_right_inv] at hz
   rw [cancel_mono] at hz
-  exact hz.symm
+  assumption
 
 
 instance Hom_isExponential : IsExponentialObject (eval A B) where
@@ -257,14 +261,11 @@ def ExpAdjEquiv (A B X : C) : (A ⨯ X ⟶ B) ≃ (X ⟶ Hom A B) where
   left_inv := fun f => Hom_Exponentiates f
   right_inv := by
     intro g
-    apply Hom_Unique
-    rw [Exponentiates]
+    apply Hom_Unique; rfl
 
 variable (X Y)
 
-
 def ExpHom {X Y : C} (A : C) (f : X ⟶ Y) : Hom A X ⟶ Hom A Y := Hom_map (eval A _ ≫ f)
-
 
 def ExpFunctor (A : C) : C ⥤ C where
   obj := fun B ↦ Hom A B
@@ -303,11 +304,11 @@ def TensorHomAdjunction (A : C) : MonoidalCategory.tensorLeft A ⊣ ExpFunctor A
   dsimp only [Exponentiates, ExpHom]
   rw [prod.map_id_comp, assoc, Hom_Exponentiates, ←assoc, Hom_Exponentiates]
 
-instance CartesianClosed : CartesianClosed C where
-  closed := by
+instance CartesianClosed : CartesianClosed C := ⟨by
     intro B
     use ExpFunctor B
     exact TensorHomAdjunction B
+  ⟩
 
 
 end
