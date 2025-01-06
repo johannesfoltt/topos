@@ -23,6 +23,7 @@ open CategoryTheory Category Limits Classifier
 Defines power objects for a category C with a subobject classifier and pullbacks.
 -/
 
+universe u v
 variable {C : Type u} [Category.{v} C] [HasTerminal C] [HasSubobjectClassifier C] [HasPullbacks C]
 
 namespace Power
@@ -42,7 +43,7 @@ end Power
 /--
   We say that `f_hat : A ⟶ PB` "powerizes" `f : B ⨯ A ⟶ Ω C` if ∈_B ∘ (1 × f') = f.
 -/
-abbrev Powerizes {B PB : C} (in_B : B ⨯ PB ⟶ Ω C) (f : B ⨯ A ⟶ Ω C) (f_hat : A ⟶ PB) :=
+abbrev Powerizes {A B PB : C} (in_B : B ⨯ PB ⟶ Ω C) (f : B ⨯ A ⟶ Ω C) (f_hat : A ⟶ PB) :=
   (prod.map (𝟙 B) f_hat) ≫ in_B = f
 
 structure IsPowerObject {B PB : C} (in_B : B ⨯ PB ⟶ Ω C) where
@@ -148,7 +149,7 @@ def transpose_transpose_Equiv (A B : C) : (B ⟶ Pow A) ≃ (A ⟶ Pow B) :=
 def Pow_map {B A : C} (h : A ⟶ B) : Pow B ⟶ Pow A :=
   P_transpose ((prod.map h (𝟙 (Pow B))) ≫ (in_ B))
 
-lemma Pow_map_Powerizes {B : C} (h : A ⟶ B) : Powerizes (in_ A) ((prod.map h (𝟙 (Pow B))) ≫ (in_ B)) (Pow_map h) := by
+lemma Pow_map_Powerizes {A B : C} (h : A ⟶ B) : Powerizes (in_ A) ((prod.map h (𝟙 (Pow B))) ≫ (in_ B)) (Pow_map h) := by
   dsimp [Pow_map]
   apply Pow_powerizes
 

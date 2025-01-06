@@ -81,11 +81,14 @@ instance singletonMono (B : C) : Mono (singleton B) where
 def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
 
 /-- The name ⌈φ⌉ : ⊤_ C ⟶ Pow B of a predicate `φ : B ⟶ Ω C`. -/
-def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose ((prod.rightUnitor B).hom ≫ φ)
+def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose (((prod.fst) ≫ φ))
 
-def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) : B ⟶ Ω C := (prod.rightUnitor B).inv ≫ P_transpose_inv φ'
+def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) : B ⟶ Ω C := (prod.lift (𝟙 B) (terminal.from B)) ≫ P_transpose_inv φ'
 
-def Predicate.NameDef {B} (φ : B ⟶ Ω C) : (prod.map (𝟙 _) (Name φ)) ≫ (in_ B) = (prod.rightUnitor B).hom ≫ φ :=
+variable (B : C)
+#check (prod.rightUnitor B)
+
+def Predicate.NameDef {B} (φ : B ⟶ Ω C) : (prod.map (𝟙 _) (Name φ)) ≫ (in_ B) = (prod.fst) ≫ φ :=
   Pow_powerizes _ _
 
 def Predicate.NameEquiv (B : C) : (B ⟶ Ω C) ≃ (⊤_ C ⟶ Pow B) where
@@ -97,9 +100,10 @@ def Predicate.NameEquiv (B : C) : (B ⟶ Ω C) ≃ (⊤_ C ⟶ Pow B) where
     rw [P_transpose_left_inv, ←assoc, prod.lift_fst, id_comp]
   right_inv := by
     intro φ'
-    dsimp only [Name, fromName]
-    rw [←assoc, Iso.hom_inv_id, id_comp, P_transpose_right_inv]
+    dsimp only [Name, fromName, P_transpose_inv]
+    rw [←assoc]
 
+    sorry
 
 end
 end Topos

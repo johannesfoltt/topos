@@ -5,7 +5,7 @@ Authors: Charlie Conneen
 -/
 import Mathlib.CategoryTheory.Subobject.Basic
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
-import Mathlib.CategoryTheory.Limits.Shapes.CommSq
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Functor.EpiMono
 import Mathlib.CategoryTheory.Limits.Constructions.BinaryProducts
 
@@ -87,7 +87,7 @@ namespace Topos
 noncomputable instance truth_is_RegularMono : RegularMono (t C) :=
   RegularMono.ofIsSplitMono (t C)
 
-theorem Mono_is_RegularMono {A B : C} (m : A ⟶ B) [Mono m] : RegularMono m :=
+noncomputable instance Mono_is_RegularMono {A B : C} (m : A ⟶ B) [Mono m] : RegularMono m :=
   regularOfIsPullbackFstOfRegular (Classifies m).comm (Classifies m).pb
 
 /-- A category with a subobject classifier is balanced. -/
@@ -104,14 +104,14 @@ instance : Balanced Cᵒᵖ := balanced_opposite
   If the source of a faithful functor has a subobject classifier, the functor reflects
   isomorphisms. This holds for any balanced category.
 -/
-def reflectsIsomorphisms (D : Type u₀) [Category.{v₀} D] (F : C ⥤ D) [Faithful F] : ReflectsIsomorphisms F :=
+def reflectsIsomorphisms (D : Type u₀) [Category.{v₀} D] (F : C ⥤ D) [Functor.Faithful F] : Functor.ReflectsIsomorphisms F :=
   reflectsIsomorphisms_of_reflectsMonomorphisms_of_reflectsEpimorphisms F
 
 /--
   If the source of a faithful functor is the opposite category of one with a subobject classifier,
   the same holds -- the functor reflects isomorphisms.
 -/
-def reflectsIsomorphismsOp (D : Type u₀) [Category.{v₀} D] (F : Cᵒᵖ ⥤ D) [Faithful F] : ReflectsIsomorphisms F :=
+def reflectsIsomorphismsOp (D : Type u₀) [Category.{v₀} D] (F : Cᵒᵖ ⥤ D) [Functor.Faithful F] : Functor.ReflectsIsomorphisms F :=
   reflectsIsomorphisms_of_reflectsMonomorphisms_of_reflectsEpimorphisms F
 
 end Topos
