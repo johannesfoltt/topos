@@ -86,7 +86,7 @@ def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose (((prod.fst) �
 def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) : B ⟶ Ω C := (prod.lift (𝟙 B) (terminal.from B)) ≫ P_transpose_inv φ'
 
 variable (B : C)
-#check (prod.rightUnitor B)
+#check (prod.rightUnitor C)
 
 def Predicate.NameDef {B} (φ : B ⟶ Ω C) : (prod.map (𝟙 _) (Name φ)) ≫ (in_ B) = (prod.fst) ≫ φ :=
   Pow_powerizes _ _
@@ -100,10 +100,10 @@ def Predicate.NameEquiv (B : C) : (B ⟶ Ω C) ≃ (⊤_ C ⟶ Pow B) where
     rw [P_transpose_left_inv, ←assoc, prod.lift_fst, id_comp]
   right_inv := by
     intro φ'
-    dsimp only [Name, fromName, P_transpose_inv]
-    rw [←assoc]
-
-    sorry
+    dsimp only [Name, fromName]
+    have h := (Limits.prod.rightUnitor B).hom_inv_id
+    dsimp at h
+    rw [←assoc, h, id_comp, P_transpose_right_inv]
 
 end
 end Topos
