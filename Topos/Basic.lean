@@ -30,9 +30,9 @@ variable [Topos C] {C}
 namespace Topos
 
 noncomputable instance chosenFiniteProducts : ChosenFiniteProducts C := ChosenFiniteProducts.ofFiniteProducts C
-instance hasBinaryProducts : HasBinaryProducts C := hasBinaryProducts_of_hasTerminal_and_pullbacks C
-instance hasFiniteProducts : HasFiniteProducts C := hasFiniteProducts_of_has_binary_and_terminal
-instance hasEqualizers     : HasEqualizers C     := hasEqualizers_of_hasPullbacks_and_binary_products
+instance hasBinaryProducts                  : HasBinaryProducts C    := hasBinaryProducts_of_hasTerminal_and_pullbacks C
+instance hasFiniteProducts                  : HasFiniteProducts C    := hasFiniteProducts_of_has_binary_and_terminal
+instance hasEqualizers                      : HasEqualizers C        := hasEqualizers_of_hasPullbacks_and_binary_products
 
 noncomputable section
 

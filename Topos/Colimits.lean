@@ -36,9 +36,19 @@ def directImage : Pow B' ⟶ Pow B :=
 
 variable {S : C} (m : S ⟶ B') [Mono m]
 
+#check Name
+
+lemma wDef_comm' : (prod.map m (𝟙 _)) ≫ (prod.map (𝟙 _) (Name (ClassifierOf m))) ≫ in_ B' = terminal.from _ ≫ t C := by
+  rw [Predicate.NameDef, prod.map_fst_assoc]
+  have h : terminal.from (S ⨯ ⊤_ C) = prod.fst ≫ terminal.from S := by apply terminal.hom_ext
+  rw [h, assoc, ClassifierComm]
+
 lemma wDef_comm : (prod.map m (Name (ClassifierOf m))) ≫ in_ B' = terminal.from _ ≫ t C := by
-  
-  repeat sorry
+  -- for some reason there is an issue rewriting m = m ≫ 𝟙 _ ??
+  -- TODO: should be able to wrestle this lemma's statement into the previous lemma's, merging the two
+  have h := wDef_comm' m
+  rw [prod.map_map_assoc, comp_id, id_comp] at h
+  assumption
 
 def w : S ⨯ ⊤_ C ⟶ pullback (in_ B') (t C) := pullback.lift (w := wDef_comm m)
 
