@@ -29,6 +29,7 @@ variable [Topos C] {C}
 
 namespace Topos
 
+noncomputable instance chosenFiniteProducts : ChosenFiniteProducts C := ChosenFiniteProducts.ofFiniteProducts C
 instance hasBinaryProducts : HasBinaryProducts C := hasBinaryProducts_of_hasTerminal_and_pullbacks C
 instance hasFiniteProducts : HasFiniteProducts C := hasFiniteProducts_of_has_binary_and_terminal
 instance hasEqualizers     : HasEqualizers C     := hasEqualizers_of_hasPullbacks_and_binary_products
@@ -84,9 +85,6 @@ def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
 def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose (((prod.fst) ≫ φ))
 
 def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) : B ⟶ Ω C := (prod.lift (𝟙 B) (terminal.from B)) ≫ P_transpose_inv φ'
-
-variable (B : C)
-#check (prod.rightUnitor C)
 
 def Predicate.NameDef {B} (φ : B ⟶ Ω C) : (prod.map (𝟙 _) (Name φ)) ≫ (in_ B) = (prod.fst) ≫ φ :=
   Pow_powerizes _ _

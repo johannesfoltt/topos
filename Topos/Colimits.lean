@@ -8,10 +8,12 @@ import Topos.Basic
 
 namespace CategoryTheory
 
-open Category Limits Classifier Power
+open Category Limits Classifier Power Functor
 
 namespace Topos
 
+universe u v
+variable {C}
 variable [Category.{v, u} C] [Topos C]
 
 noncomputable section
@@ -34,7 +36,9 @@ def directImage : Pow B' ⟶ Pow B :=
 
 variable {S : C} (m : S ⟶ B') [Mono m]
 
-lemma wDef_comm : (prod.map m (Name (ClassifierOf m))) ≫ in_ B' = terminal.from _ ≫ t C := sorry
+lemma wDef_comm : (prod.map m (Name (ClassifierOf m))) ≫ in_ B' = terminal.from _ ≫ t C := by
+  
+  repeat sorry
 
 def w : S ⨯ ⊤_ C ⟶ pullback (in_ B') (t C) := pullback.lift (w := wDef_comm m)
 
@@ -51,10 +55,11 @@ lemma directImage_NameChar_factors : Name (ClassifierOf m) ≫ directImage k = N
 end BeckChevalley
 
 instance PowRightAdj : IsRightAdjoint (PowFunctor C) where
-  left := PowFunctorOp C
-  adj := PowSelfAdj C
+  exists_leftAdjoint := by
+    apply Exists.intro (PowFunctorOp C)
+    exact ⟨PowSelfAdj C⟩
 
-instance PowFaithful : Faithful (PowFunctor C) where
+instance PowFaithful : Functor.Faithful (PowFunctor C) where
   map_injective := by
     intro ⟨X⟩ ⟨Y⟩ ⟨f⟩ ⟨g⟩ h
     change (Pow_map f = Pow_map g) at h
@@ -77,7 +82,7 @@ instance : HasCoequalizers Cᵒᵖ := hasCoequalizers_opposite
 
 instance : HasReflexiveCoequalizers Cᵒᵖ := hasReflexiveCoequalizers_of_hasCoequalizers Cᵒᵖ
 
-instance PowReflectsIsomorphisms : ReflectsIsomorphisms (PowFunctor C) := reflectsIsomorphismsOp (F := PowFunctor C)
+instance PowReflectsIsomorphisms : Functor.ReflectsIsomorphisms (PowFunctor C) := reflectsIsomorphismsOp (F := PowFunctor C)
 
 instance PowPreservesCoproductOfReflexivePair : Monad.PreservesColimitOfIsReflexivePair (PowFunctor C) where
   out := by
@@ -91,17 +96,15 @@ instance PowPreservesCoproductOfReflexivePair : Monad.PreservesColimitOfIsReflex
     change (g ≫ s.unop = 𝟙 _) at hs₂
     refine PreservesColimit.mk ?_
     intro ⟨pt, ι⟩ hc
-
+    
 
     sorry
 
-instance PowFunctorMonadic : MonadicRightAdjoint (PowFunctor C) :=
-  Monad.monadicOfHasPreservesReflexiveCoequalizersOfReflectsIsomorphisms
+instance PowFunctorMonadic : MonadicRightAdjoint (PowFunctor C) := sorry
 
 -- TODO: Use `PowFunctorMonadic` to show that a topos has finite colimits.
 
 instance HasFiniteColimits : HasFiniteColimits C := sorry
-
 
 
 end

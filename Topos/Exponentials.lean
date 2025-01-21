@@ -3,9 +3,10 @@ Copyright (c) 2024 Charlie Conneen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
-import Mathlib.CategoryTheory.Limits.Shapes.Pullbacks
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.HasPullback
 import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
 import Mathlib.CategoryTheory.Closed.Cartesian
+import Mathlib.CategoryTheory.Monoidal.OfHasFiniteProducts
 import Topos.Basic
 
 
@@ -36,11 +37,11 @@ def Hom (A B : C) : C :=
     (Name (Predicate.true_ A))
 
 /-- The map which, in Set, sends a function (A → B) ∈ B^A to its graph as a subset of B ⨯ A. -/
-def Hom_toGraph (A B : C) : Hom A B ⟶ Pow (B ⨯ A) := pullback.fst
+def Hom_toGraph (A B : C) : Hom A B ⟶ Pow (B ⨯ A) := pullback.fst _ _
 
 instance Hom_toGraph_Mono {A B : C} : Mono (Hom_toGraph A B) := pullback.fst_of_mono
 
-lemma ExpConeSnd_Terminal (A B : C) : pullback.snd = terminal.from (Hom A B) := Unique.eq_default _
+lemma ExpConeSnd_Terminal (A B : C) : pullback.snd _ _ = terminal.from (Hom A B) := Unique.eq_default _
 
 lemma Hom_comm (A B : C) : Hom_toGraph A B ≫ (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B))
   = terminal.from (Hom A B) ≫ Name (Predicate.true_ A) := by
@@ -149,10 +150,11 @@ lemma HomMapSquareComm :
     apply Pow_unique
     dsimp only [Name, Predicate.true_, Powerizes, Predicate.isSingleton]
     have f_terminal : f ≫ terminal.from B = terminal.from _ := Unique.eq_default _
-    have rightUnitor_terminal : (prod.rightUnitor A).hom ≫ terminal.from A = terminal.from _ := Unique.eq_default _
+    have rightUnitor_terminal : (Limits.prod.rightUnitor A).hom ≫ terminal.from A = terminal.from _ := Unique.eq_default _
     have A_X_terminal : prod.map (𝟙 A) (terminal.from X) ≫ terminal.from (A ⨯ ⊤_ C) = terminal.from _ := Unique.eq_default _
     have obv : terminal.from (A ⨯ ⊤_ C) ≫ t C = prod.map (𝟙 A) (P_transpose (terminal.from (A ⨯ ⊤_ C) ≫ t C)) ≫ in_ A := (Pow_powerizes _ _).symm
-    rw [(Classifies (singleton _)).comm, ←assoc, rightUnitor_terminal, ←assoc, f_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
+    have map_def : (Limits.prod.rightUnitor A).hom = prod.fst := rfl
+    rw [(Classifies (singleton _)).comm, ←assoc, ←map_def, rightUnitor_terminal, ←assoc, f_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
 
 def Hom_map : X ⟶ Hom A B :=
   pullback.lift (h_map f) (terminal.from X) (HomMapSquareComm f)
@@ -304,12 +306,7 @@ def TensorHomAdjunction (A : C) : MonoidalCategory.tensorLeft A ⊣ ExpFunctor A
   dsimp only [Exponentiates, ExpHom]
   rw [prod.map_id_comp, assoc, Hom_Exponentiates, ←assoc, Hom_Exponentiates]
 
-instance CartesianClosed : CartesianClosed C := ⟨by
-    intro B
-    use ExpFunctor B
-    exact TensorHomAdjunction B
-  ⟩
-
+instance CartesianClosed : CartesianClosed C := by exact Y
 
 end
 end Topos
