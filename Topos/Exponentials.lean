@@ -3,16 +3,12 @@ Copyright (c) 2024 Charlie Conneen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
-import Mathlib.CategoryTheory.Limits.Shapes.Pullback.HasPullback
-import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
-import Mathlib.CategoryTheory.Closed.Cartesian
 import Mathlib.CategoryTheory.Monoidal.OfHasFiniteProducts
+-- import Mathlib.CategoryTheory.Topos.Basic
 import Topos.Basic
 
 
-namespace CategoryTheory
-
-open Category Limits Classifier Power Topos
+open CategoryTheory Category Limits Classifier Power Topos
 
 universe u v
 
@@ -26,7 +22,7 @@ Consequently, every topos is Cartesian closed.
 -/
 
 
-namespace Topos
+namespace CategoryTheory.Topos
 
 noncomputable section
 
@@ -36,19 +32,22 @@ def Hom (A B : C) : C :=
     (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B))
     (Name (Predicate.true_ A))
 
-/-- The map which, in Set, sends a function (A → B) ∈ B^A to its graph as a subset of B ⨯ A. -/
+/-- The map which sends `A ⟶ B` to its graph as a subobject of `B ⨯ A`. -/
 def Hom_toGraph (A B : C) : Hom A B ⟶ Pow (B ⨯ A) := pullback.fst _ _
 
 instance Hom_toGraph_Mono {A B : C} : Mono (Hom_toGraph A B) := pullback.fst_of_mono
 
-lemma ExpConeSnd_Terminal (A B : C) : pullback.snd _ _ = terminal.from (Hom A B) := Unique.eq_default _
+lemma ExpConeSnd_Terminal (A B : C) : 
+    pullback.snd _ _ = terminal.from (Hom A B) := Unique.eq_default _
 
-lemma Hom_comm (A B : C) : Hom_toGraph A B ≫ (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B))
-  = terminal.from (Hom A B) ≫ Name (Predicate.true_ A) := by
-    rw [←ExpConeSnd_Terminal]; exact pullback.condition
+lemma Hom_comm (A B : C) : 
+    Hom_toGraph A B ≫ (P_transpose (P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B))
+    = terminal.from (Hom A B) ≫ Name (Predicate.true_ A) := by
+  rw [←ExpConeSnd_Terminal]; exact pullback.condition
 
 lemma evalDef_comm (A B : C) :
-  (prod.map (𝟙 A) (Hom_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))) ≫ Predicate.isSingleton B
+  (prod.map (𝟙 A) (Hom_toGraph A B) 
+  ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))) ≫ Predicate.isSingleton B
   = Predicate.true_ (A ⨯ Hom A B) := by
     let id_m : A ⨯ Hom A B ⟶ A ⨯ Pow (B ⨯ A) := prod.map (𝟙 _) (Hom_toGraph A B)
     let v := P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
@@ -56,11 +55,14 @@ lemma evalDef_comm (A B : C) :
     let u := P_transpose (v ≫ Predicate.isSingleton B)
     let id_u := prod.map (𝟙 A) u
     have comm_middle : v ≫ σ_B = id_u ≫ (in_ A) := (Pow_powerizes A (v ≫ σ_B)).symm
-    have comm_left : id_m ≫ id_u =  prod.map (𝟙 _) (terminal.from _) ≫ prod.map (𝟙 _) (Name (Predicate.true_ A)) := by
+    have comm_left : 
+    id_m ≫ id_u 
+    =  prod.map (𝟙 _) (terminal.from _) ≫ prod.map (𝟙 _) (Name (Predicate.true_ A)) := by
       rw [prod.map_map, prod.map_map]
       ext; simp
       rw [prod.map_snd, prod.map_snd, Hom_comm]
-    have h_terminal : (prod.map (𝟙 A) (terminal.from (Hom A B)) ≫ prod.fst) ≫ terminal.from A = terminal.from _ :=
+    have h_terminal : 
+    (prod.map (𝟙 A) (terminal.from (Hom A B)) ≫ prod.fst) ≫ terminal.from A = terminal.from _ :=
       Unique.eq_default _
     rw [assoc, comm_middle, ←assoc, comm_left, assoc, Predicate.NameDef]
     dsimp [Predicate.true_]
@@ -68,10 +70,12 @@ lemma evalDef_comm (A B : C) :
 
 /-- The evaluation map eval : A ⨯ B^A ⟶ B. -/
 def eval (A B : C) : A ⨯ (Hom A B) ⟶ B :=
-  ClassifierMonoCone_into (comm' := evalDef_comm A B)
+  ClassifierCone_into (comm' := evalDef_comm A B)
 
-lemma evalCondition (A B : C) : eval A B ≫ singleton B = prod.map (𝟙 _) (Hom_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) :=
-  ClassifierMonoCone_into_comm _ _ _
+lemma evalCondition (A B : C) : 
+    eval A B ≫ singleton B 
+    = prod.map (𝟙 _) (Hom_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) :=
+  ClassifierCone_into_comm _ _ _
 
 abbrev Exponentiates {A B X HomAB : C}  (e : A ⨯ HomAB ⟶ B) (f : A ⨯ X ⟶ B) (f_exp : X ⟶ HomAB) :=
   (prod.map (𝟙 _) f_exp) ≫ e = f
@@ -97,7 +101,8 @@ attribute [instance] HasExponentialObjects.has_exponential_object
 
 variable {A B X : C} (f : A ⨯ X ⟶ B)
 
-abbrev h_map : X ⟶ Pow (B ⨯ A) := P_transpose ((prod.associator _ _ _).hom ≫ prod.map (𝟙 _) f ≫ Predicate.eq _)
+abbrev h_map : X ⟶ Pow (B ⨯ A) := 
+  P_transpose ((prod.associator _ _ _).hom ≫ prod.map (𝟙 _) f ≫ Predicate.eq _)
 
 lemma HomMapSquareComm :
   h_map f ≫ P_transpose (P_transpose ((prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)) ≫ Predicate.isSingleton B) =
@@ -149,7 +154,7 @@ lemma HomMapSquareComm :
     have A_X_terminal : prod.map (𝟙 A) (terminal.from X) ≫ terminal.from (A ⨯ ⊤_ C) = terminal.from _ := Unique.eq_default _
     have obv : terminal.from (A ⨯ ⊤_ C) ≫ t C = prod.map (𝟙 A) (P_transpose (terminal.from (A ⨯ ⊤_ C) ≫ t C)) ≫ in_ A := (Pow_powerizes _ _).symm
     have map_def : (Limits.prod.rightUnitor A).hom = prod.fst := rfl
-    rw [ClassifierMonoComm (singleton _), ←assoc, ←map_def, rightUnitor_terminal, ←assoc, f_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
+    rw [ClassifierComm (singleton _), ←assoc, ←map_def, rightUnitor_terminal, ←assoc, f_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
 
 def Hom_map : X ⟶ Hom A B :=
   pullback.lift (h_map f) (terminal.from X) (HomMapSquareComm f)
@@ -300,5 +305,4 @@ def TensorHomAdjunction (A : C) : MonoidalCategory.tensorLeft A ⊣ ExpFunctor A
 instance CartesianClosed : CartesianClosed C := by exact Y
 
 end
-end Topos
-end CategoryTheory
+end CategoryTheory.Topos

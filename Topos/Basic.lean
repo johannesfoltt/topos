@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
 import Mathlib.CategoryTheory.Closed.Cartesian
-import Mathlib.CategoryTheory.Limits.Shapes.BinaryProducts
-import Mathlib.CategoryTheory.Limits.Shapes.Terminal
+--import Mathlib.CategoryTheory.Topos.Power
 import Topos.Power
-import Topos.SubobjectClassifier
 
 namespace CategoryTheory
 
@@ -29,28 +27,34 @@ variable [Topos C] {C}
 
 namespace Topos
 
-noncomputable instance chosenFiniteProducts : ChosenFiniteProducts C := ChosenFiniteProducts.ofFiniteProducts C
-instance hasBinaryProducts                  : HasBinaryProducts C    := hasBinaryProducts_of_hasTerminal_and_pullbacks C
-instance hasFiniteProducts                  : HasFiniteProducts C    := hasFiniteProducts_of_has_binary_and_terminal
-instance hasEqualizers                      : HasEqualizers C        := hasEqualizers_of_hasPullbacks_and_binary_products
+noncomputable instance chosenFiniteProducts : ChosenFiniteProducts C :=
+  ChosenFiniteProducts.ofFiniteProducts C
+instance hasBinaryProducts                  : HasBinaryProducts C    :=
+  hasBinaryProducts_of_hasTerminal_and_pullbacks C
+instance hasFiniteProducts                  : HasFiniteProducts C    :=
+  hasFiniteProducts_of_has_binary_and_terminal
+instance hasEqualizers                      : HasEqualizers C        :=
+  hasEqualizers_of_hasPullbacks_and_binary_products
 
 noncomputable section
 
+/-- The predicate on `B` which corresponds to the subobject `𝟙 B: B ⟶ B`. -/
 def Predicate.true_ (B : C) : B ⟶ Ω C := terminal.from B ≫ (t C)
 
 /--
   The equality predicate on `B ⨯ B`.
 -/
-def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOfMono (diag B)
+def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOf (diag B)
 
 lemma Predicate.lift_eq {X B : C} (b : X ⟶ B) : prod.lift b b ≫ Predicate.eq B = Predicate.true_ X := by
   dsimp only [eq, true_]
-  rw [←prod.comp_diag b, assoc, (ClassifierMonoComm (diag B)), ←assoc, terminal.comp_from]
+  rw [←prod.comp_diag b, assoc, (ClassifierComm (diag B)), ←assoc, terminal.comp_from]
 
-lemma Predicate.eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : prod.lift b b' ≫ Predicate.eq B = Predicate.true_ X) : b = b' := by
+lemma Predicate.eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : prod.lift b b' ≫ Predicate.eq B = Predicate.true_ X) :
+    b = b' := by
   dsimp only [eq, true_] at comm'
-  let cone_lift := ClassifierMonoCone_into (comm' := comm')
-  have t : cone_lift ≫ diag _ = prod.lift b b' := ClassifierMonoCone_into_comm (comm' := comm')
+  let cone_lift := ClassifierCone_into (comm' := comm')
+  have t : cone_lift ≫ diag _ = prod.lift b b' := ClassifierCone_into_comm (comm' := comm')
   rw [prod.comp_diag] at t
   have t₁ := congrArg (fun k ↦ k ≫ prod.fst) t
   have t₂ := congrArg (fun k ↦ k ≫ prod.snd) t
@@ -62,7 +66,7 @@ lemma Predicate.eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : prod.lift b b'
   The "singleton" map {•}_B : B ⟶ Pow B.
   In Set, this map sends b ∈ B to the singleton set {b}.
 -/
-def singleton (B : C) : B ⟶ Pow B := P_transpose (Predicate.eq B)
+def singleton (B : C) : B ⟶ Pow B := (Predicate.eq B)^
 
 /--
   `singleton B : B ⟶ Pow B` is a monomorphism.
@@ -71,22 +75,28 @@ instance singletonMono (B : C) : Mono (singleton B) where
   right_cancellation := by
     intro X b b' h
     rw [singleton] at h
-    have h₁ : prod.map (𝟙 _) (b ≫ P_transpose (Predicate.eq B)) ≫ in_ B = prod.map (𝟙 _) (b' ≫ P_transpose (Predicate.eq B)) ≫ in_ B :=
+    have h₁ : prod.map (𝟙 _) (b ≫ (Predicate.eq B)^) ≫ in_ B 
+    = prod.map (𝟙 _) (b' ≫ P_transpose (Predicate.eq B)) ≫ in_ B :=
       congrFun (congrArg CategoryStruct.comp (congrArg (prod.map (𝟙 B)) h)) (in_ B)
     rw [prod.map_id_comp, assoc, Pow_powerizes, prod.map_id_comp, assoc, Pow_powerizes] at h₁
-    have comm : (b ≫ terminal.from _) ≫ t C = prod.lift b (𝟙 _) ≫ prod.map (𝟙 _) b ≫ Predicate.eq _ := by
-      rw [terminal.comp_from, ←assoc, prod.lift_map, comp_id, id_comp, Predicate.lift_eq, Predicate.true_]
+    have comm : (b ≫ terminal.from _) ≫ t C 
+    = prod.lift b (𝟙 _) ≫ prod.map (𝟙 _) b ≫ Predicate.eq _ := by
+      rw [terminal.comp_from, ←assoc, prod.lift_map, comp_id, 
+          id_comp, Predicate.lift_eq, Predicate.true_]
     rw [terminal.comp_from, h₁, ←assoc, prod.lift_map, id_comp, comp_id] at comm
     exact Predicate.eq_of_lift_eq comm.symm
 
-def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOfMono (singleton B)
+def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
 
 /-- The name ⌈φ⌉ : ⊤_ C ⟶ Pow B of a predicate `φ : B ⟶ Ω C`. -/
-def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose (((prod.fst) ≫ φ))
+def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := (((prod.fst) ≫ φ))^
 
-def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) : B ⟶ Ω C := (prod.lift (𝟙 B) (terminal.from B)) ≫ P_transpose_inv φ'
+notation "⌈" φ "⌉" => Name φ
 
-def Predicate.NameDef {B} (φ : B ⟶ Ω C) : (prod.map (𝟙 _) (Name φ)) ≫ (in_ B) = (prod.fst) ≫ φ :=
+def Predicate.fromName {B} (φ' : ⊤_ C ⟶ Pow B) : B ⟶ Ω C :=
+  (prod.lift (𝟙 B) (terminal.from B)) ≫ φ'^
+
+def Predicate.NameDef {B} (φ : B ⟶ Ω C) : (prod.map (𝟙 _) ⌈φ⌉) ≫ (in_ B) = (prod.fst) ≫ φ :=
   Pow_powerizes _ _
 
 def Predicate.NameEquiv (B : C) : (B ⟶ Ω C) ≃ (⊤_ C ⟶ Pow B) where

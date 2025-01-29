@@ -29,14 +29,12 @@ namespace BeckChevalley
 
 variable {B B' : C} (k : B' ⟶ B) [Mono k]
 
-#check P_transpose (ClassifierOfMono ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _))).val
+#check P_transpose (ClassifierOfMono ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _)))
 
 def directImage : Pow B' ⟶ Pow B :=
-  P_transpose (ClassifierOfMono ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _))).val
+  P_transpose (ClassifierOfMono ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _)))
 
 variable {S : C} (m : S ⟶ B') [Mono m]
-
-#check Name
 
 lemma wDef_comm' : (prod.map m (𝟙 _)) ≫ (prod.map (𝟙 _) (Name (ClassifierOfMono m))) ≫ in_ B' = terminal.from _ ≫ t C := by
   rw [Predicate.NameDef, prod.map_fst_assoc]
