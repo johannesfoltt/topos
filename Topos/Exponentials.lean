@@ -89,14 +89,11 @@ class HasExponentialObject (A B : C) where
 variable (C)
 
 class HasExponentialObjects where
-  has_exponential_object : ∀ (A B : C), HasExponentialObject A B
+  has_exponential_object (A B : C) : HasExponentialObject A B
 
 variable {C}
 
 attribute [instance] HasExponentialObjects.has_exponential_object
-
--- ## TODO
--- exhibit the type class instance `HasExponentialObjects C` for a topos `C`.
 
 variable {A B X : C} (f : A ⨯ X ⟶ B)
 
