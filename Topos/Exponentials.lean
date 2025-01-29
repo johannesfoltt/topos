@@ -68,10 +68,10 @@ lemma evalDef_comm (A B : C) :
 
 /-- The evaluation map eval : A ⨯ B^A ⟶ B. -/
 def eval (A B : C) : A ⨯ (Hom A B) ⟶ B :=
-  ClassifierCone_into (comm' := evalDef_comm A B)
+  ClassifierMonoCone_into (comm' := evalDef_comm A B)
 
 lemma evalCondition (A B : C) : eval A B ≫ singleton B = prod.map (𝟙 _) (Hom_toGraph A B) ≫ P_transpose ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A)) :=
-  ClassifierCone_into_comm _ _ _
+  ClassifierMonoCone_into_comm _ _ _
 
 abbrev Exponentiates {A B X HomAB : C}  (e : A ⨯ HomAB ⟶ B) (f : A ⨯ X ⟶ B) (f_exp : X ⟶ HomAB) :=
   (prod.map (𝟙 _) f_exp) ≫ e = f
@@ -126,7 +126,6 @@ lemma HomMapSquareComm :
     have v_condition : (prod.associator _ _ _).inv ≫ in_ (B ⨯ A) = prod.map (𝟙 _) v ≫ in_ _ := (Pow_powerizes _ _).symm
     have lhs : P_transpose (prod.map (𝟙 A) h ≫ v ≫ Predicate.isSingleton B) = h ≫ P_transpose (v ≫ Predicate.isSingleton B) := by
       apply Pow_unique
-      dsimp only [Powerizes]
       rw [prod.map_id_comp, assoc _ _ (in_ A), Pow_powerizes, ←assoc]
     rw [←lhs]
     -- Claim that f ≫ {•}_B = (1⨯h) ≫ v.
@@ -134,12 +133,11 @@ lemma HomMapSquareComm :
     -- There might be a slightly faster way to do this.
     have transpose₁ : P_transpose id_f'eq = f ≫ singleton _ := by
       apply Pow_unique
-      dsimp only [Powerizes, Topos.singleton]
+      dsimp only [Topos.singleton]
       rw [prod.map_id_comp, assoc, (Pow_powerizes B (Predicate.eq B))]
     have shuffle_h_around : (prod.associator B A X).inv ≫ (prod.map (prod.map (𝟙 _) (𝟙 _)) h) = prod.map (𝟙 _) (prod.map (𝟙 _) h) ≫ (prod.associator _ _ _).inv := by simp
     have transpose₂ : P_transpose id_f'eq = (prod.map (𝟙 _) h) ≫ v := by
       apply Pow_unique
-      dsimp only [Powerizes]
       rw [h_condition₂, ←assoc, shuffle_h_around, prod.map_id_comp, assoc _ _ (in_ B), ←v_condition, assoc]
     have eqn₁ : f ≫ singleton _ = (prod.map (𝟙 _) h) ≫ v := transpose₁.symm.trans transpose₂
     -- now compose by the `isSingleton B` predicate.
@@ -148,13 +146,13 @@ lemma HomMapSquareComm :
     rw [←eqn₂]
     -- from here, the argument is mostly definition unpacking.
     apply Pow_unique
-    dsimp only [Name, Predicate.true_, Powerizes, Predicate.isSingleton]
+    dsimp only [Name, Predicate.true_, Predicate.isSingleton]
     have f_terminal : f ≫ terminal.from B = terminal.from _ := Unique.eq_default _
     have rightUnitor_terminal : (Limits.prod.rightUnitor A).hom ≫ terminal.from A = terminal.from _ := Unique.eq_default _
     have A_X_terminal : prod.map (𝟙 A) (terminal.from X) ≫ terminal.from (A ⨯ ⊤_ C) = terminal.from _ := Unique.eq_default _
     have obv : terminal.from (A ⨯ ⊤_ C) ≫ t C = prod.map (𝟙 A) (P_transpose (terminal.from (A ⨯ ⊤_ C) ≫ t C)) ≫ in_ A := (Pow_powerizes _ _).symm
     have map_def : (Limits.prod.rightUnitor A).hom = prod.fst := rfl
-    rw [(Classifies (singleton _)).comm, ←assoc, ←map_def, rightUnitor_terminal, ←assoc, f_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
+    rw [ClassifierMonoComm (singleton _), ←assoc, ←map_def, rightUnitor_terminal, ←assoc, f_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
 
 def Hom_map : X ⟶ Hom A B :=
   pullback.lift (h_map f) (terminal.from X) (HomMapSquareComm f)
@@ -192,15 +190,13 @@ theorem Hom_Unique : ∀ {exp' : X ⟶ Hom A B}, Exponentiates (eval A B) f exp'
   let id_f'eq : B ⨯ A ⨯ X ⟶ Ω C := prod.map (𝟙 _) f ≫ Predicate.eq _
   have h₁ : P_transpose (id_f'eq) = f ≫ singleton B := by
     apply Pow_unique
-    dsimp only [Powerizes, id_f'eq, singleton]
+    dsimp only [id_f'eq, singleton]
     rw [prod.map_id_comp, assoc, Pow_powerizes _ (Predicate.eq B)]
   have h₂ : P_transpose (prod.map (𝟙 _) (prod.map (𝟙 _) (exp' ≫ Hom_toGraph A B)) ≫ (prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
       = prod.map (𝟙 _) (exp' ≫ Hom_toGraph A B) ≫ v := by
     apply Pow_unique
-    dsimp only [Powerizes]
     rw [prod.map_id_comp, assoc, Pow_powerizes]
   have h₃ := Pow_powerizes _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (exp' ≫ Hom_toGraph A B)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
-  dsimp only [Powerizes] at h₃
   rw [h₂, h_singleton, ←h₁, Pow_powerizes _ id_f'eq, ←assoc] at h₃
   have h' := Hom_Exponentiates f
   dsimp only [Exponentiates] at h'
@@ -210,10 +206,8 @@ theorem Hom_Unique : ∀ {exp' : X ⟶ Hom A B}, Exponentiates (eval A B) f exp'
   have h₂' : P_transpose (prod.map (𝟙 _) (prod.map (𝟙 _) (Hom_map f ≫ Hom_toGraph A B)) ≫ (prod.associator _ _ _).inv ≫ in_ (B ⨯ A))
     = prod.map (𝟙 _) (Hom_map f ≫ Hom_toGraph A B) ≫ v := by
       apply Pow_unique
-      dsimp only [Powerizes]
       rw [prod.map_id_comp, assoc, Pow_powerizes]
   have h₃' := Pow_powerizes _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (Hom_map f ≫ Hom_toGraph A B)) ≫ (prod.associator B A (Power.Pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
-  dsimp only [Powerizes] at h₃'
   rw [h₂', h'_singleton, ←h₁, Pow_powerizes _ id_f'eq, ←assoc] at h₃'
 
   have hx := h₃'.symm.trans h₃

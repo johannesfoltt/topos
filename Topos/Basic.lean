@@ -20,8 +20,8 @@ variable (C : Type u) [Category.{v} C]
 class Topos where
   [has_terminal : HasTerminal C]
   [has_pullbacks : HasPullbacks C]
-  [subobject_classifier : HasSubobjectClassifier C]
-  [has_power_objects : HasPowerObjects C]
+  [subobject_classifier : HasClassifier C]
+  [has_power_objects : HasPowers C]
 
 attribute [instance] Topos.has_terminal Topos.has_pullbacks Topos.subobject_classifier Topos.has_power_objects
 
@@ -41,16 +41,16 @@ def Predicate.true_ (B : C) : B ⟶ Ω C := terminal.from B ≫ (t C)
 /--
   The equality predicate on `B ⨯ B`.
 -/
-def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOf (diag B)
+def Predicate.eq (B : C) : B ⨯ B ⟶ Ω C := ClassifierOfMono (diag B)
 
 lemma Predicate.lift_eq {X B : C} (b : X ⟶ B) : prod.lift b b ≫ Predicate.eq B = Predicate.true_ X := by
   dsimp only [eq, true_]
-  rw [←prod.comp_diag b, assoc, (Classifies (diag B)).comm, ←assoc, terminal.comp_from]
+  rw [←prod.comp_diag b, assoc, (ClassifierMonoComm (diag B)), ←assoc, terminal.comp_from]
 
 lemma Predicate.eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : prod.lift b b' ≫ Predicate.eq B = Predicate.true_ X) : b = b' := by
   dsimp only [eq, true_] at comm'
-  let cone_lift := ClassifierCone_into (comm' := comm')
-  have t : cone_lift ≫ diag _ = prod.lift b b' := ClassifierCone_into_comm (comm' := comm')
+  let cone_lift := ClassifierMonoCone_into (comm' := comm')
+  have t : cone_lift ≫ diag _ = prod.lift b b' := ClassifierMonoCone_into_comm (comm' := comm')
   rw [prod.comp_diag] at t
   have t₁ := congrArg (fun k ↦ k ≫ prod.fst) t
   have t₂ := congrArg (fun k ↦ k ≫ prod.snd) t
@@ -79,7 +79,7 @@ instance singletonMono (B : C) : Mono (singleton B) where
     rw [terminal.comp_from, h₁, ←assoc, prod.lift_map, id_comp, comp_id] at comm
     exact Predicate.eq_of_lift_eq comm.symm
 
-def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOf (singleton B)
+def Predicate.isSingleton (B : C) : Pow B ⟶ Ω C := ClassifierOfMono (singleton B)
 
 /-- The name ⌈φ⌉ : ⊤_ C ⟶ Pow B of a predicate `φ : B ⟶ Ω C`. -/
 def Name {B} (φ : B ⟶ Ω C) : ⊤_ C ⟶ Pow B := P_transpose (((prod.fst) ≫ φ))

@@ -18,82 +18,100 @@ open CategoryTheory Category Limits Functor
 
 variable {C : Type u} [Category.{v} C] [HasTerminal C]
 
-structure classifying {U X Ω : C} (t : ⊤_ C ⟶ Ω) (f : U ⟶ X) (χ : X ⟶ Ω) where
-  comm : f ≫ χ = (terminal.from U) ≫ t
-  pb : IsLimit (PullbackCone.mk f (terminal.from U) comm)
+namespace Classifier
 
-structure IsSubobjectClassifier {Ω : C} (t : ⊤_ C ⟶ Ω) where
-  classifier_of : ∀ {U X : C} (f : U ⟶ X) [Mono f], X ⟶ Ω
-  classifies : ∀ {U X : C} (f : U ⟶ X) [Mono f], classifying t f (classifier_of f)
-  unique' : ∀ {U X : C} (f : U ⟶ X) [Mono f] (χ : X ⟶ Ω), classifying t f χ → χ = classifier_of f
+structure IsClassifier {Ω : C} (t : ⊤_ C ⟶ Ω) where
+  char {X : C} (S : Subobject X) : Unique { χ : X ⟶ Ω // IsPullback S.arrow (terminal.from (S : C)) χ t }
 
 variable (C)
 
-class HasSubobjectClassifier where
+class HasClassifier where
   Ω : C
   t : ⊤_ C ⟶ Ω
-  is_subobject_classifier : IsSubobjectClassifier t
+  is_subobject_classifier : IsClassifier t
 
-variable [HasSubobjectClassifier C]
+variable [HasClassifier C]
 
-namespace Classifier
+abbrev Ω : C := HasClassifier.Ω
 
-abbrev Ω : C := HasSubobjectClassifier.Ω
+def t : ⊤_ C ⟶ Ω C := HasClassifier.t
 
-def t : ⊤_ C ⟶ Ω C := HasSubobjectClassifier.t
-
-def SubobjectClassifier_IsSubobjectClassifier : IsSubobjectClassifier (t C) :=
-  HasSubobjectClassifier.is_subobject_classifier
+def Classifier_IsClassifier : IsClassifier (t C) :=
+  HasClassifier.is_subobject_classifier
 
 variable {C}
-variable {U X : C} (χ : X ⟶ Ω C) (f : U ⟶ X) [Mono f]
+variable {X : C} (χ : X ⟶ Ω C) (S : Subobject X)
 
-def ClassifierOf : X ⟶ Ω C :=
-  (SubobjectClassifier_IsSubobjectClassifier C).classifier_of f
+def ClassifierOf : { χ : X ⟶ Ω C // IsPullback S.arrow (terminal.from (S : C)) χ (t C) } :=
+  ((Classifier_IsClassifier C).char S).default
 
-def Classifies : classifying (t C) f (ClassifierOf f) :=
-  (SubobjectClassifier_IsSubobjectClassifier C).classifies f
+def ClassifierMap : X ⟶ Ω C := (ClassifierOf S).val
 
-def ClassifierComm : f ≫ ClassifierOf f = terminal.from _ ≫ t C :=
-  ((SubobjectClassifier_IsSubobjectClassifier C).classifies f).comm
+instance : Inhabited { χ : X ⟶ Ω C // IsPullback S.arrow (terminal.from (S : C)) χ (t C) } :=
+  Inhabited.mk (ClassifierOf S)
 
-def ClassifierPb : IsLimit (PullbackCone.mk f (terminal.from _) (ClassifierComm _)) :=
-  ((SubobjectClassifier_IsSubobjectClassifier C).classifies f).pb
+def ClassifierPb : IsPullback S.arrow (terminal.from (S : C)) (ClassifierOf S) (t C) := 
+  (ClassifierOf S).prop
 
-def unique (χ : X ⟶ Ω C) (hχ : classifying (t C) f χ) : χ = ClassifierOf f :=
-  (SubobjectClassifier_IsSubobjectClassifier C).unique' f χ hχ
+def ClassifierComm : S.arrow ≫ ClassifierOf S = terminal.from _ ≫ t C := (ClassifierPb S).w
 
-noncomputable def ClassifierCone : PullbackCone (ClassifierOf f) (t C) :=
-  PullbackCone.mk f (terminal.from U) (ClassifierComm f)
+def unique (χ : X ⟶ Ω C) (hχ : IsPullback S.arrow (terminal.from _) χ (t C)) : χ = ClassifierOf S := by
+  have h := ((Classifier_IsClassifier C).char S).uniq (Subtype.mk χ hχ)
+  apply_fun (λ x => x.val) at h
+  assumption
 
-theorem ClassifierPullback : IsPullback f (terminal.from U) (ClassifierOf f) (t C) :=
-  IsPullback.of_isLimit (ClassifierPb f)
+noncomputable def ClassifierCone : PullbackCone (ClassifierOf S).val (t C) :=
+  PullbackCone.mk S.arrow (terminal.from _) (ClassifierComm S)
 
-noncomputable def ClassifierCone_into {Z : C} (g : Z ⟶ X) (comm' : g ≫ (ClassifierOf f) = (terminal.from Z ≫ t C)) :
-  Z ⟶ U := PullbackCone.IsLimit.lift (Classifies f).pb _ _ comm'
+noncomputable def ClassifierPullback : IsLimit (PullbackCone.mk S.arrow (terminal.from _) (ClassifierComm S)) := 
+  (ClassifierPb S).isLimit'.some
 
-def ClassifierCone_into_comm {Z : C} (g : Z ⟶ X) (comm' : g ≫ (ClassifierOf f) = (terminal.from Z ≫ t C)) :
-  ClassifierCone_into (comm' := comm') ≫ f = g :=
-    PullbackCone.IsLimit.lift_fst (ht := ClassifierPb f) (h := g) (k := terminal.from _) (w := comm')
+noncomputable def ClassifierCone_into {Z : C} (g : Z ⟶ X) (comm' : g ≫ (ClassifierOf S).val = (terminal.from Z ≫ t C)) :
+  Z ⟶ (S : C) := IsPullback.lift (ClassifierPb S) _ _ comm'
+
+def ClassifierCone_into_comm {Z : C} (g : Z ⟶ X) (comm' : g ≫ ClassifierMap S = (terminal.from Z ≫ t C)) :
+    ClassifierCone_into (comm' := comm') ≫ S.arrow = g :=
+  IsPullback.lift_fst (ClassifierPb S) _ _ comm'
+
+variable {U : C} (f : U ⟶ X) [Mono f]
+
+def ClassifierOfMono := ClassifierOf (Subobject.mk f)
+
+def ClassifierMonoPb : IsPullback f (terminal.from _) (ClassifierOfMono f) (t C) := by
+  have h : IsPullback f ((Subobject.underlyingIso f).inv) (𝟙 _) (Subobject.mk f).arrow := by
+    apply IsPullback.of_vert_isIso; simp
+  have h' := IsPullback.paste_vert h (ClassifierPb (Subobject.mk f))
+  simp at h'
+  assumption
+
+def ClassifierMonoComm : f ≫ (ClassifierOfMono f) = (terminal.from _) ≫ (t C) :=
+  (ClassifierMonoPb f).w
+
+noncomputable def ClassifierMonoCone_into {Z : C} (g : Z ⟶ X) (comm' : g ≫ (ClassifierOfMono f) = terminal.from Z ≫ t C) :
+    Z ⟶ U :=
+  IsPullback.lift (ClassifierMonoPb f) g _ comm'
+
+def ClassifierMonoCone_into_comm {Z : C} (g : Z ⟶ X) (comm' : g ≫ (ClassifierOfMono f) = terminal.from Z ≫ t C) :
+    ClassifierMonoCone_into (comm' := comm') ≫ f = g :=
+  IsPullback.lift_fst (ClassifierMonoPb f) _ _ comm'
 
 end Classifier
 
 open Classifier
 
-variable {C}
-
 namespace Topos
+
+variable [HasClassifier C]
 
 noncomputable instance truth_is_RegularMono : RegularMono (t C) :=
   RegularMono.ofIsSplitMono (t C)
 
 noncomputable instance Mono_is_RegularMono {A B : C} (m : A ⟶ B) [Mono m] : RegularMono m :=
-  regularOfIsPullbackFstOfRegular (Classifies m).comm (Classifies m).pb
+  regularOfIsPullbackFstOfRegular (ClassifierMonoPb m).w (ClassifierMonoPb m).isLimit
 
 /-- A category with a subobject classifier is balanced. -/
 def balanced {A B : C} (f : A ⟶ B) [ef : Epi f] [Mono f] : IsIso f :=
   @isIso_limit_cone_parallelPair_of_epi _ _ _ _ _ _ _ (Mono_is_RegularMono f).isLimit ef
-  -- isIso_limit_cone_parallelPair_of_epi (h := (Mono_is_RegularMono f).isLimit) (_ := ef)
 
 instance : Balanced C where
   isIso_of_mono_of_epi := λ f => balanced f

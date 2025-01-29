@@ -29,21 +29,21 @@ namespace BeckChevalley
 
 variable {B B' : C} (k : B' ⟶ B) [Mono k]
 
-#check P_transpose (ClassifierOf ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _)))
+#check P_transpose (ClassifierOfMono ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _))).val
 
 def directImage : Pow B' ⟶ Pow B :=
-  P_transpose (ClassifierOf ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _)))
+  P_transpose (ClassifierOfMono ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _))).val
 
 variable {S : C} (m : S ⟶ B') [Mono m]
 
 #check Name
 
-lemma wDef_comm' : (prod.map m (𝟙 _)) ≫ (prod.map (𝟙 _) (Name (ClassifierOf m))) ≫ in_ B' = terminal.from _ ≫ t C := by
+lemma wDef_comm' : (prod.map m (𝟙 _)) ≫ (prod.map (𝟙 _) (Name (ClassifierOfMono m))) ≫ in_ B' = terminal.from _ ≫ t C := by
   rw [Predicate.NameDef, prod.map_fst_assoc]
   have h : terminal.from (S ⨯ ⊤_ C) = prod.fst ≫ terminal.from S := by apply terminal.hom_ext
-  rw [h, assoc, ClassifierComm]
+  rw [h, assoc, ClassifierMonoComm]
 
-lemma wDef_comm : (prod.map m (Name (ClassifierOf m))) ≫ in_ B' = terminal.from _ ≫ t C := by
+lemma wDef_comm : (prod.map m (Name (ClassifierOfMono m))) ≫ in_ B' = terminal.from _ ≫ t C := by
   -- for some reason there is an issue rewriting m = m ≫ 𝟙 _ ??
   -- TODO: should be able to wrestle this lemma's statement into the previous lemma's, merging the two
   have h := wDef_comm' m
@@ -52,8 +52,8 @@ lemma wDef_comm : (prod.map m (Name (ClassifierOf m))) ≫ in_ B' = terminal.fro
 
 def w : S ⨯ ⊤_ C ⟶ pullback (in_ B') (t C) := pullback.lift (w := wDef_comm m)
 
-lemma directImage_NameChar_factors : Name (ClassifierOf m) ≫ directImage k = Name (ClassifierOf (m ≫ k)) := by
-  have transpose : P_transpose_inv (Name (ClassifierOf m) ≫ directImage k) = P_transpose_inv (Name (ClassifierOf (m ≫ k))) := by
+lemma directImage_NameChar_factors : Name (ClassifierOfMono m) ≫ directImage k = Name (ClassifierOfMono (m ≫ k)) := by
+  have transpose : P_transpose_inv (Name (ClassifierOfMono m) ≫ directImage k) = P_transpose_inv (Name (ClassifierOfMono (m ≫ k))) := by
     dsimp only [Name]
     rw [P_transpose_left_inv]
     dsimp only [P_transpose_inv, directImage]

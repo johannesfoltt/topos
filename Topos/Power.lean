@@ -24,7 +24,7 @@ Defines power objects for a category C with a subobject classifier and pullbacks
 -/
 
 universe u v
-variable {C : Type u} [Category.{v} C] [HasTerminal C] [HasSubobjectClassifier C] [HasPullbacks C]
+variable {C : Type u} [Category.{v} C] [HasTerminal C] [HasClassifier C] [HasPullbacks C]
 
 namespace Power
 
@@ -40,55 +40,49 @@ instance hasEqualizers : HasEqualizers C := hasEqualizers_of_hasPullbacks_and_bi
 
 end Power
 
-/--
-  We say that `f_hat : A ⟶ PB` "powerizes" `f : B ⨯ A ⟶ Ω C` if ∈_B ∘ (1 × f') = f.
--/
-abbrev Powerizes {A B PB : C} (in_B : B ⨯ PB ⟶ Ω C) (f : B ⨯ A ⟶ Ω C) (f_hat : A ⟶ PB) :=
-  (prod.map (𝟙 B) f_hat) ≫ in_B = f
-
-structure IsPowerObject {B PB : C} (in_B : B ⨯ PB ⟶ Ω C) where
-  hat : ∀ {A} (_ : B ⨯ A ⟶ Ω C), A ⟶ PB
-  powerizes : ∀ {A} (f : B ⨯ A ⟶ Ω C), Powerizes in_B f (hat f)
-  unique' : ∀ {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ PB}, Powerizes in_B f hat' → hat f = hat'
+structure IsPower {B PB : C} (in_B : B ⨯ PB ⟶ Ω C) where
+  hat {A : C} (f : B ⨯ A ⟶ Ω C) : Unique { f' : A ⟶ PB // (prod.map (𝟙 _) f') ≫ in_B = f }
 
 /-- What it means for an object B to have a power object. -/
-class HasPowerObject (B : C) where
-  PB : C
-  in_B : B ⨯ PB ⟶ Ω C
-  is_power : IsPowerObject in_B
+class HasPower (B : C) where
+  Pow : C
+  in_ : B ⨯ Pow ⟶ Ω C
+  is_power : IsPower in_
 
 variable (C)
 
-class HasPowerObjects where
-  has_power_object : ∀ (B : C), HasPowerObject B
+class HasPowers where
+  has_power_object : ∀ (B : C), HasPower B
 
 variable {C}
 
-attribute [instance] HasPowerObjects.has_power_object
+attribute [instance] HasPowers.has_power_object
 
-variable [HasPowerObjects C]
+variable [HasPowers C]
 
 
 namespace Power
 
 /-- Notation for the power object of an object. -/
-abbrev Pow (B : C) : C := (HasPowerObjects.has_power_object B).PB
+abbrev Pow (B : C) : C := (HasPowers.has_power_object B).Pow
 
 /-- Notation for the predicate "b ∈ S" as a map `B ⨯ P(B) ⟶ Ω`. -/
-abbrev in_ (B : C) : B ⨯ (Pow B) ⟶ Ω C := (HasPowerObjects.has_power_object B).in_B
+abbrev in_ (B : C) : B ⨯ (Pow B) ⟶ Ω C := (HasPowers.has_power_object B).in_
 
-instance Pow_is_power (B : C) : IsPowerObject (in_ B) := (HasPowerObjects.has_power_object B).is_power
+instance Pow_is_power (B : C) : IsPower (in_ B) := (HasPowers.has_power_object B).is_power
 
 /-- The map Hom(B⨯A,Ω) → Hom(A,P(B)). -/
-def P_transpose {B A} (f : B ⨯ A ⟶ Ω C) : A ⟶ Pow B := (Pow_is_power B).hat f
+def P_transpose {B A} (f : B ⨯ A ⟶ Ω C) : A ⟶ Pow B := ((Pow_is_power B).hat f).default
 
-def Pow_powerizes (B : C) : ∀ {A} (f : B ⨯ A ⟶ Ω C), Powerizes (in_ B) f (P_transpose f) :=
-  (Pow_is_power B).powerizes
+def Pow_powerizes (B) {A} (f : B ⨯ A ⟶ Ω C) : prod.map (𝟙 _) (P_transpose f) ≫ in_ B = f :=
+  (((Pow_is_power B).hat f).default).prop
 
-def Pow_unique (B : C) : ∀ {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B},
-  Powerizes (in_ B) f hat' → P_transpose f = hat' :=
-    (Pow_is_power B).unique'
-
+def Pow_unique (B) {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B} (hat'_powerizes : prod.map (𝟙 _) hat' ≫ in_ B = f ) :
+  P_transpose f = hat' := by
+    have h := ((Pow_is_power B).hat f).uniq ⟨hat', hat'_powerizes⟩
+    apply_fun (λ x => x.val) at h
+    symm
+    assumption
 
 
 noncomputable section
@@ -149,18 +143,14 @@ def transpose_transpose_Equiv (A B : C) : (B ⟶ Pow A) ≃ (A ⟶ Pow B) :=
 def Pow_map {B A : C} (h : A ⟶ B) : Pow B ⟶ Pow A :=
   P_transpose ((prod.map h (𝟙 (Pow B))) ≫ (in_ B))
 
-lemma Pow_map_Powerizes {A B : C} (h : A ⟶ B) : Powerizes (in_ A) ((prod.map h (𝟙 (Pow B))) ≫ (in_ B)) (Pow_map h) := by
+lemma Pow_map_Powerizes {A B : C} (h : A ⟶ B) : (prod.map (𝟙 A) (Pow_map h)) ≫ in_ A = (prod.map h (𝟙 (Pow B))) ≫ (in_ B) := by
   dsimp [Pow_map]
   apply Pow_powerizes
-
-theorem Pow_map_square {B A : C} (h : A ⟶ B) : (prod.map (𝟙 A) (Pow_map h)) ≫ (in_ A) = (prod.map h (𝟙 (Pow B))) ≫ (in_ B) :=
-  Pow_map_Powerizes h
 
 /-- `Pow_map` sends the identity on an object `X` to the identity on `Pow X`. -/
 @[simp]
 lemma Pow_map_id {B : C} : Pow_map (𝟙 B) = 𝟙 (Pow B) := by
   apply Pow_unique; rfl
-
 
 
 variable (C)
@@ -181,6 +171,8 @@ def PowFunctor : Cᵒᵖ ⥤ C where
   map_comp := by
     intro ⟨X⟩ ⟨Y⟩ ⟨Z⟩ ⟨f⟩ ⟨g⟩
     apply Pow_unique
+    dsimp [Pow_map]
+    symm
     calc
       prod.map (g ≫ f)  (𝟙 (Pow X)) ≫ in_ X
         = (prod.map g (𝟙 (Pow X))) ≫ (prod.map f  (𝟙 (Pow X))) ≫ in_ X  := by rw [←assoc, ←prod.map_comp_id]
@@ -188,7 +180,6 @@ def PowFunctor : Cᵒᵖ ⥤ C where
       _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map g (𝟙 (Pow Y))) ≫ in_ Y := by repeat rw [prod.map_map_assoc, comp_id, id_comp]
       _ = (prod.map (𝟙 Z) (Pow_map f)) ≫ (prod.map (𝟙 Z) (Pow_map g)) ≫ in_ Z := by rw [Pow_map_Powerizes]
       _ = prod.map (𝟙 Z) (Pow_map f ≫ Pow_map g ) ≫ in_ Z  := by rw [←assoc, prod.map_id_comp]
-    rfl
 
 def PowFunctorOp : C ⥤ Cᵒᵖ where
   obj := fun B ↦ ⟨Pow B⟩
@@ -225,7 +216,7 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
   simp
   dsimp only [P_transpose_symm, P_transpose_inv, Pow_map]
   apply Pow_unique
-  rw [Powerizes, prod.map_id_comp _ (P_transpose _), assoc _ _ (in_ X'), Pow_powerizes, ←assoc _ _ (in_ X), prod.map_map, id_comp, comp_id,
+  rw [prod.map_id_comp _ (P_transpose _), assoc _ _ (in_ X'), Pow_powerizes, ←assoc _ _ (in_ X), prod.map_map, id_comp, comp_id,
     ←comp_id f, ←id_comp (P_transpose _), ←prod.map_map, assoc, Pow_powerizes]
   have h : prod.map f (𝟙 Y) ≫ (prod.braiding X Y).hom = (prod.braiding _ _).hom ≫ prod.map (𝟙 _) f := by simp
   rw [←assoc (prod.map f (𝟙 _)), h]
@@ -241,7 +232,7 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
     P_transpose ((prod.braiding X Y).inv ≫ prod.map (𝟙 X) f ≫ in_ X) ≫ Pow_map g
   dsimp only [P_transpose_inv, Pow_map]
   apply Pow_unique
-  rw [Powerizes, prod.map_id_comp (P_transpose _), assoc, Pow_powerizes, ←assoc _ _ (in_ Y), prod.map_map, id_comp, comp_id, ←comp_id g]
+  rw [prod.map_id_comp (P_transpose _), assoc, Pow_powerizes, ←assoc _ _ (in_ Y), prod.map_map, id_comp, comp_id, ←comp_id g]
   have h : prod.map g (𝟙 X) ≫ (prod.braiding X Y).inv = (prod.braiding _ _).inv ≫ prod.map (𝟙 _) g := by simp
   rw [←id_comp (P_transpose _), ←prod.map_map, assoc, Pow_powerizes, ←assoc (prod.map g _), h]
   simp only [prod.braiding_inv, prod.lift_map_assoc, comp_id, prod.lift_map, assoc]
