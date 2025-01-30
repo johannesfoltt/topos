@@ -50,8 +50,12 @@ namespace CategoryTheory.Power
 -/
 instance hasBinaryProducts : HasBinaryProducts C := hasBinaryProducts_of_hasTerminal_and_pullbacks C
 
+/-- A category with a terminal object and binary products 
+has all finite products.
+-/
 instance hasFiniteProducts : HasFiniteProducts C := hasFiniteProducts_of_has_binary_and_terminal
 
+/-- A category with binary products and pullbacks has equalizers. -/
 instance hasEqualizers : HasEqualizers C := hasEqualizers_of_hasPullbacks_and_binary_products
 
 /-- An object `PB` and a map `in_B : B ⨯ PB ⟶ Ω C` form a power object for `B : C`
@@ -74,19 +78,29 @@ the following diagram commutes:
         B ⨯ PB
 ```
 -/
-structure IsPower {B PB : C} (in_B : B ⨯ PB ⟶ Ω C) where
+class IsPower {B PB : C} (in_B : B ⨯ PB ⟶ Ω C) where
+  /-- For each `f`, there is exactly one 
+  morphism `A ⟶ PB` making the above diagram commute.
+  -/
   hat {A : C} (f : B ⨯ A ⟶ Ω C) : Unique { f' : A ⟶ PB // (prod.map (𝟙 _) f') ≫ in_B = f }
 
 /-- What it means for an object B to have a power object. -/
 class HasPower (B : C) where
+  /-- The power object. -/
   Pow : C
+  /-- The membership predicate. -/
   in_ : B ⨯ Pow ⟶ Ω C
+  /-- The pair `Pow` and `in_` form a power object for `B`. -/
   is_power : IsPower in_
 
 variable (C)
 
+/-- A category has power objects if each of its objects
+has a power object.
+-/
 class HasPowers where
-  has_power_object : ∀ (B : C), HasPower B
+  /-- Each `B : C` has a power object. -/
+  has_power_object (B : C) : HasPower B
 
 variable {C}
 
@@ -103,16 +117,23 @@ abbrev in_ (B : C) : B ⨯ (Pow B) ⟶ Ω C := (HasPowers.has_power_object B).in
 
 instance Pow_is_power (B : C) : IsPower (in_ B) := (HasPowers.has_power_object B).is_power
 
-/-- The map Hom(B⨯A,Ω) → Hom(A,P(B)). -/
+/-- The map Hom(B⨯A,Ω) → Hom(A,P(B)). 
+This is currying the left argument.
+-/
 def P_transpose {B A} (f : B ⨯ A ⟶ Ω C) : A ⟶ Pow B := ((Pow_is_power B).hat f).default
 
+/-- Shorthand for currying the left argument. -/
 notation f "^" => P_transpose f
 
-def Pow_powerizes (B) {A} (f : B ⨯ A ⟶ Ω C) : prod.map (𝟙 _) (f^) ≫ in_ B = f :=
+/-- `P_transpose` satisfies the commutativity of the diagram from `IsPower`. -/
+lemma Pow_powerizes (B) {A} (f : B ⨯ A ⟶ Ω C) : prod.map (𝟙 _) (f^) ≫ in_ B = f :=
   (((Pow_is_power B).hat f).default).prop
 
-def Pow_unique (B) {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B} (hat'_powerizes : prod.map (𝟙 _) hat' ≫ in_ B = f ) :
-    P_transpose f = hat' := by
+/-- `P_transpose` is the only map which satisfies the commutativity
+of the diagram from `IsPower`.
+-/
+lemma Pow_unique (B) {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B} (hat'_powerizes : prod.map (𝟙 _) hat' ≫ in_ B = f ) :
+    f^ = hat' := by
   have h := ((Pow_is_power B).hat f).uniq ⟨hat', hat'_powerizes⟩
   apply_fun (fun x => x.val) at h
   symm
@@ -120,8 +141,10 @@ def Pow_unique (B) {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ Pow B} (hat'_poweriz
 
 noncomputable section
 
+/-- Un-currying on the left. -/
 abbrev P_transpose_inv {B A} (f : A ⟶ Pow B) : B ⨯ A ⟶ Ω C := (prod.map (𝟙 _) f) ≫ in_ B
 
+/-- Shorthand for un-currying on the left. -/
 notation f "^" => P_transpose_inv f
 
 /-- Equivalence between Hom(B⨯A,Ω) and Hom(A,P(B)). -/
@@ -134,23 +157,34 @@ def transposeEquiv (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (A ⟶ Pow B) where
     apply Pow_unique
     rfl
 
+/-- `P_transpose_inv` is a left inverse of
+`P_transpose`.
+-/
 @[simp]
 lemma P_transpose_left_inv {B A} (f : B ⨯ A ⟶ Ω C) : (f^)^ = f :=
   (transposeEquiv _ _).left_inv _
 
+/-- `P_transpose_inv` is a right inverse of
+`P_transpose`.
+-/
 @[simp]
 lemma P_transpose_right_inv {B A : C} (f : A ⟶ Pow B) : (f^)^ = f :=
   (transposeEquiv _ _).right_inv _
 
-/-- The map Hom(B⨯A,Ω) → Hom(B,P(A)). -/
+/-- The map Hom(B⨯A,Ω) → Hom(B,P(A)).
+This is currying the right argument.
+-/
 def P_transpose_symm {B A} (f : B ⨯ A ⟶ Ω C) : B ⟶ Pow A :=
   P_transpose ((prod.braiding A B).hom ≫ f)
 
+/-- Shorthand for currying the right argument. -/
 notation "^" f => P_transpose_symm f
 
+/-- Un-currying on the right. -/
 abbrev P_transpose_symm_inv {B A} (f : B ⟶ Pow A) : B ⨯ A ⟶ Ω C :=
   (prod.braiding A B).inv ≫ (P_transpose_inv f)
 
+/-- Shorthand for un-currying on the right. -/
 notation "^" f => P_transpose_symm_inv f
 
 /-- Equivalence between Hom(B⨯A,Ω) and Hom(B,P(A)). -/
@@ -166,19 +200,24 @@ def transposeEquivSymm (A B : C) : (B ⨯ A ⟶ Ω C) ≃ (B ⟶ Pow A) where
     apply Pow_unique
     rw [←assoc, Iso.hom_inv_id, id_comp]
 
+/-- `P_transpose_symm_inv` is the left inverse
+of `P_transpose_symm`.
+-/
 @[simp]
 lemma P_transpose_symm_left_inv {B A} (f : B ⨯ A ⟶ Ω C) :
-    P_transpose_symm_inv (P_transpose_symm f) = f :=
+    (^(^f)) = f :=
   (transposeEquivSymm _ _).left_inv _
 
+/-- `P_transpose_symm_inv` is the right inverse
+of `P_transpose_symm`.
+-/
 @[simp]
 lemma P_transpose_symm_right_inv {B A : C} (f : B ⟶ Pow A) : 
-    P_transpose_symm (P_transpose_symm_inv f) = f :=
+    (^(^f)) = f :=
   (transposeEquivSymm _ _).right_inv _
 
-/--
-  Equivalence between Hom(A,P(B)) and Hom(B, P(A)).
-  This is just the composition of `transposeEquiv` and `transposeEquivSymm`.
+/-- Equivalence between Hom(A,P(B)) and Hom(B, P(A)).
+This is just the composition of `transposeEquiv` and `transposeEquivSymm`.
 -/
 def transpose_transpose_Equiv (A B : C) : (B ⟶ Pow A) ≃ (A ⟶ Pow B) :=
   -- (transposeEquivSymm A B).symm.trans (transposeEquiv A B)
@@ -192,6 +231,17 @@ def transpose_transpose_Equiv (A B : C) : (B ⟶ Pow A) ≃ (A ⟶ Pow B) :=
 def Pow_map {B A : C} (h : A ⟶ B) : Pow B ⟶ Pow A :=
   P_transpose ((prod.map h (𝟙 (Pow B))) ≫ (in_ B))
 
+/-- The following diagram commutes:
+```
+    A ⨯ Pow B ----(𝟙 A) ⨯ Pow_map h----> A ⨯ Pow A
+      |                                    |
+      |                                    |
+    h ⨯ (𝟙 (Pow B))                      in_ A
+      |                                    |
+      v                                    v
+    B ⨯ Pow B ----------in_ B-----------> Ω C
+```
+-/
 lemma Pow_map_Powerizes {A B : C} (h : A ⟶ B) :
     (prod.map (𝟙 A) (Pow_map h)) ≫ in_ A = (prod.map h (𝟙 (Pow B))) ≫ (in_ B) := by
   dsimp [Pow_map]
@@ -206,7 +256,7 @@ lemma Pow_map_id {B : C} : Pow_map (𝟙 B) = 𝟙 (Pow B) := by
 variable (C)
 
 /--
-  The Power object functor.
+  The power object functor.
   Sends objects `B` to their power objects `Pow B`.
   Sends arrows `h : A ⟶ B` to the P-transpose of the map `h⨯1 ≫ ∈_B : A ⨯ Pow B ⟶ B ⨯ Pow B ⟶ Ω`,
   which is the "preimage" morphism `P(h) : Pow B ⟶ Pow A`.
@@ -236,6 +286,7 @@ def PowFunctor : Cᵒᵖ ⥤ C where
       _ = prod.map (𝟙 Z) (Pow_map f ≫ Pow_map g ) ≫ in_ Z  := by
         rw [←assoc, prod.map_id_comp]
 
+/-- The power object functor, treated as a functor `C ⥤ Cᵒᵖ`. -/
 def PowFunctorOp : C ⥤ Cᵒᵖ where
   obj := fun B ↦ ⟨Pow B⟩
   map := fun h ↦ ⟨Pow_map h⟩
@@ -293,6 +344,7 @@ def PowSelfAdj : PowFunctorOp C ⊣ PowFunctor C := by
     have h : prod.map g (𝟙 X) ≫ (prod.braiding X Y).inv = (prod.braiding _ _).inv ≫ prod.map (𝟙 _) g := by simp
     rw [←id_comp (P_transpose _), ←prod.map_map, assoc, Pow_powerizes, ←assoc (prod.map g _), h]
     simp only [prod.braiding_inv, prod.lift_map_assoc, comp_id, prod.lift_map, assoc]
+
 
 end
 end CategoryTheory.Power
