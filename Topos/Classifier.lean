@@ -106,29 +106,54 @@ def ClassifierOf : X ⟶ Ω C :=
 /-- shorthand for the characteristic morphism, `ClassifierOf m` -/
 abbrev χ_ := ClassifierOf m
 
-/-- returns the subobject classification pullback along the characteristic
-morphism and the subobject classifier -/
+/-- This definition returns the pullback along the characteristic
+morphism and the subobject classifier:
+```
+      U ---------m----------> X
+      |                       |
+terminal.from U               χ
+      |                       |
+      v                       v
+    ⊤_ C --------t----------> Ω
+```
+-/
 def ClassifierPb : IsPullback m (terminal.from U) (χ_ m) (t C) :=
   ((Classifier_IsClassifier C).char m).default.prop
 
+/-- The subobject classification pullback commutes. -/
 def ClassifierComm : m ≫ (χ_ m) = terminal.from _ ≫ t C := (ClassifierPb m).w
 
+/-- The classifier of `m` is the only morphism `X ⟶ Ω` making the diagram a pullback. -/
 def unique (χ : X ⟶ Ω C) (hχ : IsPullback m (terminal.from _) χ (t C)) : χ = χ_ m := by
   have h := ((Classifier_IsClassifier C).char m).uniq (Subtype.mk χ hχ)
   apply_fun (fun x => x.val) at h
   assumption
 
+/-- The cone on the cospan of the classifier of `m` and the subobject classifier of `C` -/
 noncomputable def ClassifierCone : PullbackCone (χ_ m) (t C) :=
   PullbackCone.mk m (terminal.from _) (ClassifierComm m)
 
+/-- this is an explicit destructuring of the `isLimit` field from `ClassifierPb`. -/
 noncomputable def ClassifierPullback :
     IsLimit (PullbackCone.mk m (terminal.from _) (ClassifierComm m)) :=
   (ClassifierPb m).isLimit'.some
 
+/-- If a map `g : Z ⟶ X and the following diagram commutes:
+```
+      Z ---------g----------> X
+      |                       |
+terminal.from Z              χ_ m
+      |                       |
+      v                       v
+    ⊤_ C -------t C---------> Ω
+```
+then this is shorthand for the lift of `g` to `U`.
+-/
 noncomputable def ClassifierCone_into {Z : C} (g : Z ⟶ X) (comm' : g ≫ (χ_ m) = (terminal.from Z ≫ t C)) :
     Z ⟶ U :=
   IsPullback.lift (ClassifierPb m) _ _ comm'
 
+/-- The `ClassifierCone_into` pullback lifts to the subobject classification pullback. -/
 def ClassifierCone_into_comm {Z : C} (g : Z ⟶ X) (comm' : g ≫ χ_ m = (terminal.from Z ≫ t C)) :
     ClassifierCone_into (comm' := comm') ≫ m = g :=
   IsPullback.lift_fst (ClassifierPb m) _ _ comm'
@@ -146,22 +171,24 @@ noncomputable instance Mono_is_RegularMono {A B : C} (m : A ⟶ B) [Mono m] : Re
 def balanced {A B : C} (f : A ⟶ B) [ef : Epi f] [Mono f] : IsIso f :=
   @isIso_limit_cone_parallelPair_of_epi _ _ _ _ _ _ _ (Mono_is_RegularMono f).isLimit ef
 
+/-- A morphism that is both monic and epic is also an isomorphism
+in a category with a subobject classifier.
+-/
 instance : Balanced C where
   isIso_of_mono_of_epi := fun f => balanced f
 
+/-- Since a category with a subobject classifier is balanced, so is its opposite category. -/
 instance : Balanced Cᵒᵖ := balanced_opposite
 
-/--
-  If the source of a faithful functor has a subobject classifier, the functor reflects
+/-- If the source of a faithful functor has a subobject classifier, the functor reflects
   isomorphisms. This holds for any balanced category.
 -/
 def reflectsIsomorphisms (D : Type u₀) [Category.{v₀} D] (F : C ⥤ D) [Functor.Faithful F] :
     Functor.ReflectsIsomorphisms F :=
   reflectsIsomorphisms_of_reflectsMonomorphisms_of_reflectsEpimorphisms F
 
-/--
-  If the source of a faithful functor is the opposite category of one with a subobject classifier,
-  the same holds -- the functor reflects isomorphisms.
+/-- If the source of a faithful functor is the opposite category of one with a
+  subobject classifier, the same holds -- the functor reflects isomorphisms.
 -/
 def reflectsIsomorphismsOp (D : Type u₀) [Category.{v₀} D] (F : Cᵒᵖ ⥤ D) [Functor.Faithful F] :
     Functor.ReflectsIsomorphisms F :=
@@ -169,5 +196,3 @@ def reflectsIsomorphismsOp (D : Type u₀) [Category.{v₀} D] (F : Cᵒᵖ ⥤ 
 
 
 end CategoryTheory.Classifier
-
-#lint only docBlame docBlameThm
