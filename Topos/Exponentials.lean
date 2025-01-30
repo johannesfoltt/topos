@@ -19,6 +19,26 @@ variable {C : Type u} [Category.{v} C] [Topos C]
 
 Proves that a topos has exponential objects (internal homs).
 Consequently, every topos is Cartesian closed.
+
+## Main definitions
+
+* `Hom A B` is the exponential object, and `eval A B` is the associated
+  "evaluation map" `A ⨯ Hom A B ⟶ B`.
+
+* `IsExponentialObject` says what it means to be an exponential object.
+
+## Main results
+
+* `ToposHasExponentials` shows that a topos has exponential objects.
+  This is done by showing `IsExponentialObject (eval A B)`.
+
+* `ExpAdjEquiv` exhibits `(A ⨯ X ⟶ B) ≃ (X ⟶ Hom A B)` for any `A B X : C`
+  in a topos `C`.
+
+## References
+
+* [S. MacLane and I. Moerdijk, *Sheaves in Geometry and Logic*][MLM92]
+
 -/
 
 
