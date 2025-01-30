@@ -19,6 +19,26 @@ variable {C : Type u} [Category.{v} C] [Topos C]
 
 Proves that a topos has exponential objects (internal homs).
 Consequently, every topos is Cartesian closed.
+
+## Main definitions
+
+* `Hom A B` is the exponential object, and `eval A B` is the associated
+  "evaluation map" `A ⨯ Hom A B ⟶ B`.
+
+* `IsExponentialObject` says what it means to be an exponential object.
+
+## Main results
+
+* `ToposHasExponentials` shows that a topos has exponential objects.
+  This is done by showing `IsExponentialObject (eval A B)`.
+
+* `ExpAdjEquiv` exhibits `(A ⨯ X ⟶ B) ≃ (X ⟶ Hom A B)` for any `A B X : C`
+  in a topos `C`.
+
+## References
+
+* [S. MacLane and I. Moerdijk, *Sheaves in Geometry and Logic*][MLM92]
+
 -/
 
 
@@ -40,14 +60,32 @@ the graphs of morphisms `A ⟶ B` may be regarded as subobjects of `B ⨯ A`.
 -/
 instance Hom_toGraph_Mono {A B : C} : Mono (Hom_toGraph A B) := pullback.fst_of_mono
 
+/-- Convenience lemma used in `Hom_comm`. -/
 lemma ExpConeSnd_Terminal (A B : C) : 
     pullback.snd _ _ = terminal.from (Hom A B) := Unique.eq_default _
 
+/-- Convenience lemma used in `EvalDef_comm`. -/
 lemma Hom_comm (A B : C) : 
     Hom_toGraph A B ≫ ((((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))^ ≫ Predicate.isSingleton B)^)
     = terminal.from (Hom A B) ≫ ⌈Predicate.true_ A⌉ := by
   rw [←ExpConeSnd_Terminal]; exact pullback.condition
 
+/-- This lemma states that the following diagram commutes:
+```
+    A ⨯ Hom A B ---------terminal.from _----------> ⊤_ C
+      |                                               |
+      |                                               |
+(𝟙 A) ⨯ Hom_toGraph A B                              t C
+      |                                               |
+      |                                               |
+      v                                               v
+    A ⨯ Pow (B ⨯ A)  -----------u-------------------> Ω
+```
+where `u` intuitively is the predicate:
+(a,S) ↦ "there is exactly one b in B such that (b,a) in S".
+This is used to define the map `eval A B : A ⨯ Hom A B ⟶ B`
+as a `pullback.lift` where the object `B` serves as the pullback.
+-/
 lemma evalDef_comm (A B : C) :
   (prod.map (𝟙 A) (Hom_toGraph A B) 
   ≫ ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))^) ≫ Predicate.isSingleton B
@@ -75,6 +113,10 @@ lemma evalDef_comm (A B : C) :
 def eval (A B : C) : A ⨯ (Hom A B) ⟶ B :=
   ClassifierCone_into (comm' := evalDef_comm A B)
 
+/-- This states the commutativity of the square relating 
+`eval A B` to `singleton B` and `Hom_toGraph A B`, which
+arises from its definition.
+-/
 lemma evalCondition (A B : C) : 
     eval A B ≫ singleton B 
     = prod.map (𝟙 _) (Hom_toGraph A B) ≫ ((prod.associator _ _ _).inv ≫ in_ (B ⨯ A))^ :=
@@ -122,17 +164,23 @@ the following diagram commutes:
         A ⨯ HomAB
 ```
 -/
-structure IsExponentialObject {A B HomAB : C} (e : A ⨯ HomAB ⟶ B) where
+class IsExponentialObject {A B HomAB : C} (e : A ⨯ HomAB ⟶ B) where
+  /-- The map that sends morphisms `A ⨯ X ⟶ B` to morphisms `X ⟶ Hom A B`. -/
   exp : ∀ {X} (_ : A ⨯ X ⟶ B), X ⟶ HomAB
+  /-- `exp f` satisfies commutativity of the above diagram. -/
   exponentiates : ∀ {X} (f : A ⨯ X ⟶ B), Exponentiates e f (exp f)
+  /-- `exp f` is the only map that satisfies the above commutativity condition. -/
   unique' : ∀ {X} {f : A ⨯ X ⟶ B} {exp' : X ⟶ HomAB}, Exponentiates e f exp' → exp f = exp'
 
 /-- What it means for a pair `A B : C` to have an exponential object.
 See `IsExponentialObject`.
 -/
 class HasExponentialObject (A B : C) where
+  /-- The "internal hom" object. -/
   HomAB : C
+  /-- The evaluation map. -/
   e : A ⨯ HomAB ⟶ B
+  /-- `HomAB` and `e` form an exponential object for `A B : C`. -/
   is_exp : IsExponentialObject e
 
 variable (C)
@@ -147,6 +195,10 @@ attribute [instance] HasExponentialObjects.has_exponential_object
 
 variable {A B X : C} (f : A ⨯ X ⟶ B)
 
+/-- Useful definition in the context of the construction of `eval A B`.
+This is the composition of `Hom_map f` with `Hom_toGraph A B`, as exhibited
+in `Hom_mapCondition` below.
+-/
 abbrev h_map : X ⟶ Pow (B ⨯ A) := 
   ((prod.associator _ _ _).hom ≫ prod.map (𝟙 _) f ≫ Predicate.eq _)^
 
@@ -211,6 +263,9 @@ is the associated map `X ⟶ Hom A B`.
 def Hom_map : X ⟶ Hom A B :=
   pullback.lift (h_map f) (terminal.from X) (HomMapSquareComm f)
 
+/-- composing `Hom_map f` with the map sending a morphism to its graph
+is the map `h_map f` defined above.
+-/
 @[simp]
 lemma Hom_mapCondition : Hom_map f ≫ (Hom_toGraph A B) = h_map f :=
   pullback.lift_fst _ _ _
@@ -319,19 +374,22 @@ instance ToposHasExponentials : HasExponentialObjects C where
 
 variable (X Y Z W)
 
-/-- Internal composition in a topos, defined in terms of
-the 
--/
+/-- Internal composition in a topos, defined in terms of `Hom_map` -/
 def InternalComposition : (Hom X Y) ⨯ (Hom Y Z) ⟶ Hom X Z :=
   Hom_map ((prod.associator X (Hom X Y) (Hom Y Z)).inv ≫ (prod.map (eval X Y) (𝟙 _)) ≫ eval Y Z)
 
 variable {X Y Z W}
 
+/-- The global element of `Hom X Y` associated to a morphism `X ⟶ Y`. -/
 def FnName (f : X ⟶ Y) : ⊤_ C ⟶ Hom X Y :=
   Hom_map (prod.fst ≫ f)
 
+/-- The inverse to `Hom_map`, which sends a morphism `X ⟶ Hom Y Z`
+to its "un-curried" version `Y ⨯ X ⟶ Z`.
+-/
 abbrev Hom_map_inv (f : X ⟶ Hom Y Z) := prod.map (𝟙 _) f ≫ eval _ _
 
+/-- The equivalence between arrows `A ⨯ X ⟶ B` and arrows `X ⟶ Hom A B`. -/
 def ExpAdjEquiv (A B X : C) : (A ⨯ X ⟶ B) ≃ (X ⟶ Hom A B) where
   toFun := Hom_map
   invFun := Hom_map_inv
@@ -342,8 +400,14 @@ def ExpAdjEquiv (A B X : C) : (A ⨯ X ⟶ B) ≃ (X ⟶ Hom A B) where
 
 variable (X Y)
 
+/-- The map `Hom A X ⟶ Hom A Y` associated to a map `X ⟶ Y`.
+This is how `ExpFunctor` acts on morphisms.
+-/
 def ExpHom {X Y : C} (A : C) (f : X ⟶ Y) : Hom A X ⟶ Hom A Y := Hom_map (eval A _ ≫ f)
 
+/-- The covariant functor `C ⥤ C` associated to an object `A : C` 
+sending an object `B` to the "internal hom" `Hom A B`.
+-/
 def ExpFunctor (A : C) : C ⥤ C where
   obj := fun B ↦ Hom A B
   map := fun {X Y} f ↦ ExpHom A f
@@ -362,8 +426,10 @@ def ExpFunctor (A : C) : C ⥤ C where
     dsimp only [Exponentiates]
     rw [prod.map_id_comp, assoc, Hom_Exponentiates, ←assoc, Hom_Exponentiates, assoc]
 
+/-- A topos is a monoidal category with monoidal structure coming from binary products. -/
 instance ToposMonoidal : MonoidalCategory C := monoidalOfHasFiniteProducts C
 
+/-- The adjunction between the product and the "internal hom" `Hom A B`. -/
 def TensorHomAdjunction (A : C) : MonoidalCategory.tensorLeft A ⊣ ExpFunctor A := by
   apply Adjunction.mkOfHomEquiv
   fapply Adjunction.CoreHomEquiv.mk
@@ -381,7 +447,9 @@ def TensorHomAdjunction (A : C) : MonoidalCategory.tensorLeft A ⊣ ExpFunctor A
   dsimp only [Exponentiates, ExpHom]
   rw [prod.map_id_comp, assoc, Hom_Exponentiates, ←assoc, Hom_Exponentiates]
 
-instance CartesianClosed : CartesianClosed C := by exact Y
+-- note: wholly unsure why `C` is already CC.
+-- /-- A topos is cartesian closed. -/
+-- instance CartesianClosed : CartesianClosed C := by assumption
 
 end
 end CategoryTheory.Topos
