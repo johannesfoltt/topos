@@ -12,23 +12,33 @@ import Mathlib.Tactic.ApplyFun
 
 # Subobject Classifier
 
-We define what it means for a morphism in a category 
-to be a subobject classifier as `CategoryTheory.Classifier.IsClassifier`.
+We define what it means for a morphism in a category to be a subobject 
+classifier as `CategoryTheory.Classifier.IsClassifier`.
 
 ## Main definitions
 
+Let `C` refer to a category with a terminal object.
+
+* `CategoryTheory.Classifier.IsClassifier` describes what it means for a 
+  pair of an object `Ω : C` and a morphism `t : ⊤_ C ⟶ Ω` to be a subobject 
+  classifier for `C`.
+
+* `CategoryTheory.Classifier.HasClassifier C` is the data of `C` having a
+  subobject classifier.
 
 ## Main results
 
-- 
+* It is a theorem that the truth morphism `⊤_ C ⟶ Ω C` is a (split, and 
+  therefore regular) monomorphism.
 
-- `Classifier.balanced` shows that any category with a subobject classifier is balanced.
+* `Classifier.balanced` shows that any category with a subobject classifier 
+  is balanced. This follows from the fact that every monomorphism is the 
+  pullback of a regular monomorphism (the truth morphism).
 
 ## Notation
 
 * if `m` is a monomorphism, `χ_ m` denotes characteristic map of `m`, 
   which is the corresponding map to the subobject classifier.
-
 
 ## References
 
