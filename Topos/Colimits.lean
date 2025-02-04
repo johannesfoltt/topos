@@ -8,17 +8,17 @@ import Topos.Basic
 
 namespace CategoryTheory
 
-open Category Limits Classifier Power Functor
+open Category Limits MonoClassifier Power Functor
 
 namespace Topos
 
 universe u v
 variable {C}
-variable [Category.{v, u} C] [Topos C]
+variable [Category.{v, u} C] [IsTopos C]
 
 noncomputable section
 
--- TODO: prove that `PowFunctor C` preserves colimits of reflexive pairs.
+-- TODO: prove that `powFunctor C` preserves colimits of reflexive pairs.
 
 namespace BeckChevalley
 
@@ -29,19 +29,19 @@ namespace BeckChevalley
 
 variable {B B' : C} (k : B' ⟶ B) [Mono k]
 
-#check P_transpose (ClassifierOfMono ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _)))
+#check transpose (χ_ ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _)))
 
-def directImage : Pow B' ⟶ Pow B :=
-  P_transpose (ClassifierOfMono ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _)))
+def directImage : pow B' ⟶ pow B :=
+  transpose (χ_ ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _)))
 
 variable {S : C} (m : S ⟶ B') [Mono m]
 
-lemma wDef_comm' : (prod.map m (𝟙 _)) ≫ (prod.map (𝟙 _) (Name (ClassifierOfMono m))) ≫ in_ B' = terminal.from _ ≫ t C := by
+lemma wDef_comm' : (prod.map m (𝟙 _)) ≫ (prod.map (𝟙 _) (name (χ_ m))) ≫ in_ B' = terminal.from _ ≫ t C := by
   rw [Predicate.NameDef, prod.map_fst_assoc]
   have h : terminal.from (S ⨯ ⊤_ C) = prod.fst ≫ terminal.from S := by apply terminal.hom_ext
-  rw [h, assoc, ClassifierMonoComm]
+  rw [h, assoc, MonoClassifier.comm]
 
-lemma wDef_comm : (prod.map m (Name (ClassifierOfMono m))) ≫ in_ B' = terminal.from _ ≫ t C := by
+lemma wDef_comm : (prod.map m (name (χ_ m))) ≫ in_ B' = terminal.from _ ≫ t C := by
   -- for some reason there is an issue rewriting m = m ≫ 𝟙 _ ??
   -- TODO: should be able to wrestle this lemma's statement into the previous lemma's, merging the two
   have h := wDef_comm' m
@@ -50,33 +50,33 @@ lemma wDef_comm : (prod.map m (Name (ClassifierOfMono m))) ≫ in_ B' = terminal
 
 def w : S ⨯ ⊤_ C ⟶ pullback (in_ B') (t C) := pullback.lift (w := wDef_comm m)
 
-lemma directImage_NameChar_factors : Name (ClassifierOfMono m) ≫ directImage k = Name (ClassifierOfMono (m ≫ k)) := by
-  have transpose : P_transpose_inv (Name (ClassifierOfMono m) ≫ directImage k) = P_transpose_inv (Name (ClassifierOfMono (m ≫ k))) := by
-    dsimp only [Name]
-    rw [P_transpose_left_inv]
-    dsimp only [P_transpose_inv, directImage]
-    rw [prod.map_id_comp, assoc, Pow_powerizes]
+lemma directImage_NameChar_factors : name (χ_ m) ≫ directImage k = name (χ_ (m ≫ k)) := by
+  have transpose : transposeInv (name (χ_ m) ≫ directImage k) = transposeInv (name (χ_ (m ≫ k))) := by
+    dsimp only [name]
+    rw [transpose_left_inv]
+    dsimp only [transposeInv, directImage]
+    rw [prod.map_id_comp, assoc, Power.comm]
     sorry
 
   sorry
 
 end BeckChevalley
 
-instance PowRightAdj : IsRightAdjoint (PowFunctor C) where
+instance PowRightAdj : IsRightAdjoint (powFunctor C) where
   exists_leftAdjoint := by
-    apply Exists.intro (PowFunctorOp C)
-    exact ⟨PowSelfAdj C⟩
+    apply Exists.intro (powFunctorOp C)
+    exact ⟨powSelfAdj C⟩
 
-instance PowFaithful : Functor.Faithful (PowFunctor C) where
+instance PowFaithful : Functor.Faithful (powFunctor C) where
   map_injective := by
     intro ⟨X⟩ ⟨Y⟩ ⟨f⟩ ⟨g⟩ h
-    change (Pow_map f = Pow_map g) at h
+    change (inverseImage f = inverseImage g) at h
     congr
-    have h' := congrArg (fun k ↦ P_transpose_inv (singleton X ≫ k)) h
-    dsimp only [P_transpose_inv] at h'
-    rw [prod.map_id_comp, prod.map_id_comp, Category.assoc, Category.assoc, Pow_map_Powerizes, Pow_map_Powerizes,
+    have h' := congrArg (fun k ↦ transposeInv (singleton X ≫ k)) h
+    dsimp only [transposeInv] at h'
+    rw [prod.map_id_comp, prod.map_id_comp, Category.assoc, Category.assoc, inverseImage_comm, inverseImage_comm,
       ←Category.assoc, prod.map_map, ←Category.assoc, prod.map_map, id_comp, comp_id, id_comp, ←comp_id f,
-      ←id_comp (singleton _), ←comp_id g, ←prod.map_map, ←prod.map_map, assoc, assoc, singleton, Pow_powerizes] at h'
+      ←id_comp (singleton _), ←comp_id g, ←prod.map_map, ←prod.map_map, assoc, assoc, singleton, Power.comm] at h'
     have comm : (f ≫ terminal.from _) ≫ t C = prod.lift (𝟙 _) f ≫ prod.map f (𝟙 _) ≫ Predicate.eq _ := by
       rw [terminal.comp_from, ←assoc, prod.lift_map, comp_id, id_comp, Predicate.lift_eq, Predicate.true_]
     rw [terminal.comp_from, h', ←assoc, prod.lift_map, id_comp, comp_id] at comm
@@ -90,9 +90,9 @@ instance : HasCoequalizers Cᵒᵖ := hasCoequalizers_opposite
 
 instance : HasReflexiveCoequalizers Cᵒᵖ := hasReflexiveCoequalizers_of_hasCoequalizers Cᵒᵖ
 
-instance PowReflectsIsomorphisms : Functor.ReflectsIsomorphisms (PowFunctor C) := reflectsIsomorphismsOp (F := PowFunctor C)
+instance PowReflectsIsomorphisms : Functor.ReflectsIsomorphisms (powFunctor C) := reflectsIsomorphismsOp (F := powFunctor C)
 
-instance PowPreservesCoproductOfReflexivePair : Monad.PreservesColimitOfIsReflexivePair (PowFunctor C) where
+instance PowPreservesCoproductOfReflexivePair : Monad.PreservesColimitOfIsReflexivePair (powFunctor C) where
   out := by
     intro ⟨A⟩ ⟨B⟩ ⟨f⟩ ⟨g⟩ h₀
     change (B ⟶ A) at f; change (B ⟶ A) at g
@@ -104,13 +104,13 @@ instance PowPreservesCoproductOfReflexivePair : Monad.PreservesColimitOfIsReflex
     change (g ≫ s.unop = 𝟙 _) at hs₂
     refine PreservesColimit.mk ?_
     intro ⟨pt, ι⟩ hc
-    
+
 
     sorry
 
-instance PowFunctorMonadic : MonadicRightAdjoint (PowFunctor C) := sorry
+instance powFunctorMonadic : MonadicRightAdjoint (powFunctor C) := sorry
 
--- TODO: Use `PowFunctorMonadic` to show that a topos has finite colimits.
+-- TODO: Use `powFunctorMonadic` to show that a topos has finite colimits.
 
 instance HasFiniteColimits : HasFiniteColimits C := sorry
 
