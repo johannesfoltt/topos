@@ -43,7 +43,7 @@ In this file, a "predicate" refers to any morphism into `Ω C`.
 
 namespace CategoryTheory
 
-open Category Limits MonoClassifier Power
+open Category Limits HasClassifier Power
 
 universe u v
 
