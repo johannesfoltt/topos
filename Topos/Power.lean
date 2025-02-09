@@ -47,7 +47,7 @@ Let `C` be a category with a terminal object, a subobject classifier, and pullba
 -/
 
 
-open CategoryTheory Category Limits MonoClassifier
+open CategoryTheory Category Limits Classifier HasClassifier
 
 
 universe u v
