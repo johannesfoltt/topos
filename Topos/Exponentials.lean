@@ -234,7 +234,8 @@ the following diagram commutes:
         A ⨯ (Hom A B)
 ```
 -/
-theorem Hom_Exponentiates : prod.map (𝟙 _ ) (homMap f) ≫ eval A B = f := by
+@[reassoc]
+theorem hom_exponentiates : prod.map (𝟙 _ ) (homMap f) ≫ eval A B = f := by
   rw [←cancel_mono (singleton B), assoc, eval_condition, ←assoc,
     prod.map_map, id_comp, homMap_condition]
   have h : transposeInv (f ≫ singleton B)
@@ -281,7 +282,7 @@ theorem Hom_Unique {exp' : X ⟶ hom A B} (h : prod.map (𝟙 _) exp' ≫ (eval 
   have h₃ := Power.comm _ ((prod.map (𝟙 B) (prod.map (𝟙 A) (exp' ≫ homToGraph A B))
       ≫ (prod.associator B A (Power.pow (B ⨯ A))).inv ≫ in_ (B ⨯ A)))
   rw [h₂, h_singleton, ←h₁, Power.comm _ id_f'eq, ←assoc] at h₃
-  have h' := Hom_Exponentiates f
+  have h' := hom_exponentiates f
   have h'_singleton := congrArg (fun k ↦ k ≫ singleton B) h'
   simp only at h'_singleton
   rw [assoc, rhs, ←assoc, ←prod.map_id_comp] at h'_singleton
@@ -321,7 +322,7 @@ abbrev homMapInv (f : X ⟶ hom Y Z) : Y ⨯ X ⟶ Z := prod.map (𝟙 _) f ≫ 
 def ExpAdjEquiv (A B X : C) : (A ⨯ X ⟶ B) ≃ (X ⟶ hom A B) where
   toFun := homMap
   invFun := homMapInv
-  left_inv := fun f => Hom_Exponentiates f
+  left_inv := fun f => hom_exponentiates f
   right_inv := by
     intro f
     apply Hom_Unique; rfl
@@ -348,7 +349,7 @@ def ExpFunctor (A : C) : C ⥤ C where
     change ExpHom A (f ≫ g) = ExpHom A f ≫ ExpHom A g
     dsimp only [ExpHom]
     apply Hom_Unique
-    rw [prod.map_id_comp, assoc, Hom_Exponentiates, ←assoc, Hom_Exponentiates, assoc]
+    rw [prod.map_id_comp, assoc, hom_exponentiates, hom_exponentiates_assoc, assoc]
 
 
 /-- A topos is a monoidal category with monoidal structure coming from binary products. -/
@@ -364,13 +365,13 @@ def TensorHomAdjunction (A : C) : MonoidalCategory.tensorLeft A ⊣ ExpFunctor A
 
   · intro X X' Y f g
     change prod.map (𝟙 _) (f ≫ g) ≫ eval _ _ = (prod.map (𝟙 _) f) ≫ prod.map (𝟙 _) g ≫ eval _ _
-    rw [←assoc, prod.map_map, id_comp]
+    rw [prod.map_map_assoc, id_comp]
 
   · intro X Y Y' f g
     change homMap (f ≫ g) = homMap f ≫ ExpHom A g
     apply Hom_Unique
     dsimp only [ExpHom]
-    rw [prod.map_id_comp, assoc, Hom_Exponentiates, ←assoc, Hom_Exponentiates]
+    rw [prod.map_id_comp, assoc, hom_exponentiates, hom_exponentiates_assoc]
 
 end
 
