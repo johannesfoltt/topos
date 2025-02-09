@@ -3,27 +3,32 @@ Copyright (c) 2024 Charlie Conneen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
-
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.Tactic.ApplyFun
+import Mathlib.CategoryTheory.Subobject.Basic
 
 /-!
 
 # Subobject Classifier
 
 We define what it means for a morphism in a category to be a subobject
-classifier as `CategoryTheory.Classifier.IsClassifier`.
+classifier as `CategoryTheory.HasClassifier`. The reason for this
+naming convention is to distinguish this internal categorical notion of
+a subobject classifier from a classifier of terms of type `Subobject B`
+for `B : C`.
+
+c.f. the following Lean 3 code, where similar work was done:
+https://github.com/b-mehta/topos/blob/master/src/subobject_classifier.lean
 
 ## Main definitions
 
 Let `C` refer to a category with a terminal object.
 
-* `CategoryTheory.MonoClassifier.IsClassifier` describes what it means for a
-  pair of an object `Ω : C` and a morphism `t : ⊤_ C ⟶ Ω` to be a subobject
-  classifier for `C`.
+* `CategoryTheory.Classifier C` is the data of a subobject classifier
+  in `C`.
 
-* `CategoryTheory.MonoClassifier.Classifier C` is the data of `C` having a
+* `CategoryTheory.HasClassifier C` says that there is at least one
   subobject classifier.
 
 ## Main results
@@ -46,14 +51,13 @@ Let `C` refer to a category with a terminal object.
 
 -/
 
-
 universe u v u₀ v₀
 
 open CategoryTheory Category Limits Functor
 
 variable (C : Type u) [Category.{v} C] [HasTerminal C]
 
-namespace CategoryTheory.MonoClassifier
+namespace CategoryTheory
 
 /-- A morphism `t : ⊤_ C ⟶ Ω` from the terminal object of a category `C`
 is a subobject classifier if, for every monomorphism `m : U ⟶ X` in `C`,
@@ -80,10 +84,13 @@ structure Classifier where
   uniq {U X : C} (m : U ⟶ X) [Mono m] (χ : X ⟶ Ω) (hχ : IsPullback m (terminal.from U) χ t) :
     χ = char m
 
+
 /-- A category `C` has a subobject classifier if there is at least one subobject classifier. -/
 class HasClassifier : Prop where
   /-- There is some classifier. -/
   exists_classifier : Nonempty (Classifier C)
+
+namespace HasClassifier
 
 variable [HasClassifier C]
 
@@ -102,7 +109,7 @@ variable {U X : C} (m : U ⟶ X) [Mono m]
 def characteristicMap : X ⟶ Ω C :=
   HasClassifier.exists_classifier.some.char m
 
-/-- shorthand for the characteristic morphism -/
+/-- shorthand for the characteristic morphism, `ClassifierOf m` -/
 abbrev χ_ := characteristicMap m
 
 /-- The diagram
@@ -133,13 +140,11 @@ commutes.
 @[reassoc]
 lemma comm : m ≫ (χ_ m) = terminal.from _ ≫ t C := (isPullback m).w
 
-
 /-- `characteristicMap m` is the only map for which the associated square
 is a pullback square.
 -/
 lemma unique (χ : X ⟶ Ω C) (hχ : IsPullback m (terminal.from _) χ (t C)) : χ = χ_ m :=
   HasClassifier.exists_classifier.some.uniq m χ hχ
-
 
 /-- `t C` is a regular monomorphism (because it is split). -/
 noncomputable instance truthIsRegularMono : RegularMono (t C) :=
@@ -182,5 +187,135 @@ instance reflectsIsomorphismsOp (D : Type u₀) [Category.{v₀} D]
     Functor.ReflectsIsomorphisms F :=
   reflectsIsomorphisms_of_reflectsMonomorphisms_of_reflectsEpimorphisms F
 
+variable [HasPullbacks C]
+variable (classifier : Classifier C)
+
+variable (B : C) (φ : B ⟶ classifier.Ω)
+variable (s : Cone (cospan φ classifier.t))
+
+example : (Subobject.mk (pullback.fst φ classifier.t)).arrow =
+(Subobject.underlyingIso (pullback.fst φ classifier.t)).hom ≫ pullback.fst φ classifier.t := by
+  exact Eq.symm (Subobject.underlyingIso_hom_comp_eq_mk (pullback.fst φ classifier.t))
+
+example : pullback.fst φ classifier.t ≫ φ = pullback.snd φ classifier.t ≫ classifier.t := by
+  exact pullback.condition
+
+-- TODO: refactor so this `omit` is unnecessary.
+omit [HasClassifier C] in
+lemma subobject_pullback {B : C} (φ : B ⟶ classifier.Ω) :
+IsPullback (Subobject.mk (pullback.fst φ classifier.t)).arrow
+(terminal.from (Subobject.underlying.obj (Subobject.mk (pullback.fst φ classifier.t))))
+φ classifier.t := by
+  apply IsPullback.of_iso_pullback ?_ (Subobject.underlyingIso (pullback.fst φ classifier.t))
+  · exact Subobject.underlyingIso_hom_comp_eq_mk (pullback.fst φ classifier.t)
+  · exact terminal.hom_ext
+      ((Subobject.underlyingIso (pullback.fst φ classifier.t)).hom ≫ pullback.snd φ classifier.t)
+      (terminal.from (Subobject.underlying.obj (Subobject.mk (pullback.fst φ classifier.t))))
+  · apply CommSq.mk
+    rw [(Subobject.underlyingIso_hom_comp_eq_mk (pullback.fst φ classifier.t)).symm,
+    assoc, pullback.condition, ←assoc]
+    have h : ((Subobject.underlyingIso (pullback.fst φ classifier.t)).hom
+    ≫ pullback.snd φ classifier.t) = terminal.from _ := by apply terminal.hom_ext
+    rw [h]
+
+variable (S : Subobject B)
+
+def subobjectIso1 : Subobject.underlying.obj
+(Subobject.mk (pullback.fst (classifier.char S.arrow) classifier.t))
+≅ pullback (classifier.char S.arrow) classifier.t :=
+  Subobject.underlyingIso (pullback.fst (classifier.char S.arrow) classifier.t)
+
+def subobjectIso2 :
+pullback (classifier.char S.arrow) classifier.t ≅ Subobject.underlying.obj S where
+  hom :=
+    (classifier.isPullback S.arrow).lift
+    (pullback.fst (classifier.char S.arrow) classifier.t)
+    (pullback.snd (classifier.char S.arrow) classifier.t)
+    pullback.condition
+  inv := pullback.lift S.arrow (terminal.from _) (classifier.isPullback S.arrow).w
+
+def subobjectIso3 :
+Subobject.underlying.obj (Subobject.mk (pullback.fst (classifier.char S.arrow) classifier.t)) ≅
+Subobject.underlying.obj S where
+  hom := (subobjectIso1 classifier B S).hom ≫ (subobjectIso2 classifier B S).hom
+  inv := (subobjectIso2 classifier B S).inv ≫ (subobjectIso1 classifier B S).inv
+
+def subobjectEquiv (B : C) : (B ⟶ classifier.Ω) ≃ Subobject B where
+  toFun := fun φ => Subobject.mk (pullback.fst φ classifier.t)
+  invFun := fun S => classifier.char S.arrow
+  left_inv := by
+    intro φ
+    simp
+    symm
+    apply classifier.uniq
+    exact subobject_pullback classifier φ
+  right_inv := by
+    intro S
+    ext
+    · exact subobjectIso3 classifier B S
+    · simp [subobjectIso3, subobjectIso1, subobjectIso2]
+
+def classifierHomEquiv (B : C) : (B ⟶ classifier.Ω) ≃ (B ⟶ Ω C) where
+  toFun := fun φ ↦
+  (subobjectEquiv HasClassifier.exists_classifier.some _).invFun (
+    (subobjectEquiv classifier _).toFun φ)
+  invFun := fun φ' ↦
+  (subobjectEquiv classifier _).invFun (
+    (subobjectEquiv HasClassifier.exists_classifier.some _).toFun φ')
+  left_inv := by intro φ; simp
+  right_inv := by intro φ'; simp
+
+variable {Z Z' : C} (f : Z' ⟶ Z) (g : Z ⟶ classifier.Ω)
+
+instance : Mono (classifier.t) := IsSplitMono.mono classifier.t
+
+def classifierIso (classifier : Classifier C) : classifier.Ω ≅ Ω C := by
+  apply Yoneda.ext (
+    p := fun φ ↦ (classifierHomEquiv classifier _).toFun φ) (
+    q := fun φ' ↦ (classifierHomEquiv classifier _).invFun φ')
+  · simp
+  · simp
+  · intro Z Z' f g
+    dsimp
+    /-
+    show (subobjectEquiv HasClassifier.exists_classifier.some _).invFun (
+    (subobjectEquiv classifier _).toFun (f ≫ g))
+    = f ≫ (subobjectEquiv HasClassifier.exists_classifier.some _).invFun (
+    (subobjectEquiv classifier _).toFun g)
+    -/
+    show χ_ (Subobject.mk (pullback.fst (f ≫ g) classifier.t)).arrow
+    = f ≫ χ_ (Subobject.mk (pullback.fst g (classifier.t))).arrow
+    symm
+    apply HasClassifier.unique
+    apply IsPullback.of_iso_pullback
+    · apply CommSq.mk
+      /-
+
+      -/
+      let l' : Subobject.underlying.obj (Subobject.mk (pullback.fst (f ≫ g) classifier.t))
+      ≅ pullback (f ≫ g) classifier.t :=
+        Subobject.underlyingIso (pullback.fst (f ≫ g) classifier.t)
+
+      have h : (Subobject.mk (pullback.fst (f ≫ g) classifier.t)).arrow
+      = (Subobject.underlyingIso (pullback.fst (f ≫ g) classifier.t)).hom
+      ≫ (pullback.fst (f ≫ g) classifier.t) :=
+        Eq.symm (Subobject.underlyingIso_hom_comp_eq_mk (pullback.fst (f ≫ g) classifier.t))
+      rw [(Subobject.underlyingIso_hom_comp_eq_mk (pullback.fst (f ≫ g) classifier.t)).symm]
+      rw [assoc]
+      let lift : pullback (f ≫ g) classifier.t ⟶ pullback g classifier.t := by
+        refine pullback.lift (pullback.fst (f ≫ g) classifier.t ≫ f) (terminal.from _) ?_
+        have h' : terminal.from (pullback (f ≫ g) classifier.t) = pullback.snd _ _ := by
+          apply terminal.hom_ext
+        rw [assoc, pullback.condition, h']
+      have h' : (pullback.fst _ _) ≫ f = lift ≫ (pullback.fst _ _) := by
+        symm; apply pullback.lift_fst
+      rw [←(assoc _ f), h', assoc]
+      -- let lift₁ :
+      sorry
+    · sorry
+    · sorry
+    · sorry
+
+
 end
-end CategoryTheory.MonoClassifier
+end CategoryTheory.HasClassifier
