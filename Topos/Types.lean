@@ -6,7 +6,7 @@ import Mathlib.CategoryTheory.Monoidal.Types.Basic
 
 namespace CategoryTheory
 
-open CategoryTheory Category Topos Opposite Limits MonoClassifier Types Classical
+open CategoryTheory Category Topos Opposite Limits Classifier Types Classical
 
 namespace Topos
 
@@ -185,9 +185,9 @@ instance typesHasClassifier : HasClassifier (Type u) where
 variable (B)
 
 -- needs to use "a" subobject classifier. can't use just `Ω`
-def pow : Type u := (B ⟶ MonoClassifier.Ω _)
+def pow : Type u := (B ⟶ HasClassifier.Ω _)
 
-def in_ : B × (pow B) ⟶ MonoClassifier.Ω _ :=
+def in_ : B × (pow B) ⟶ HasClassifier.Ω _ :=
   fun (b, f) => f b
 
 --def powerObject : Power.PowerObject B where

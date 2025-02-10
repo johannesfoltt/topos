@@ -54,8 +54,6 @@ variable (C : Type u) [Category.{v} C] [ChosenFiniteProducts C]
 all pullbacks, a subobject classifier, and power objects.
 -/
 class IsTopos where
-  /-- A topos has a terminal object. -/
-  [has_terminal : HasTerminal C]
   /-- A topos has pullbacks. -/
   [has_pullbacks : HasPullbacks C]
   /-- A topos has a subobject classifier. -/
@@ -63,8 +61,9 @@ class IsTopos where
   /-- A topos has power objects. -/
   [has_power_objects : HasPowerObjects C]
 
-attribute [instance] IsTopos.has_terminal IsTopos.has_pullbacks
-                     IsTopos.subobject_classifier IsTopos.has_power_objects
+attribute [instance] IsTopos.has_pullbacks
+                     IsTopos.subobject_classifier
+                     IsTopos.has_power_objects
 
 variable [IsTopos C] {C}
 
