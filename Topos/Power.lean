@@ -3,9 +3,10 @@ Copyright (c) 2024 Charlie Conneen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
-import Mathlib.CategoryTheory.Limits.Constructions.FiniteProductsOfBinaryProducts
-import Mathlib.CategoryTheory.Limits.Constructions.Equalizers
+-- import Mathlib.CategoryTheory.Limits.Constructions.FiniteProductsOfBinaryProducts
+-- import Mathlib.CategoryTheory.Limits.Constructions.Equalizers
 --import Mathlib.CategoryTheory.Topos.Classifier
+import Mathlib.CategoryTheory.ChosenFiniteProducts
 import Topos.Classifier
 
 /-!
@@ -47,27 +48,15 @@ Let `C` be a category with a terminal object, a subobject classifier, and pullba
 -/
 
 
-open CategoryTheory Category Limits HasClassifier
-
-
-universe u v
-variable {C : Type u} [Category.{v} C] [HasTerminal C] [HasClassifier C] [HasPullbacks C]
+open CategoryTheory Category Limits HasClassifier ChosenFiniteProducts
 
 namespace CategoryTheory.Power
 
+universe u v
+variable {C : Type u} [Category.{v} C] [HasTerminal C] [HasClassifier C]
+variable [ChosenFiniteProducts C]
 
-/-- Having a subobject classifier implies having terminal objects.
-    Combined with having pullbacks, this shows that C has binary products.
--/
-instance hasBinaryProducts : HasBinaryProducts C := hasBinaryProducts_of_hasTerminal_and_pullbacks C
 
-/-- A category with a terminal object and binary products
-has all finite products.
--/
-instance hasFiniteProducts : HasFiniteProducts C := hasFiniteProducts_of_has_binary_and_terminal
-
-/-- A category with binary products and pullbacks has equalizers. -/
-instance hasEqualizers : HasEqualizers C := hasEqualizers_of_hasPullbacks_and_binary_products
 
 /-- An object `PB` and a map `in_B : B ⨯ PB ⟶ Ω C` form a power object for `B : C`
 if, for any map `f : B ⨯ A ⟶ Ω C`, there is a unique map `f' : A ⟶ PB` such that
