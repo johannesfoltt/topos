@@ -3,8 +3,6 @@ Copyright (c) 2024 Charlie Conneen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
--- import Mathlib.CategoryTheory.Limits.Constructions.FiniteProductsOfBinaryProducts
--- import Mathlib.CategoryTheory.Limits.Constructions.Equalizers
 --import Mathlib.CategoryTheory.Topos.Classifier
 import Mathlib.CategoryTheory.ChosenFiniteProducts
 import Topos.Classifier
@@ -48,7 +46,7 @@ Let `C` be a category with a terminal object, a subobject classifier, and pullba
 -/
 
 
-open CategoryTheory Category Limits HasClassifier ChosenFiniteProducts
+open CategoryTheory Category Limits HasClassifier MonoidalCategory
 
 namespace CategoryTheory.Power
 
@@ -56,7 +54,11 @@ universe u v
 variable {C : Type u} [Category.{v} C] [HasTerminal C] [HasClassifier C]
 variable [ChosenFiniteProducts C]
 
+variable (A B : C)
 
+#synth MonoidalCategory C
+
+#check A ⊗ B
 
 /-- An object `PB` and a map `in_B : B ⨯ PB ⟶ Ω C` form a power object for `B : C`
 if, for any map `f : B ⨯ A ⟶ Ω C`, there is a unique map `f' : A ⟶ PB` such that

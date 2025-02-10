@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
 import Mathlib.CategoryTheory.ChosenFiniteProducts
+import Mathlib.CategoryTheory.Limits.Constructions.Equalizers
 -- import Mathlib.CategoryTheory.Topos.Power
 import Topos.Power
 
@@ -47,7 +48,7 @@ open Category Limits HasClassifier Power
 
 universe u v
 
-variable (C : Type u) [Category.{v} C]
+variable (C : Type u) [Category.{v} C] [ChosenFiniteProducts C]
 
 /-- A category is a topos if it has a terminal object,
 all pullbacks, a subobject classifier, and power objects.
