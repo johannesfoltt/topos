@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
 import Mathlib.CategoryTheory.ChosenFiniteProducts
-import Mathlib.CategoryTheory.Limits.Constructions.Equalizers
--- import Mathlib.CategoryTheory.Topos.Power
+import Mathlib.CategoryTheory.Limits.Constructions.LimitsOfProductsAndEqualizers
+
 import Topos.Power
 
 
@@ -84,6 +84,8 @@ binary products.
 instance hasEqualizers : HasEqualizers C :=
   hasEqualizers_of_hasPullbacks_and_binary_products
 
+instance hasFiniteLimits : HasFiniteLimits C :=
+  hasFiniteLimits_of_hasEqualizers_and_finite_products
 
 noncomputable section
 

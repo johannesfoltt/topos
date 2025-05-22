@@ -209,6 +209,12 @@ def transpose_transpose_Equiv (A B : C) : (B ⟶ pow A) ≃ (A ⟶ pow B) :=
   -- (transposeEquivSymm A B).symm.trans (transposeEquiv A B)
   Equiv.trans (transposeEquivSymm A B).symm (transposeEquiv A B)
 
+lemma transposeInvInj {A B : C} {f g : A ⟶ pow B} (eq: f^ = g^) : f = g := by {
+  apply (transposeEquiv A B).symm.injective
+  unfold transposeEquiv
+  simp
+  assumption
+}
 
 /--
   The power object functor's action on arrows.

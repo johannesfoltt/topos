@@ -7,6 +7,8 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.Tactic.ApplyFun
 import Mathlib.CategoryTheory.Subobject.Basic
+import Mathlib.CategoryTheory.ChosenFiniteProducts
+import Topos.PullbackProd
 
 /-!
 
@@ -145,6 +147,15 @@ is a pullback square.
 -/
 lemma unique (χ : X ⟶ Ω C) (hχ : IsPullback m (terminal.from _) χ (t C)) : χ = χ_ m :=
   HasClassifier.exists_classifier.some.uniq m χ hχ
+
+lemma prodCompClassEqClassOfComp [ChosenFiniteProducts C] : prod.fst ≫ χ_ m = χ_ (prod.map (m) (𝟙 (⊤_ C))) := by {
+  apply unique
+  have TOP := IsPullback.isPullbackProdFst m
+  have BOT := isPullback m
+  have PB := IsPullback.paste_vert TOP BOT
+  rw [terminal.hom_ext (terminal.from (⊤_ C)) (𝟙 (⊤_ C)), terminal.comp_from prod.fst] at PB
+  exact PB
+}
 
 /-- `t C` is a regular monomorphism (because it is split). -/
 noncomputable instance truthIsRegularMono : RegularMono (t C) :=

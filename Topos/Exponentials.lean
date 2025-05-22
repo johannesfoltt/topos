@@ -35,7 +35,7 @@ Consequently, every topos is Cartesian closed.
 
 -/
 
-open CategoryTheory Category Limits MonoClassifier Power Topos
+open CategoryTheory Category Limits HasClassifier Power Topos
 
 universe u v
 
@@ -45,7 +45,7 @@ namespace CategoryTheory.Topos
 
 noncomputable section
 
-variable [IsTopos C]
+variable [ChosenFiniteProducts C] [IsTopos C]
 
 /-- The exponential object B^A. -/
 def hom (A B : C) : C :=
@@ -200,7 +200,7 @@ lemma homMap_comm :
   = prod.map (𝟙 A) ((terminal.from (A ⨯ ⊤_ C) ≫ t C)^) ≫ in_ A :=
     (comm _ _).symm
   have map_def : (Limits.prod.rightUnitor A).hom = prod.fst := rfl
-  rw [MonoClassifier.comm (singleton _), ←assoc, ←map_def, rightUnitor_terminal, ←assoc,
+  rw [HasClassifier.comm (singleton _), ←assoc, ←map_def, rightUnitor_terminal, ←assoc,
   f_terminal, prod.map_id_comp, assoc, ←obv, ←assoc, A_X_terminal]
 
 /-- Given a map `f : A ⨯ X ⟶ B`, `homMap f`
