@@ -177,6 +177,9 @@ is stable under base change, every monomorphism is regular.
 noncomputable instance monoIsRegularMono {A B : C} (m : A ⟶ B) [Mono m] : RegularMono m :=
   regularOfIsPullbackFstOfRegular (isPullback m).w (isPullback m).isLimit
 
+instance regularMono : RegularMonoCategory C where
+  regularMonoOfMono := monoIsRegularMono
+
 /-- `C` is a balanced category.  -/
 instance balanced : Balanced C where
   isIso_of_mono_of_epi := fun f => isIso_of_epi_of_strongMono f
