@@ -7,7 +7,7 @@ open Category Limits HasClassifier Power Functor
 
 universe u v
 variable {C}
-variable [Category.{v, u} C] [RegularMonoCategory C] [HasPushouts C] [HasEqualizers C]
+variable [Category.{v, u} C] [IsRegularMonoCategory C] [HasPushouts C] [HasEqualizers C]
 
 variable {A B : C}
 
@@ -40,7 +40,7 @@ instance MonoEpiHasImage (f : A ⟶ B) : HasImage f where
 instance hasImages : HasImages C where
   has_image := fun f ↦ MonoEpiHasImage f
 
-omit [RegularMonoCategory C] [HasPushouts C]
+omit [IsRegularMonoCategory C] [HasPushouts C]
 
 noncomputable def SplitEpiEqualizerιOfImage (f : A ⟶ B) [HasImage f] (Z : C) (a b : image f ⟶ Z) (h : factorThruImage f ≫ a = factorThruImage f ≫ b) : SplitEpi (equalizer.ι a b) where
   section_ := by {

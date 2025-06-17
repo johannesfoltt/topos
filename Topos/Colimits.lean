@@ -17,7 +17,7 @@ namespace Topos
 
 universe u v
 variable {C}
-variable [Category.{v, u} C] [ChosenFiniteProducts C] [IsTopos C]
+variable [Category.{v, u} C] [CartesianMonoidalCategory C] [IsTopos C]
 
 noncomputable section
 

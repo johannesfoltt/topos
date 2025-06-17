@@ -3,7 +3,7 @@ Copyright (c) 2024 Charlie Conneen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
-import Mathlib.CategoryTheory.ChosenFiniteProducts
+import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib.CategoryTheory.Limits.Constructions.LimitsOfProductsAndEqualizers
 
 import Topos.Power
@@ -48,7 +48,7 @@ open Category Limits HasClassifier Power
 
 universe u v
 
-variable (C : Type u) [Category.{v} C] [ChosenFiniteProducts C]
+variable (C : Type u) [Category.{v} C] [CartesianMonoidalCategory C]
 
 /-- A category is a topos if it has a terminal object,
 all pullbacks, a subobject classifier, and power objects.

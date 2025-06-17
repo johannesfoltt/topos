@@ -1,11 +1,11 @@
-import Mathlib.CategoryTheory.ChosenFiniteProducts
-import Mathlib.CategoryTheory.Monad.Monadicity
+import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 
 namespace CategoryTheory.IsPullback
 
 open Category Limits
 
-variable {C : Type*} [Category C] [ChosenFiniteProducts C]
+variable {C : Type*} [Category C] [CartesianMonoidalCategory C]
 variable {X₁ X₂ Y₁ Y₂ Z₁ Z₂ P₁ P₂ : C}
 variable {f₁ : X₁ ⟶ Z₁} {f₂ : X₂ ⟶ Z₂} {g₁ : Y₁ ⟶ Z₁} {g₂ : Y₂ ⟶ Z₂} {fst₁ : P₁ ⟶ X₁} {fst₂ : P₂ ⟶ X₂} {snd₁ : P₁ ⟶ Y₁} {snd₂ : P₂ ⟶ Y₂}
 

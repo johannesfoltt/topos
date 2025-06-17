@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
 --import Mathlib.CategoryTheory.Topos.Classifier
-import Mathlib.CategoryTheory.ChosenFiniteProducts
+import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Topos.Classifier
 
 /-!
@@ -52,7 +52,7 @@ namespace CategoryTheory.Power
 
 universe u v
 variable {C : Type u} [Category.{v} C] [HasTerminal C] [HasClassifier C]
-variable [ChosenFiniteProducts C]
+variable [CartesianMonoidalCategory C]
 
 variable (A B : C)
 
@@ -86,11 +86,11 @@ structure PowerObject (B : C) where
   /-- The membership predicate -/
   in_ : B ⨯ pow ⟶ Ω C
   /-- The transpose of a map -/
-  transpose {A} (f : B ⨯ A ⟶ Ω C) : A ⟶ pow
+  transpose {A : C} (f : B ⨯ A ⟶ Ω C) : A ⟶ pow
   /-- the characterizing property of the transpose -/
-  comm {A} (f : B ⨯ A ⟶ Ω C) : prod.map (𝟙 B) (transpose f) ≫ in_ = f
+  comm {A : C} (f : B ⨯ A ⟶ Ω C) : prod.map (𝟙 B) (transpose f) ≫ in_ = f
   /-- `transpose f` is the only map which satisfies the commutativity condition-/
-  uniq {A} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ pow} (hat'_comm : prod.map (𝟙 B) hat' ≫ in_ = f) : transpose f = hat'
+  uniq {A : C} {f : B ⨯ A ⟶ Ω C} {hat' : A ⟶ pow} (hat'_comm : prod.map (𝟙 B) hat' ≫ in_ = f) : transpose f = hat'
 
 variable (C)
 

@@ -5,9 +5,10 @@ Authors: Charlie Conneen
 -/
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
+import Mathlib.CategoryTheory.Functor.ReflectsIso.Balanced
 import Mathlib.Tactic.ApplyFun
 import Mathlib.CategoryTheory.Subobject.Basic
-import Mathlib.CategoryTheory.ChosenFiniteProducts
+import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Topos.PullbackProd
 
 /-!
@@ -148,7 +149,7 @@ is a pullback square.
 lemma unique (χ : X ⟶ Ω C) (hχ : IsPullback m (terminal.from _) χ (t C)) : χ = χ_ m :=
   HasClassifier.exists_classifier.some.uniq m χ hχ
 
-lemma prodCompClassEqClassOfComp [ChosenFiniteProducts C] : prod.fst ≫ χ_ m = χ_ (prod.map (m) (𝟙 (⊤_ C))) := by {
+lemma prodCompClassEqClassOfComp [CartesianMonoidalCategory C] : prod.fst ≫ χ_ m = χ_ (prod.map (m) (𝟙 (⊤_ C))) := by {
   apply unique
   have TOP := IsPullback.isPullbackProdFst m
   have BOT := isPullback m
@@ -177,8 +178,8 @@ is stable under base change, every monomorphism is regular.
 noncomputable instance monoIsRegularMono {A B : C} (m : A ⟶ B) [Mono m] : RegularMono m :=
   regularOfIsPullbackFstOfRegular (isPullback m).w (isPullback m).isLimit
 
-instance regularMono : RegularMonoCategory C where
-  regularMonoOfMono := monoIsRegularMono
+instance regularMono : IsRegularMonoCategory C where
+  regularMonoOfMono := fun f ↦ ⟨monoIsRegularMono f⟩
 
 /-- `C` is a balanced category.  -/
 instance balanced : Balanced C where

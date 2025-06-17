@@ -45,7 +45,7 @@ namespace CategoryTheory.Topos
 
 noncomputable section
 
-variable [ChosenFiniteProducts C] [IsTopos C]
+variable [CartesianMonoidalCategory C] [IsTopos C]
 
 /-- The exponential object B^A. -/
 def hom (A B : C) : C :=
@@ -346,7 +346,7 @@ def ExpFunctor (A : C) : C ⥤ C where
     rw [prod.map_id_id, id_comp]
   map_comp := by
     intro X Y Z f g
-    change ExpHom A (f ≫ g) = ExpHom A f ≫ ExpHom A g
+    --change ExpHom A (f ≫ g) = ExpHom A f ≫ ExpHom A g
     dsimp only [ExpHom]
     apply Hom_Unique
     rw [prod.map_id_comp, assoc, hom_exponentiates, hom_exponentiates_assoc, assoc]
@@ -377,7 +377,7 @@ end
 
 section
 
-variable [ChosenFiniteProducts C] [HasClassifier C] [HasPullbacks C] [HasPowerObjects C]
+variable [CartesianMonoidalCategory C] [HasClassifier C] [HasPullbacks C] [HasPowerObjects C]
 
 
 -- instance exponentiable (B : C) : Exponentiable B := Exponentiable.mk B (ExpFunctor B) (by

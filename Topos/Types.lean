@@ -1,7 +1,7 @@
 import Topos.Basic
 import Mathlib.Order.Basic
 import Mathlib.CategoryTheory.Sites.Types
-import Mathlib.CategoryTheory.Limits.Shapes.Types
+import Mathlib.CategoryTheory.Limits.Types.Shapes
 import Mathlib.CategoryTheory.Monoidal.Types.Basic
 
 namespace CategoryTheory
@@ -141,7 +141,6 @@ def classifier : Classifier (Type u) where
   uniq := by
     intro A B f inst χ hχ
     funext x
-    simp only
     if h : (∃ a : A, f a = x) then
       simp [char, h]
       rw [h.choose_spec.symm, ←types_comp_apply f χ, hχ.w]
