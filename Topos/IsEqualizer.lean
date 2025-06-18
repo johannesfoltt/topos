@@ -48,6 +48,9 @@ theorem cone_ι (h : IsEqualizer ι f g) : h.cone.ι = ι := rfl
 
 noncomputable def isLimit (h : IsEqualizer ι f g) : IsLimit h.cone := h.isLimit'.some
 
+instance HasEqualizer_of_IsEqualizer(h : IsEqualizer ι f g) : HasEqualizer f g :=
+  HasLimit.mk {cone := cone h, isLimit := isLimit h}
+
 noncomputable def lift (hE : IsEqualizer ι f g) {W : C} (k : W ⟶ X) (w : k ≫ f = k ≫ g) : W ⟶ I := Fork.IsLimit.lift hE.isLimit k w
 
 @[reassoc (attr := simp)]
@@ -102,6 +105,9 @@ def cocone (h : IsCoequalizer f g π) : Cofork f g := Cofork.ofπ _ h.w
 theorem cocone_π (h : IsCoequalizer f g π) : h.cocone.π = π := rfl
 
 noncomputable def isColimit (h : IsCoequalizer f g π) : IsColimit h.cocone := h.isColimit'.some
+
+instance HasCoequalizer_of_IsCoequalizer (h : IsCoequalizer f g π) : HasCoequalizer f g :=
+  HasColimit.mk {cocone := cocone h, isColimit := isColimit h}
 
 noncomputable def desc (hC : IsCoequalizer f g π) {W : C} (k : Y ⟶ W) (w : f ≫ k = g ≫ k) : P ⟶ W := Cofork.IsColimit.desc hC.isColimit k w
 
