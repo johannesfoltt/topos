@@ -13,8 +13,6 @@ variable {C : Type u} [Category.{v} C] {X : C}
 
 variable {A B : Over X} (f g : A ⟶ B) [HasEqualizer f.left g.left]
 
-#check (Cones.functoriality (parallelPair f g) (Over.forget X)).obj
-
 abbrev Over.equalizerOver : Over X := Over.mk ((equalizer.ι f.left g.left) ≫ A.hom)
 
 abbrev Over.equalizerOver.ι : (equalizerOver f g) ⟶ A := Over.homMk (equalizer.ι f.left g.left)

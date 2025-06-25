@@ -2,7 +2,6 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.Tactic.ApplyFun
 import Mathlib.CategoryTheory.Subobject.Basic
-import Mathlib.CategoryTheory.ChosenFiniteProducts
 import Topos.Classifier
 import Topos.Images
 
@@ -17,7 +16,7 @@ namespace CategoryTheory
 
 noncomputable section
 
-def Classifier.meet [ChosenFiniteProducts C] : classifier.Ω ⨯ classifier.Ω ⟶ classifier.Ω :=
+def Classifier.meet [CartesianMonoidalCategory C] : classifier.Ω ⨯ classifier.Ω ⟶ classifier.Ω :=
   classifier.char (prod.map (classifier.t) (classifier.t))
 
 --def Classifier.false [HasInitial C] : ⊤_ C ⟶ classifier.Ω :=
@@ -25,6 +24,6 @@ def Classifier.meet [ChosenFiniteProducts C] : classifier.Ω ⨯ classifier.Ω �
 
 namespace HasClassifier
 
-variable [HasClassifier C] [ChosenFiniteProducts C]
+variable [HasClassifier C] [CartesianMonoidalCategory C]
 
 abbrev meet : (Ω C) ⨯ (Ω C) ⟶ (Ω C) := Classifier.meet (HasClassifier.exists_classifier.some)
