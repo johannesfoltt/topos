@@ -38,6 +38,36 @@ theorem isPullbackOfProd (hp₁ : IsPullback fst₁ snd₁ f₁ g₁) (hp₂ : I
   }
 }
 
+lemma isPullback_Prod_Fst_of_isPullback {P X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} {fst : P ⟶ X} {snd : P ⟶ Y} (h : IsPullback fst snd f g) : IsPullback (prod.lift fst snd) (fst ≫ f) (prod.map f g) (diag Z) where
+  w := by rw [prod.comp_diag, prod.lift_map, h.w]
+  isLimit' := by {
+    apply Nonempty.intro
+    have eq (s : PullbackCone (prod.map f g) (diag Z)) : (s.fst ≫ prod.fst) ≫ f = (s.fst ≫ prod.snd) ≫ g := by {
+      rw [assoc, assoc, ← prod.map_fst f g, ← prod.map_snd f g, ← assoc, ← assoc, s.condition, assoc, assoc]
+      simp
+    }
+    let lift := fun (s : PullbackCone (prod.map f g) (diag Z)) ↦ h.lift (s.fst ≫ prod.fst) (s.fst ≫ prod.snd) (eq s)
+    apply PullbackCone.IsLimit.mk _ lift
+    · intro s
+      refine Limits.prod.hom_ext ?_ ?_
+      · simp
+        exact lift_fst h (s.fst ≫ prod.fst) (s.fst ≫ prod.snd) (eq s)
+      · simp
+        exact lift_snd h (s.fst ≫ prod.fst) (s.fst ≫ prod.snd) (eq s)
+    · intro s
+      unfold lift; simp
+      rw [← prod.map_fst f g, ← assoc, s.condition]
+      simp
+    · intro s m h₁ h₂
+      unfold lift
+      apply h.hom_ext
+      · simp_rw [← h₁]
+        simp
+      · simp_rw [← h₁]
+        simp
+  }
+
+
 lemma isPullbackProdFst {X Y : C} (f : X ⟶ Y) : IsPullback (prod.map f (terminal.from (⊤_ C))) (prod.fst) (prod.fst) f where
   w := prod.map_fst f (terminal.from (⊤_ C))
   isLimit' := by {
