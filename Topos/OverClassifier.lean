@@ -1,5 +1,4 @@
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Over
-import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 import Topos.Classifier
 
 namespace CategoryTheory

@@ -12,17 +12,19 @@ variable (op : Ω C ⨯ Ω C ⟶ Ω C) {X : C} (po : PowerObject X)
 
 --This is a choice (Instead of directly using HasPowerObjects)
 
-abbrev Power.PowerBraiding := (prod.lift (prod.map (𝟙 X) (prod.fst)) (prod.map (𝟙 X) (prod.snd)) : (X ⨯ po.pow ⨯ po.pow) ⟶ _)
+namespace Power
 
-abbrev Power.PowerOperationChar : X ⨯ (po.pow ⨯ po.pow) ⟶ Ω C :=
+abbrev PowerBraiding := (prod.lift (prod.map (𝟙 X) (prod.fst)) (prod.map (𝟙 X) (prod.snd)) : (X ⨯ po.pow ⨯ po.pow) ⟶ _)
+
+abbrev PowerOperationChar : X ⨯ (po.pow ⨯ po.pow) ⟶ Ω C :=
   PowerBraiding po ≫ prod.map po.in_ po.in_ ≫ op
 
-abbrev Power.PowerOperation : po.pow ⨯ po.pow ⟶ po.pow :=
+def PowerOperation : po.pow ⨯ po.pow ⟶ po.pow :=
   po.transpose (PowerBraiding po ≫ prod.map po.in_ po.in_ ≫ op)
 
 variable {Y : C}
 
-lemma Power.PowerOperation_transpose_ClassifierOperation (s₀ s₁ : X ⨯ Y ⟶ Ω C) : po.transpose (prod.lift s₀ s₁ ≫ op) = prod.lift (po.transpose s₀) (po.transpose s₁) ≫ PowerOperation op po := by {
+lemma PowerOperation_transpose_ClassifierOperation (s₀ s₁ : X ⨯ Y ⟶ Ω C) : po.transpose (prod.lift s₀ s₁ ≫ op) = prod.lift (po.transpose s₀) (po.transpose s₁) ≫ PowerOperation op po := by {
   apply po.uniq
   have comm_UL : prod.map (𝟙 X) (prod.lift (po.transpose s₀) (po.transpose s₁)) ≫ PowerBraiding po = diag (X ⨯ Y) ≫ prod.map (prod.map (𝟙 X) (po.transpose s₀)) (prod.map (𝟙 X) (po.transpose s₁)) := by aesop_cat
   have comm_UM : prod.map (prod.map (𝟙 X) (po.transpose s₀)) (prod.map (𝟙 X) (po.transpose s₁)) ≫ prod.map po.in_ po.in_ = prod.map s₀ s₁ := by {
@@ -40,3 +42,9 @@ lemma Power.PowerOperation_transpose_ClassifierOperation (s₀ s₁ : X ⨯ Y �
   nth_rewrite 2 [← id_comp s₀, ← id_comp s₁]
   rw [← comp_id (𝟙 X), ← prod.map_map, ← prod.lift_map, ← comm_UML, assoc, comm_L, assoc, assoc]
 }
+
+variable [HasPowerObjects C]
+
+abbrev HasPowerObjects.PowerOperation (X : C) : pow X ⨯ pow X ⟶ pow X := Power.PowerOperation op (HasPowerObjects.has_power_object X).some
+
+lemma HasPowerObjects.PowerOperation_transpose_ClassifierOperation (s₀ s₁ : X ⨯ Y ⟶ Ω C) : (prod.lift s₀ s₁ ≫ op)^ = prod.lift (s₀^) (s₁^) ≫ PowerOperation op X := Power.PowerOperation_transpose_ClassifierOperation op (HasPowerObjects.has_power_object X).some s₀ s₁

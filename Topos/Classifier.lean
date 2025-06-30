@@ -7,7 +7,7 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.CategoryTheory.Functor.ReflectsIso.Balanced
 import Mathlib.Tactic.ApplyFun
-import Mathlib.CategoryTheory.Subobject.Basic
+import Mathlib.CategoryTheory.Subobject.Lattice
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Topos.PullbackProd
 
@@ -269,6 +269,20 @@ def subobjectEquiv (B : C) : (B ⟶ classifier.Ω) ≃ Subobject B where
     ext
     · exact subobjectIso3 classifier B S
     · simp [subobjectIso3, subobjectIso1, subobjectIso2]
+
+lemma subobjectClassifierExt {B X Y} {f : X ⟶ B} {g : Y ⟶ B} [Mono f] [Mono g] (h : classifier.char f = classifier.char g) : Subobject.mk f = Subobject.mk g := by {
+  sorry
+}
+
+def subobjectRepresentableByClassifier : RepresentableBy (Subobject.functor C) classifier.Ω where
+  homEquiv := fun {X} ↦ subobjectEquiv classifier X
+  homEquiv_comp := by {
+    intro X Y f g
+    unfold subobjectEquiv; simp
+    rw [@Subobject.pullback_obj]
+    apply subobjectClassifierExt classifier
+    sorry
+  }
 
 def classifierHomEquiv (B : C) : (B ⟶ classifier.Ω) ≃ (B ⟶ Ω C) where
   toFun := fun φ ↦
