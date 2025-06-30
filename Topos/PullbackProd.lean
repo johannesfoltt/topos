@@ -67,6 +67,20 @@ lemma isPullback_Prod_Fst_of_isPullback {P X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z
         simp
   }
 
+omit [CartesianMonoidalCategory C] in
+lemma isPullback_comp_mono {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [Mono g]: IsPullback (𝟙 X) f (f ≫ g) g where
+  w := by aesop_cat
+  isLimit' := by {
+    apply Nonempty.intro
+    apply PullbackCone.IsLimit.mk _ (fun s ↦ s.fst)
+    · simp
+    · intro s
+      have h := s.condition; rw [← assoc] at h
+      rw [← cancel_mono g]
+      assumption
+    · intro s m h₁ h₂
+      aesop_cat
+  }
 
 lemma isPullbackProdFst {X Y : C} (f : X ⟶ Y) : IsPullback (prod.map f (terminal.from (⊤_ C))) (prod.fst) (prod.fst) f where
   w := prod.map_fst f (terminal.from (⊤_ C))
