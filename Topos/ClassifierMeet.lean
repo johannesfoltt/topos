@@ -52,6 +52,19 @@ lemma meet_pullback {X S₀ S₁: C} (s₀ : S₀ ⟶ X) (s₁ : S₁ ⟶ X) [Mo
   assumption
 }
 
+--set_option trace.Meta.Tactic.simp true in
+lemma meet_comp {X S₀ S₁ : C} (s₀ : S₀ ⟶ S₁) (s₁ : S₁ ⟶ X) [Mono s₀] [Mono s₁] : ((χ_ (s₀ ≫ s₁)) ∧_C₁ (χ_ s₁)) = χ_ (s₀ ≫ s₁) := by {
+  rw [meet_pullback]
+  have pb₀ := isPullback_comp_mono s₀ s₁
+  have pb₁ := isPullback (pullback.fst (s₀ ≫ s₁) s₁ ≫ s₀ ≫ s₁)
+  apply HasClassifier.unique
+  apply pb₁.of_iso (pb₀.isoPullback).symm (Iso.refl _) (Iso.refl _) (Iso.refl _)
+  · simp; exact pullback.condition
+  · simp
+  · simp
+  · simp
+}
+
 end HasClassifier
 
 namespace Power
@@ -66,11 +79,11 @@ abbrev meet (X : C) : (pow X) ⨯ (pow X) ⟶ pow X := (HasPowerObjects.has_powe
 
 abbrev meet_hom₁ {X Y : C} (f₀ f₁ : Y ⟶ pow X) : Y ⟶ pow X := prod.lift f₀ f₁ ≫ meet X
 
-notation f₀ "∧_P₁" f₁ => meet_hom₁ f₀ f₁
+notation f₀ " ∧_P₁ " f₁ => meet_hom₁ f₀ f₁
 
 abbrev meet_hom₂ {X Y Z: C} (f₀ : Y ⟶ pow X) (f₁ : Z ⟶ pow X) : Y ⨯ Z ⟶ pow X := prod.map f₀ f₁ ≫ meet X
 
-notation f₀ "∧_P₂" f₁ => meet_hom₂ f₀ f₁
+notation f₀ " ∧_P₂ " f₁ => meet_hom₂ f₀ f₁
 
 lemma meet_transpose {X Y : C} (f₀ f₁ : X ⨯ Y ⟶ Ω C) : (f₀ ∧_C₁ f₁)^ = (f₀^ ∧_P₁ f₁^) := HasPowerObjects.PowerOperation_transpose_ClassifierOperation HasClassifier.meet f₀ f₁
 
@@ -81,18 +94,4 @@ variable [IsTopos C]
 lemma meet_name {X : C} (χ₀ χ₁ : X ⟶ Ω C) : ⌈(χ₀ ∧_C₁ χ₁)⌉ = (⌈χ₀⌉ ∧_P₁ ⌈χ₁⌉) := by {
   unfold Topos.name
   rw [← meet_transpose ((prod.fst) ≫ χ₀) ((prod.fst) ≫ χ₁), prod.comp_lift_assoc]
-}
-
---set_option trace.Meta.Tactic.simp true in
-omit [HasPowerObjects C] in
-lemma meet_comp {X S₀ S₁ : C} (s₀ : S₀ ⟶ S₁) (s₁ : S₁ ⟶ X) [Mono s₀] [Mono s₁] : ((χ_ (s₀ ≫ s₁)) ∧_C₁ (χ_ s₁)) = χ_ (s₀ ≫ s₁) := by {
-  rw [meet_pullback]
-  have pb₀ := isPullback_comp_mono s₀ s₁
-  have pb₁ := isPullback (pullback.fst (s₀ ≫ s₁) s₁ ≫ s₀ ≫ s₁)
-  apply HasClassifier.unique
-  apply pb₁.of_iso (pb₀.isoPullback).symm (Iso.refl _) (Iso.refl _) (Iso.refl _)
-  · simp; exact pullback.condition
-  · simp
-  · simp
-  · simp
 }
