@@ -26,6 +26,8 @@ abbrev pullback_prod_hom (A B : Over X) : (Limits.pullback (A.hom) (B.hom)) ⟶ 
 
 abbrev pullback_prod (A B : Over X) : Over X := mk (pullback_prod_hom A B)
 
+--abbrev pullback_prod_map {A}
+
 notation A " ⨯_P " B => pullback_prod A B
 
 lemma pullback_prod_snd (A B : Over X) : (A ⨯_P B) = mk ((pullback.snd A.hom B.hom) ≫ B.hom) := by rw [← pullback.condition]
@@ -62,11 +64,7 @@ lemma powerOver.transpose_equalizer_condition {B : Over X} (f : (A ⨯_P B) ⟶ 
   simp
 }
 
-abbrev powerOver.transpose_hom {B : Over X} (f : (A ⨯_P B) ⟶ classifierOver.Ω HasClassifier.exists_classifier.some) : B.left ⟶ (equalizer prod.fst (powerOver.pow_t A)) := by {
-  #check (f.left ≫ prod.fst : (A ⨯_P B).left ⟶  Ω C)
-  #check (pullback.fst (f.left ≫ prod.fst) (t C))
-  #check (prod.lift (pullback.fst A.hom B.hom) (pullback.snd A.hom B.hom) : Limits.pullback A.hom B.hom ⟶ A.left ⨯ B.left)
-  #check (pullback.fst (f.left ≫ prod.fst) (t C)) ≫ (prod.lift (pullback.fst A.hom B.hom) (pullback.snd A.hom B.hom) : Limits.pullback A.hom B.hom ⟶ A.left ⨯ B.left)
-  #check χ_ (transpose_subobject A f)
-  sorry
-}
+def powerOver.transpose' {B : Over X} (f : (A ⨯_P B) ⟶ classifierOver.Ω HasClassifier.exists_classifier.some) : B ⟶ pow A :=
+  homMk (equalizer.lift (prod.lift ((χ_ (transpose_subobject A f))^) B.hom) (transpose_equalizer_condition A f))
+
+lemma powerOver.comm' {B : Over X} (f : (A ⨯_P B) ⟶ classifierOver.Ω HasClassifier.exists_classifier.some) : prod.map (𝟙 B) (transpose' A f) ≫ in_' A = f := sorry
