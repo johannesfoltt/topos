@@ -159,19 +159,19 @@ instance reflectsIsomorphismsOp (D : Type u₀) [Category.{v₀} D]
 
 
 /-- The predicate on `X` which corresponds to the subobject `𝟙 X: X ⟶ X`. -/
-abbrev true_ (B : C) : B ⟶ Ω := from_ B ≫ t
+abbrev Predicate.true_ (B : C) : B ⟶ Ω := from_ B ≫ t
 
 variable [CartesianMonoidalCategory C]
 
 /--
   The equality predicate on `X ⊗ X`.
 -/
-abbrev eq (X : C) : X ⊗ X ⟶ Ω := char (diag X)
+abbrev Predicate.eq (X : C) : X ⊗ X ⟶ Ω := char (diag X)
 
 /-- The lift `X ⟶ B ⨯ B` of a morphism with itself, when composed
 with `predicate.eq B`, is true.
 -/
-lemma lift_eq {X B : C} (b : X ⟶ B) : lift b b ≫ eq B  = true_ X := by {
+lemma lift_eq {X B : C} (b : X ⟶ B) : lift b b ≫ Predicate.eq B  = Predicate.true_ X := by {
   rw [← @comp_diag, assoc, comm, ← assoc, comp_from]
 }
 
@@ -180,8 +180,8 @@ the equality predicate on `B ⨯ B` is true.
 In other words, this combined with `Predicate.lift_eq` states that
 `Predicate.eq` is able to distinguish whether two morphisms are equal.
 -/
-lemma eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : lift b b' ≫ eq B = true_ X) : b = b' := by {
-  dsimp only [true_] at comm'
+lemma eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : lift b b' ≫ Predicate.eq B = Predicate.true_ X) : b = b' := by {
+  dsimp only [Predicate.true_] at comm'
   have t : (isPullback _).lift _ _ comm' ≫ (CartesianMonoidalCategory.diag _) = lift b b' := IsPullback.lift_fst (isPullback (CartesianMonoidalCategory.diag B)) (lift b b') (from_ X) comm'
   rw [comp_diag] at t
   have t₁ := congrArg (fun k ↦ k ≫ fst _ _) t; simp at t₁
