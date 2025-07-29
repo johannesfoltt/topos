@@ -2,8 +2,7 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Shapes.Equalizers
 import Mathlib.CategoryTheory.Limits.Shapes.SplitCoequalizer
 import Mathlib.CategoryTheory.Limits.Shapes.Reflexive
-import Topos.ForkAndPullbackCone
-
+import Topos.HelpfulCategoryTheory.ForkAndPullbackCone
 
 namespace CategoryTheory.Limits
 

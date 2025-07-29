@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
 import Mathlib.CategoryTheory.Monad.Monadicity
-import Topos.Basic
-import Topos.PullbackProd
-import Topos.IsEqualizer
-import Topos.PreservesColimitOfIsReflexivePairOfIsCoequalizer
+import Topos.OldDefinitions.Basic
+import Topos.HelpfulCategoryTheory.PullbackProd
+import Topos.HelpfulCategoryTheory.IsEqualizer
+import Topos.HelpfulCategoryTheory.PreservesColimitOfIsReflexivePairOfIsCoequalizer
 
 namespace CategoryTheory
 

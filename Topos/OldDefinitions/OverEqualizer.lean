@@ -1,5 +1,5 @@
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Over
-import Topos.IsEqualizer
+import Topos.HelpfulCategoryTheory.IsEqualizer
 
 namespace CategoryTheory
 

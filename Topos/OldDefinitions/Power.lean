@@ -5,7 +5,7 @@ Authors: Charlie Conneen
 -/
 --import Mathlib.CategoryTheory.Topos.Classifier
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
-import Topos.Classifier
+import Topos.OldDefinitions.Classifier
 
 /-!
 # Power Objects

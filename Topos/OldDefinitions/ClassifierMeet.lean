@@ -2,10 +2,11 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.Tactic.ApplyFun
 import Mathlib.CategoryTheory.Subobject.Basic
-import Topos.Classifier
-import Topos.Images
-import Topos.PullbackProd
-import Topos.PowerOperations
+import Topos.OldDefinitions.Classifier
+import Topos.HelpfulCategoryTheory.Images
+import Topos.HelpfulCategoryTheory.PullbackProd
+import Topos.OldDefinitions.PowerOperations
+import Topos.OldDefinitions.Basic
 
 universe u v u₀ v₀
 

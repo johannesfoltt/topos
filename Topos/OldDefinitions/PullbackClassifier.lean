@@ -1,6 +1,6 @@
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.HasPullback
-import Topos.PullbackProd
-import Topos.Basic
+import Topos.HelpfulCategoryTheory.PullbackProd
+import Topos.OldDefinitions.Basic
 
 namespace CategoryTheory.Topos
 

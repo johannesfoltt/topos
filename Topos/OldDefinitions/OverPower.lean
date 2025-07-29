@@ -1,7 +1,7 @@
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Over
-import Topos.OverClassifier
-import Topos.ClassifierMeet
-import Topos.PullbackClassifier
+import Topos.OldDefinitions.OverClassifier
+import Topos.OldDefinitions.ClassifierMeet
+import Topos.OldDefinitions.PullbackClassifier
 
 namespace CategoryTheory
 

@@ -9,7 +9,7 @@ import Mathlib.CategoryTheory.Functor.ReflectsIso.Balanced
 import Mathlib.Tactic.ApplyFun
 import Mathlib.CategoryTheory.Subobject.Lattice
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
-import Topos.PullbackProd
+import Topos.HelpfulCategoryTheory.PullbackProd
 
 /-!
 

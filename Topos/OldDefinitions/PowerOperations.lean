@@ -1,4 +1,4 @@
-import Topos.Power
+import Topos.OldDefinitions.Power
 
 namespace CategoryTheory
 

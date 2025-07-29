@@ -1,5 +1,5 @@
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
-import Topos.IsEqualizer
+import Topos.HelpfulCategoryTheory.IsEqualizer
 
 namespace CategoryTheory.Limits
 

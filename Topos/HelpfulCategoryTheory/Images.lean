@@ -1,9 +1,13 @@
-import Topos.Colimits
-import Topos.CokernelPair
+/-Ignore this file for now-/
+
+import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
+import Mathlib.CategoryTheory.Limits.Shapes.Pullback.HasPullback
+import Mathlib.CategoryTheory.Limits.Shapes.Images
+
 
 namespace CategoryTheory
 
-open Category Limits HasClassifier Power Functor
+open Category Limits Functor
 
 universe u v
 variable {C}

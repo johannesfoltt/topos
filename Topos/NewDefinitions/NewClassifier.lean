@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Charlie Conneen
 -/
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
-import Topos.ChosenTerminalObjects
-import Topos.CartesianMonoidalCategoryAdditions
+import Topos.HelpfulCategoryTheory.ChosenTerminalObjects
+import Topos.HelpfulCategoryTheory.CartesianMonoidalCategoryAdditions
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.CategoryTheory.Functor.ReflectsIso.Balanced
 import Mathlib.CategoryTheory.Limits.Shapes.StrongEpi
@@ -73,7 +73,7 @@ terminal.from U               χ
     ⊤_ C --------t----------> Ω
 ```
 -/
-structure Classifier where
+class Classifier where
   /-- The target of the truth morphism -/
   {Ω : C}
   /-- the truth morphism for a subobject classifier -/
@@ -86,18 +86,19 @@ structure Classifier where
   uniq {U X : C} (m : U ⟶ X) [Mono m] (χ : X ⟶ Ω) (hχ : IsPullback m (from_ U) χ t) :
     χ = char m
 
-
+/-
 /-- A category `C` has a subobject classifier if there is at least one subobject classifier. -/
 class HasClassifier : Prop where
   /-- There is some classifier. -/
   exists_classifier : Nonempty (Classifier C)
+-/
 
 namespace Classifier
 
-variable {C} (c : Classifier C)
+variable {C} [Classifier C]
 
 @[reassoc]
-lemma comm {U X : C} (m : U ⟶ X) [Mono m] : m ≫ (c.char m) = from_ _ ≫ c.t := (c.isPullback m).w
+lemma comm {U X : C} (m : U ⟶ X) [Mono m] : m ≫ (char m) = from_ _ ≫ t := (isPullback m).w
 
 /-
 Update this
@@ -113,8 +114,8 @@ lemma prodCompClassEqClassOfComp [CartesianMonoidalCategory C] : prod.fst ≫ χ
 -/
 
 /-- `c.t` is a regular monomorphism (because it is split). -/
-noncomputable instance truthIsRegularMono : RegularMono (c.t) :=
-  RegularMono.ofIsSplitMono (c.t)
+noncomputable instance truthIsRegularMono : RegularMono (t : ⊤_ ⟶ (Ω : C)) :=
+  RegularMono.ofIsSplitMono (t)
 
 /-- The following diagram
 ```
@@ -130,13 +131,11 @@ in `C` is the pullback of a regular monomorphism; since regularity
 is stable under base change, every monomorphism is regular.
 -/
 noncomputable instance monoIsRegularMono {A B : C} (m : A ⟶ B) [Mono m] : RegularMono m :=
-  regularOfIsPullbackFstOfRegular (c.isPullback m).w (c.isPullback m).isLimit
+  regularOfIsPullbackFstOfRegular (isPullback m).w (isPullback m).isLimit
 
 instance regularMono : IsRegularMonoCategory C where
-  regularMonoOfMono := fun f ↦ ⟨c.monoIsRegularMono f⟩
+  regularMonoOfMono := fun f ↦ ⟨monoIsRegularMono f⟩
 
-/-
-Do as needed
 /-- `C` is a balanced category.  -/
 instance balanced : Balanced C where
   isIso_of_mono_of_epi := fun f => isIso_of_epi_of_strongMono f
@@ -157,23 +156,23 @@ instance reflectsIsomorphismsOp (D : Type u₀) [Category.{v₀} D]
 (F : Cᵒᵖ ⥤ D) [Functor.Faithful F] :
     Functor.ReflectsIsomorphisms F :=
   reflectsIsomorphisms_of_reflectsMonomorphisms_of_reflectsEpimorphisms F
--/
+
 
 /-- The predicate on `X` which corresponds to the subobject `𝟙 X: X ⟶ X`. -/
-abbrev Predicate.true_ (B : C) : B ⟶ c.Ω := from_ B ≫ c.t
+abbrev true_ (B : C) : B ⟶ Ω := from_ B ≫ t
 
 variable [CartesianMonoidalCategory C]
 
 /--
   The equality predicate on `X ⊗ X`.
 -/
-abbrev Predicate.eq (X : C) : X ⊗ X ⟶ c.Ω := c.char (diag X)
+abbrev eq (X : C) : X ⊗ X ⟶ Ω := char (diag X)
 
 /-- The lift `X ⟶ B ⨯ B` of a morphism with itself, when composed
 with `predicate.eq B`, is true.
 -/
-lemma Predicate.lift_eq {X B : C} (b : X ⟶ B) : lift b b ≫ eq c B  = Predicate.true_ c X := by {
-  rw [← @comp_diag, assoc, c.comm, ← assoc, comp_from]
+lemma lift_eq {X B : C} (b : X ⟶ B) : lift b b ≫ eq B  = true_ X := by {
+  rw [← @comp_diag, assoc, comm, ← assoc, comp_from]
 }
 
 /-- Two maps in a topos are equal if their lift composed with
@@ -181,9 +180,9 @@ the equality predicate on `B ⨯ B` is true.
 In other words, this combined with `Predicate.lift_eq` states that
 `Predicate.eq` is able to distinguish whether two morphisms are equal.
 -/
-lemma Predicate.eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : lift b b' ≫ Predicate.eq c B = Predicate.true_ c X) : b = b' := by {
+lemma eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : lift b b' ≫ eq B = true_ X) : b = b' := by {
   dsimp only [true_] at comm'
-  have t : (c.isPullback _).lift _ _ comm' ≫ (CartesianMonoidalCategory.diag _) = lift b b' := IsPullback.lift_fst (c.isPullback (CartesianMonoidalCategory.diag B)) (lift b b') (from_ X) comm'
+  have t : (isPullback _).lift _ _ comm' ≫ (CartesianMonoidalCategory.diag _) = lift b b' := IsPullback.lift_fst (isPullback (CartesianMonoidalCategory.diag B)) (lift b b') (from_ X) comm'
   rw [comp_diag] at t
   have t₁ := congrArg (fun k ↦ k ≫ fst _ _) t; simp at t₁
   have t₂ := congrArg (fun k ↦ k ≫ snd _ _) t; simp at t₂

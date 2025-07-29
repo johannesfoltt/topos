@@ -1,7 +1,7 @@
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Over
-import Topos.OverEqualizer
-import Topos.OverClassifier
-import Topos.Basic
+import Topos.HelpfulCategoryTheory.OverEqualizer
+import Topos.OldDefinitions.OverClassifier
+import Topos.OldDefinitions.Basic
 
 namespace CategoryTheory
 

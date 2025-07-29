@@ -6,7 +6,7 @@ Authors: Charlie Conneen
 import Mathlib.CategoryTheory.Monoidal.OfHasFiniteProducts
 --import Mathlib.CategoryTheory.Topos.Basic
 import Mathlib.CategoryTheory.Closed.Cartesian
-import Topos.Basic
+import Topos.OldDefinitions.Basic
 
 /-!
 # Exponential Objects

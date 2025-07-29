@@ -6,7 +6,7 @@ Authors: Charlie Conneen
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib.CategoryTheory.Limits.Constructions.LimitsOfProductsAndEqualizers
 
-import Topos.Power
+import Topos.OldDefinitions.Power
 
 
 /-!

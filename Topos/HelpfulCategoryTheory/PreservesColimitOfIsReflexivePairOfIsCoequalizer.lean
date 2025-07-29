@@ -1,5 +1,5 @@
 import Mathlib.CategoryTheory.Monad.Monadicity
-import Topos.IsEqualizer
+import Topos.HelpfulCategoryTheory.IsEqualizer
 
 namespace CategoryTheory
 

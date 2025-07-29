@@ -1,5 +1,5 @@
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
-import Topos.ChosenTerminalObjects
+import Topos.HelpfulCategoryTheory.ChosenTerminalObjects
 
 universe u v
 
