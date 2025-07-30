@@ -97,6 +97,8 @@ namespace Classifier
 
 variable {C} [Classifier C]
 
+abbrev χ_ {U X : C} (m : U ⟶ X) [Mono m] : X ⟶ Ω := char m
+
 @[reassoc]
 lemma comm {U X : C} (m : U ⟶ X) [Mono m] : m ≫ (char m) = from_ _ ≫ t := (isPullback m).w
 
