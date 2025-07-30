@@ -30,6 +30,21 @@ lemma rightUnitor_inv (X : C) : (ρ_ X).inv = lift (𝟙 X) (toUnit X) := by {
   · rw [rightUnitor_inv_snd, lift_snd]
 }
 
+instance tensor_map_mono {X₀ X₁ Y₀ Y₁ : C} (f₀ : X₀ ⟶ Y₀) [Mono f₀] (f₁ : X₁ ⟶ Y₁) [Mono f₁] : Mono (f₀ ⊗ f₁) where
+  right_cancellation := by {
+    intros Z g₀ g₁ h
+    rw [CartesianMonoidalCategory.hom_ext_iff] at h
+    have h₀ := h.left; simp at h₀
+    have h₁ := h.right; simp at h₁
+    rw [CartesianMonoidalCategory.hom_ext_iff]; apply And.intro
+    · exact (cancel_mono_assoc_iff f₀).mp h₀
+    · exact (cancel_mono_assoc_iff f₁).mp h₁
+  }
+
+end CartesianMonoidalCategory
+
+namespace Limits.ChosenTerminalObject
+
 instance of_CartesianMonoidalCategory [CartesianMonoidalCategory C] : Limits.ChosenTerminalObject C where
   top := (𝟙_ C)
   isTerminal := CartesianMonoidalCategory.isTerminalTensorUnit

@@ -242,7 +242,7 @@ instance singletonMono (X : C) : Mono (singleton X) where
     have h₁ : ((𝟙 _) ⊗ (b ≫ (transpose (Classifier.Predicate.eq X)))) ≫ in_
     = ((𝟙 _) ⊗ (b' ≫ (transpose (Classifier.Predicate.eq X)))) ≫ in_ := congrFun (congrArg CategoryStruct.comp (congrArg (tensorHom (𝟙 X)) h)) in_
     rw [id_tensor_comp_assoc, PowerObject.comm, id_tensor_comp_assoc, PowerObject.comm] at h₁
-    have comm : (b ≫ from_ _) ≫ t = lift b (𝟙 _) ≫ ((𝟙 _) ⊗ b) ≫ Classifier.Predicate.eq _ := by {
+    have comm : (b ≫ from_ _) ≫ t_ = lift b (𝟙 _) ≫ ((𝟙 _) ⊗ b) ≫ Classifier.Predicate.eq _ := by {
       rw [comp_from, ←assoc, lift_map, comp_id, id_comp, Classifier.lift_eq, Classifier.Predicate.true_]
     }
     rw [comp_from, h₁, ←assoc, lift_map, id_comp, comp_id] at comm

@@ -6,6 +6,7 @@ Authors: Charlie Conneen
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 import Topos.HelpfulCategoryTheory.ChosenTerminalObjects
 import Topos.HelpfulCategoryTheory.CartesianMonoidalCategoryAdditions
+import Topos.HelpfulCategoryTheory.PullbackProd
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.CategoryTheory.Functor.ReflectsIso.Balanced
 import Mathlib.CategoryTheory.Limits.Shapes.StrongEpi
@@ -77,13 +78,13 @@ class Classifier where
   /-- The target of the truth morphism -/
   {Ω : C}
   /-- the truth morphism for a subobject classifier -/
-  t : ⊤_ ⟶ Ω
+  t_ : ⊤_ ⟶ Ω
   /-- For any monomorphism `U ⟶ X`, there is an associated characteristic map `X ⟶ Ω`. -/
   char {U X : C} (m : U ⟶ X) [Mono m] : X ⟶ Ω
   /-- `char m` forms the appropriate pullback square. -/
-  isPullback {U X : C} (m : U ⟶ X) [Mono m] : IsPullback m (from_ U) (char m) t
+  isPullback {U X : C} (m : U ⟶ X) [Mono m] : IsPullback m (from_ U) (char m) t_
   /-- `char m` is the only map `X ⟶ Ω` which forms the appropriate pullback square. -/
-  uniq {U X : C} (m : U ⟶ X) [Mono m] (χ : X ⟶ Ω) (hχ : IsPullback m (from_ U) χ t) :
+  uniq {U X : C} (m : U ⟶ X) [Mono m] (χ : X ⟶ Ω) (hχ : IsPullback m (from_ U) χ t_) :
     χ = char m
 
 /-
@@ -100,24 +101,21 @@ variable {C} [Classifier C]
 abbrev χ_ {U X : C} (m : U ⟶ X) [Mono m] : X ⟶ Ω := char m
 
 @[reassoc]
-lemma comm {U X : C} (m : U ⟶ X) [Mono m] : m ≫ (char m) = from_ _ ≫ t := (isPullback m).w
+lemma comm {U X : C} (m : U ⟶ X) [Mono m] : m ≫ (char m) = from_ _ ≫ t_ := (isPullback m).w
 
-/-
-Update this
-
-lemma prodCompClassEqClassOfComp [CartesianMonoidalCategory C] : prod.fst ≫ χ_ m = χ_ (prod.map (m) (𝟙 (⊤_ C))) := by {
-  apply unique
-  have TOP := IsPullback.isPullbackProdFst m
+lemma prodCompClassEqClassOfComp [CartesianMonoidalCategory C] {U X : C} (m : U ⟶ X) [Mono m] : fst _ _ ≫ χ_ m = χ_ ((m) ⊗ (𝟙 (𝟙_ C))) := by {
+  apply uniq
+  have TOP := IsPullback.isPullbackTensorFst m
   have BOT := isPullback m
   have PB := IsPullback.paste_vert TOP BOT
-  rw [terminal.hom_ext (terminal.from (⊤_ C)) (𝟙 (⊤_ C)), terminal.comp_from prod.fst] at PB
-  exact PB
+  simp at PB
+  rw [toUnit_unique (toUnit (𝟙_ C)) (𝟙 (𝟙_ C))] at PB
+  assumption
 }
--/
 
 /-- `c.t` is a regular monomorphism (because it is split). -/
-noncomputable instance truthIsRegularMono : RegularMono (t : ⊤_ ⟶ (Ω : C)) :=
-  RegularMono.ofIsSplitMono (t)
+noncomputable instance truthIsRegularMono : RegularMono (t_ : ⊤_ ⟶ (Ω : C)) :=
+  RegularMono.ofIsSplitMono (t_)
 
 /-- The following diagram
 ```
@@ -161,7 +159,7 @@ instance reflectsIsomorphismsOp (D : Type u₀) [Category.{v₀} D]
 
 
 /-- The predicate on `X` which corresponds to the subobject `𝟙 X: X ⟶ X`. -/
-abbrev Predicate.true_ (B : C) : B ⟶ Ω := from_ B ≫ t
+abbrev Predicate.true_ (B : C) : B ⟶ Ω := from_ B ≫ t_
 
 variable [CartesianMonoidalCategory C]
 

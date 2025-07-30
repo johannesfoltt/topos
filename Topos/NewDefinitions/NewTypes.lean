@@ -55,18 +55,7 @@ def charPullbackCone : PullbackCone (char f) true_ :=
   PullbackCone.mk f (toUnit A) (charCommSq f).w
 
 variable {f}
-/-
-def charPullbacklift {X : Type u} (g : X ⟶ B) (hg : g ≫ char f = toUnit X ≫ true_) :
-    X ⟶ A :=
-  fun x => ((char_true_iff f (g x)).mpr
-  (by show char f (g x) = T; rw [←types_comp_apply g (char f), hg, types_comp_apply])).choose
 
-lemma lift_fac {X : Type u} (g : X ⟶ B) (hg : g ≫ char f = toUnit X ≫ true_) :
-    charPullbacklift g hg ≫ f = g := by
-  funext x
-  exact ((char_true_iff f (g x)).mpr
-  (by show char f (g x) = T; rw [←types_comp_apply g (char f), hg, types_comp_apply])).choose_spec
--/
 
 instance charPullbackLimit : IsLimit (charPullbackCone f) where
   lift := by
@@ -115,7 +104,7 @@ def charPullback (f : A ⟶ B) [Mono f] : IsPullback f (toUnit _) (char f) true_
   isLimit' := ⟨charPullbackLimit⟩
 
 instance classifier : Classifier (Type u) where
-  t := true_
+  t_ := true_
   char := char
   isPullback := charPullback
   uniq := by

@@ -152,8 +152,8 @@ lemma homMap_comm :
   have f_toUnit : f ≫ toUnit B = toUnit _ := Unique.eq_default _
   have rightUnitor_toUnit : (rightUnitor A).hom ≫ toUnit A = toUnit _ := Unique.eq_default _
   have A_X_toUnit : ((𝟙 A) ⊗ (toUnit X)) ≫ toUnit (A ⊗ 𝟙_ C) = toUnit _ := Unique.eq_default _
-  have obv : toUnit (A ⊗ 𝟙_ C) ≫ t
-  = ((𝟙 A) ⊗ ((toUnit (A ⊗ 𝟙_ C) ≫ t)^)) ≫ in_ := (PowerObject.comm _).symm
+  have obv : toUnit (A ⊗ 𝟙_ C) ≫ t_
+  = ((𝟙 A) ⊗ ((toUnit (A ⊗ 𝟙_ C) ≫ t_)^)) ≫ in_ := (PowerObject.comm _).symm
   have map_def : (rightUnitor A).hom = fst _ _ := rightUnitor_hom A
   rw [Classifier.comm (singleton _), ←assoc, ←map_def, from_eq_toUnit, rightUnitor_toUnit, ←assoc, from_eq_toUnit, f_toUnit, id_tensor_comp, assoc, ←obv, ←assoc, A_X_toUnit]
 

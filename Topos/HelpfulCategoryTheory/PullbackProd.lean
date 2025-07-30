@@ -3,7 +3,7 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 
 namespace CategoryTheory.IsPullback
 
-open Category Limits
+open Category Limits MonoidalCategory CartesianMonoidalCategory
 
 variable {C : Type*} [Category C] [CartesianMonoidalCategory C]
 variable {X₁ X₂ Y₁ Y₂ Z₁ Z₂ P₁ P₂ : C}
@@ -35,6 +35,35 @@ theorem isPullbackOfProd (hp₁ : IsPullback fst₁ snd₁ f₁ g₁) (hp₂ : I
         · rw [hp₂.lift_snd (s.fst ≫ prod.snd) (s.snd ≫ prod.snd) (w₂ s), assoc, ← prod.map_snd snd₁ snd₂, ← assoc, h_snd]
       }
       rw [← h₁, ← h₂, ← @prod.comp_lift, @prod.lift_fst_snd, @comp_id]
+  }
+}
+
+theorem isPullbackOfTensor (hp₁ : IsPullback fst₁ snd₁ f₁ g₁) (hp₂ : IsPullback fst₂ snd₂ f₂ g₂) : IsPullback (fst₁ ⊗ fst₂) (snd₁ ⊗ snd₂) (f₁ ⊗ f₂) (g₁ ⊗ g₂) := {
+  w := by rw [← tensor_comp, ← tensor_comp, hp₁.w, hp₂.w]
+  isLimit' := by {
+    apply Nonempty.intro
+    have eq : (fst₁ ⊗ fst₂) ≫ (f₁ ⊗ f₂) = (snd₁ ⊗ snd₂) ≫ (g₁ ⊗ g₂) := by rw [← tensor_comp, ← tensor_comp, hp₁.w, hp₂.w]
+    have w₁ (s : PullbackCone (f₁ ⊗ f₂) (g₁ ⊗ g₂)) : (s.fst ≫ fst _ _) ≫ f₁ = (s.snd ≫ fst _ _) ≫ g₁ := by rw [assoc, assoc, ← tensorHom_fst f₁ f₂, ← tensorHom_fst g₁ g₂, PullbackCone.condition_assoc]
+    have w₂ (s : PullbackCone (f₁ ⊗ f₂) (g₁ ⊗ g₂)) : (s.fst ≫ snd _ _) ≫ f₂ = (s.snd ≫ snd _ _) ≫ g₂ := by rw [assoc, assoc, ← tensorHom_snd f₁ f₂, ← tensorHom_snd g₁ g₂, PullbackCone.condition_assoc]
+    let lift := fun (s : PullbackCone (f₁ ⊗ f₂) (g₁ ⊗ g₂)) ↦ CartesianMonoidalCategory.lift (hp₁.lift (s.fst ≫ fst _ _) (s.snd ≫ fst _ _) (w₁ s)) (hp₂.lift (s.fst ≫ snd _ _) (s.snd ≫ snd _ _) (w₂ s))
+    apply PullbackCone.IsLimit.mk eq lift
+    · intro s
+      rw [lift_map, hp₁.lift_fst (s.fst ≫ fst _ _) (s.snd ≫ fst _ _) (w₁ s), hp₂.lift_fst (s.fst ≫ snd _ _) (s.snd ≫ snd _ _) (w₂ s), ← comp_lift, lift_fst_snd, comp_id]
+    · intro s
+      rw [lift_map, hp₁.lift_snd (s.fst ≫ fst _ _) (s.snd ≫ fst _ _) (w₁ s), hp₂.lift_snd (s.fst ≫ snd _ _) (s.snd ≫ snd _ _) (w₂ s), ← comp_lift, lift_fst_snd, comp_id]
+    · intro s m h_fst h_snd
+      unfold lift
+      have h₁ : m ≫ fst _ _ = (hp₁.lift (s.fst ≫ fst _ _) (s.snd ≫ fst _ _) (w₁ s)) := by {
+        apply IsPullback.hom_ext hp₁
+        · rw [hp₁.lift_fst (s.fst ≫ fst _ _) (s.snd ≫ fst _ _) (w₁ s), assoc, ← tensorHom_fst fst₁ fst₂, ← assoc, h_fst]
+        · rw [hp₁.lift_snd (s.fst ≫ fst _ _) (s.snd ≫ fst _ _) (w₁ s), assoc, ← tensorHom_fst snd₁ snd₂, ← assoc, h_snd]
+      }
+      have h₂ : m ≫ snd _ _ = (hp₂.lift (s.fst ≫ snd _ _) (s.snd ≫ snd _ _) (w₂ s)) := by {
+        apply IsPullback.hom_ext hp₂
+        · rw [hp₂.lift_fst (s.fst ≫ snd _ _) (s.snd ≫ snd _ _) (w₂ s), assoc, ← tensorHom_snd fst₁ fst₂, ← assoc, h_fst]
+        · rw [hp₂.lift_snd (s.fst ≫ snd _ _) (s.snd ≫ snd _ _) (w₂ s), assoc, ← tensorHom_snd snd₁ snd₂, ← assoc, h_snd]
+      }
+      rw [← h₁, ← h₂, ← comp_lift, lift_fst_snd, comp_id]
   }
 }
 
@@ -92,4 +121,26 @@ lemma isPullbackProdFst {X Y : C} (f : X ⟶ Y) : IsPullback (prod.map f (termin
     · intro s m h_fst h_snd
       simp
       rw [← h_snd, terminal.hom_ext (terminal.from s.pt) (m ≫ prod.snd), ← prod.comp_lift, prod.lift_fst_snd, comp_id]
+  }
+
+
+lemma isPullbackTensorFst {X Y : C} (f : X ⟶ Y) : IsPullback (f ⊗ (toUnit (𝟙_ C))) (fst _ _) (fst _ _) f where
+  w := tensorHom_fst f (toUnit (𝟙_ C))
+  isLimit' := by {
+    apply Nonempty.intro
+    apply PullbackCone.IsLimit.mk (tensorHom_fst f (toUnit (𝟙_ C))) (fun (s : PullbackCone _ f) ↦ (CartesianMonoidalCategory.lift (s.snd) (toUnit _))) ?_ (fun s ↦ CartesianMonoidalCategory.lift_fst s.snd (toUnit s.pt)) ?_
+    · intro s
+      simp
+      refine CartesianMonoidalCategory.hom_ext (CartesianMonoidalCategory.lift (s.snd ≫ f) (toUnit s.pt)) s.fst ?_ ?_
+      · simp
+        exact Eq.symm (PullbackCone.condition s)
+      · simp
+        exact CartesianMonoidalCategory.toUnit_unique_iff.mpr trivial
+    · intro s m h_fst h_snd
+      simp
+      rw [← h_snd]
+      refine CartesianMonoidalCategory.hom_ext m (CartesianMonoidalCategory.lift (m ≫ fst X (𝟙_ C)) (toUnit s.pt)) ?_ ?_
+      · simp
+      · simp
+        exact CartesianMonoidalCategory.toUnit_unique_iff.mpr trivial
   }

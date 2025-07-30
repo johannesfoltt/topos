@@ -32,6 +32,11 @@ namespace BeckChevalley
 
 variable {B B' : C} (k : B' ⟶ B) [Mono k]
 
+
+#synth Mono (prod.map k (𝟙 (pow B')))
+#synth Mono (pullback.fst (f := in_ B') (g := t C))
+#synth Mono ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _))
+
 #check transpose (χ_ ((pullback.fst (f := in_ B') (g := t C)) ≫ prod.map k (𝟙 _)))
 
 @[simp]
