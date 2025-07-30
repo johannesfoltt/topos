@@ -263,4 +263,27 @@ def expFunctor (A : C) : C ⥤ C where
     rw [@id_tensor_comp, assoc, expObj_exponentiates, expObj_exponentiates_assoc, assoc]
 
 def tensorExpAdjunction (A : C) : tensorLeft A ⊣ expFunctor A := by
-  sorry
+  apply Adjunction.mkOfHomEquiv
+  fapply Adjunction.CoreHomEquiv.mk
+
+  · intro X B
+    exact expAdjEquiv A B X
+
+  · intro X X' Y f g
+    convert_to (expAdjEquiv A Y X).symm (f ≫ g) = ((𝟙 A) ⊗ f) ≫ (expAdjEquiv A Y X').symm g
+    · congr; simp
+    change ((𝟙 A) ⊗ (f ≫ g)) ≫ eval _ _ = ((𝟙 A) ⊗ f) ≫ ((𝟙 A) ⊗ g) ≫ eval _ _
+    simp
+
+  · intro X Y Y' f g
+    change expObjMap (f ≫ g) = expObjMap f ≫ expHom A g
+    apply expObjMap_Unique
+    dsimp only [expHom]
+    rw [id_tensor_comp, assoc, expObj_exponentiates, expObj_exponentiates_assoc]
+
+def exponentiable (A : C) : Exponentiable A where
+  rightAdj := expFunctor A
+  adj := tensorExpAdjunction A
+
+def cartesianClosed : CartesianClosed C where
+  closed (A : C) := exponentiable A
