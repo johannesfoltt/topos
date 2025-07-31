@@ -171,7 +171,7 @@ abbrev Predicate.eq (X : C) : X ⊗ X ⟶ Ω := char (diag X)
 /-- The lift `X ⟶ B ⨯ B` of a morphism with itself, when composed
 with `predicate.eq B`, is true.
 -/
-lemma lift_eq {X B : C} (b : X ⟶ B) : lift b b ≫ Predicate.eq B  = Predicate.true_ X := by {
+lemma Predicate.lift_eq {X B : C} (b : X ⟶ B) : lift b b ≫ Predicate.eq B  = Predicate.true_ X := by {
   rw [← @comp_diag, assoc, comm, ← assoc, comp_from]
 }
 
@@ -180,7 +180,7 @@ the equality predicate on `B ⨯ B` is true.
 In other words, this combined with `Predicate.lift_eq` states that
 `Predicate.eq` is able to distinguish whether two morphisms are equal.
 -/
-lemma eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : lift b b' ≫ Predicate.eq B = Predicate.true_ X) : b = b' := by {
+lemma Predicate.eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : lift b b' ≫ Predicate.eq B = Predicate.true_ X) : b = b' := by {
   dsimp only [Predicate.true_] at comm'
   have t : (isPullback _).lift _ _ comm' ≫ (CartesianMonoidalCategory.diag _) = lift b b' := IsPullback.lift_fst (isPullback (CartesianMonoidalCategory.diag B)) (lift b b') (from_ X) comm'
   rw [comp_diag] at t
