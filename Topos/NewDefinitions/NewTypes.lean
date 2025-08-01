@@ -103,7 +103,7 @@ def charPullback (f : A ⟶ B) [Mono f] : IsPullback f (toUnit _) (char f) true_
   w := (charCommSq f).w
   isLimit' := ⟨charPullbackLimit⟩
 
-instance classifier : Classifier (Type u) where
+instance instClassifier : Classifier (Type u) where
   t_ := true_
   char := char
   isPullback := charPullback
@@ -147,4 +147,31 @@ instance classifier : Classifier (Type u) where
       have s : T = F := final.symm.trans char_x
       contradiction
 
-#check Set
+
+instance instPowerObjectType (X : Type u) : PowerObject X where
+  pow := Set X
+  in_ := fun x => if (x.1 ∈ x.2) then T else F
+  transpose {Y : Type u} (f : X ⊗ Y ⟶ Ω) := fun y => {x | f ⟨x,y⟩ = T}
+  comm {Y : Type u} (f : X ⊗ Y ⟶ Ω) := by {
+    funext x
+    simp
+    rcases Ω.em (f x) with h | h
+    · aesop
+    · aesop
+  }
+  uniq {Y : Type u} {f : X ⊗ Y ⟶ Ω} {hat' : Y ⟶ Set X} (hat'_comm : ((𝟙 X) ⊗ hat') ≫ (fun x => if (x.1 ∈ x.2) then T else F) = f) := by {
+    funext y
+    ext x
+    rw [Set.mem_setOf, ← hat'_comm]
+    simp
+  }
+
+instance instChosenPowerObjectsType : ChosenPowerObjects (Type u) where
+  powerObject := instPowerObjectType
+
+instance instToposType : Topos (Type u) where
+  cartesianMonoidal := typesCartesianMonoidalCategory
+  hasPullbacks := instHasPullbacksType
+  classifier := instClassifier
+  cartesianClosed := instCartesianClosedType
+  chosenPowerObjects := instChosenPowerObjectsType
