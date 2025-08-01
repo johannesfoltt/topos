@@ -129,7 +129,7 @@ lemma homMap_comm :
   -- There might be a slightly faster way to do this.
   have transpose₁ : id_f'eq^ = f ≫ singleton _ := by{
     apply PowerObject.uniq
-    dsimp only [singleton]
+    dsimp only [PowerObject.singleton]
     rw [id_tensor_comp, assoc, (comm (Predicate.eq B))]
   }
   have shuffle_h_around : (associator B A X).inv ≫ (((𝟙 _) ⊗ (𝟙 _)) ⊗ h)
@@ -169,7 +169,7 @@ theorem expObj_exponentiates : ((𝟙 _ ) ⊗ (expObjMap f)) ≫ eval A B = f :=
   rw [←cancel_mono (singleton B), assoc, eval_condition, ←assoc, ← tensor_comp, id_comp, expObjMap_condition]
   have h : transposeInv (f ≫ singleton B)
       = transposeInv (((𝟙 A) ⊗ (h_map f)) ≫ transpose ((associator B A (pow (B ⊗ A))).inv ≫ in_)) := by
-    rw [transposeInv, transposeInv, id_tensor_comp, assoc, singleton,
+    rw [transposeInv, transposeInv, id_tensor_comp, assoc, PowerObject.singleton,
       PowerObject.comm, id_tensor_comp, assoc, PowerObject.comm, ←assoc]
     have h' : (((𝟙 B) ⊗ ((𝟙 A) ⊗ (h_map f)))
         ≫ (associator B A (pow (B ⊗ A))).inv) = (associator B A X).inv ≫ ((𝟙 _) ⊗ (h_map f)) := by simp
@@ -194,7 +194,7 @@ theorem expObjMap_Unique {exp' : X ⟶ expObj A B} (h : ((𝟙 _) ⊗ exp') ≫ 
   let id_f'eq : B ⊗ A ⊗ X ⟶ Ω := ((𝟙 _) ⊗ f) ≫ Predicate.eq _
   have h₁ : id_f'eq^ = f ≫ singleton B := by
     apply PowerObject.uniq
-    dsimp only [id_f'eq, singleton]
+    dsimp only [id_f'eq, PowerObject.singleton]
     rw [id_tensor_comp, assoc, PowerObject.comm (Predicate.eq B)]
   have h₂ : (((𝟙 _) ⊗ ((𝟙 _) ⊗ (exp' ≫ expObjToGraph A B)))
       ≫ (associator _ _ _).inv ≫ in_)^

@@ -1,5 +1,6 @@
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Basic
 import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
+import Topos.HelpfulCategoryTheory.CartesianMonoidalCategoryAdditions
 
 namespace CategoryTheory.IsPullback
 
@@ -86,6 +87,35 @@ lemma isPullback_Prod_Fst_of_isPullback {P X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z
     · intro s
       unfold lift; simp
       rw [← prod.map_fst f g, ← assoc, s.condition]
+      simp
+    · intro s m h₁ h₂
+      unfold lift
+      apply h.hom_ext
+      · simp_rw [← h₁]
+        simp
+      · simp_rw [← h₁]
+        simp
+  }
+
+lemma isPullback_Tensor_Fst_of_isPullback {P X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} {fst : P ⟶ X} {snd : P ⟶ Y} (h : IsPullback fst snd f g) : IsPullback (CartesianMonoidalCategory.lift fst snd) (fst ≫ f) (f ⊗ g) (CartesianMonoidalCategory.diag Z) where
+  w := by rw [comp_diag, lift_map, h.w]
+  isLimit' := by {
+    apply Nonempty.intro
+    have eq (s : PullbackCone (f ⊗ g) (diag Z)) : (s.fst ≫ CartesianMonoidalCategory.fst _ _) ≫ f = (s.fst ≫ CartesianMonoidalCategory.snd _ _) ≫ g := by {
+      rw [assoc, assoc, ← tensorHom_fst f g, ← tensorHom_snd f g, ← assoc, ← assoc, s.condition, assoc, assoc]
+      simp
+    }
+    let lift := fun (s : PullbackCone (f ⊗ g) (diag Z)) ↦ h.lift (s.fst ≫ CartesianMonoidalCategory.fst _ _) (s.fst ≫ CartesianMonoidalCategory.snd _ _) (eq s)
+    apply PullbackCone.IsLimit.mk _ lift
+    · intro s
+      refine CartesianMonoidalCategory.hom_ext (lift s ≫ CartesianMonoidalCategory.lift fst snd) s.fst ?_ ?_
+      · simp
+        exact lift_fst h (s.fst ≫ CartesianMonoidalCategory.fst _ _) (s.fst ≫ CartesianMonoidalCategory.snd _ _) (eq s)
+      · simp
+        exact lift_snd h (s.fst ≫ CartesianMonoidalCategory.fst _ _) (s.fst ≫ CartesianMonoidalCategory.snd _ _) (eq s)
+    · intro s
+      unfold lift; simp
+      rw [← tensorHom_fst f g, ← assoc, s.condition]
       simp
     · intro s m h₁ h₂
       unfold lift

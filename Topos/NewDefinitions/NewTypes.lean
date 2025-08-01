@@ -146,3 +146,5 @@ instance classifier : Classifier (Type u) where
         assumption
       have s : T = F := final.symm.trans char_x
       contradiction
+
+#check Set

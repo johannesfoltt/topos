@@ -100,6 +100,82 @@ This is just the composition of `transposeEquiv` and `transposeEquivSymm`.
 def transpose_transpose_Equiv (X Y : C) [PowerObject X] [PowerObject Y] : (Y ⟶ pow X) ≃ (X ⟶ pow Y) :=
   Equiv.trans (transposeEquivSymm X Y).symm (transposeEquiv Y X)
 
+
+variable (X : C) [PowerObject X]
+
+/-- The "singleton" map `X ⟶ Pow X`.
+In Set, this map sends `x ∈ X` to the
+singleton set containing just `x`.
+-/
+def singleton : X ⟶ pow X := transpose (Classifier.Predicate.eq X)
+
+
+/-- `singleton X : X ⟶ Pow X` is a monomorphism. -/
+instance singletonMono : Mono (singleton X) where
+  right_cancellation := by {
+    intro Z b b' h
+    rw [singleton] at h
+    have h₁ : ((𝟙 _) ⊗ (b ≫ (transpose (Classifier.Predicate.eq X)))) ≫ in_
+    = ((𝟙 _) ⊗ (b' ≫ (transpose (Classifier.Predicate.eq X)))) ≫ in_ := congrFun (congrArg CategoryStruct.comp (congrArg (tensorHom (𝟙 X)) h)) in_
+    rw [id_tensor_comp_assoc, PowerObject.comm, id_tensor_comp_assoc, PowerObject.comm] at h₁
+    have comm : (b ≫ from_ _) ≫ t_ = lift b (𝟙 _) ≫ ((𝟙 _) ⊗ b) ≫ Classifier.Predicate.eq _ := by {
+      rw [comp_from, ←assoc, lift_map, comp_id, id_comp, Classifier.Predicate.lift_eq, Classifier.Predicate.true_]
+    }
+    rw [comp_from, h₁, ←assoc, lift_map, id_comp, comp_id] at comm
+    exact Classifier.Predicate.eq_of_lift_eq (id (Eq.symm comm))
+  }
+
+
+/-- The predicate on `Pow X` which picks out the subobject of "singletons".
+-/
+def Predicate.isSingleton : pow X ⟶ Ω := char (singleton X)
+
+variable {X}
+
+/-- The name ⌈φ⌉ : ⊤_ C ⟶ Pow B of a predicate `φ : X ⟶ Ω C`.
+This is the global element of `Pow X` associated to a predicate
+on `X`.
+-/
+def name (φ : X ⟶ Ω) : 𝟙_ C ⟶ (pow X) := transpose ((fst X (𝟙_ C)) ≫ φ)
+
+notation "⌜" φ "⌝" => name φ
+
+/-- The inverse of `Name`, sending a global element of `Pow B`
+to the corresponding predicate on `B`.
+-/
+def Predicate.fromName (φ' : (𝟙_ C) ⟶ pow X) : X ⟶ Ω :=
+  (lift (𝟙 X) (toUnit X)) ≫ transposeInv φ'
+
+
+/-- The condition from the definition of `Name`
+as the `P_transpose` of a morphism.
+-/
+
+lemma Predicate.NameDef (φ : X ⟶ Ω) : ((𝟙 _) ⊗ ⌜φ⌝) ≫ (in_) = (fst X (𝟙_ C)) ≫ φ :=
+  PowerObject.comm _
+
+variable (X)
+
+/-- The equivalence between morphisms `X ⟶ Ω C` and morphisms `⊤_ C ⟶ pow X`,
+which comes from the more general equivalence between morphisms `Y ⨯ X ⟶ Ω C`
+and morphisms `X ⟶ pow Y`.
+-/
+
+def NameEquiv : (X ⟶ Ω) ≃ (𝟙_ C ⟶ pow X) where
+  toFun := name
+  invFun := Predicate.fromName
+  left_inv := by
+    intro φ
+    dsimp [name, Predicate.fromName]
+    rw [PowerObject.transpose_left_inv, ←assoc, lift_fst, id_comp]
+  right_inv := by
+    intro φ'
+    dsimp only [name, Predicate.fromName]
+    have h := (ρ_ X).hom_inv_id
+    simp_rw [rightUnitor_hom, rightUnitor_inv] at h
+    rw [←assoc, h, id_comp, transpose_right_inv]
+
+
 end PowerObject
 
 namespace ChosenPowerObjects
@@ -223,75 +299,3 @@ def powSelfAdj : powFunctorOp C ⊣ powFunctor C := by
     show ((g ⊗ 𝟙 X) ≫ ((𝟙 Y) ⊗ transpose ((β_ X Y).inv ≫ (𝟙 X ⊗ f) ≫ in_))) ≫ in_ = (β_ X Y').inv ≫ (𝟙 X ⊗ (g ≫ (𝟙 Y)) ≫ f) ≫ in_
     slice_lhs 2 4 => rw [PowerObject.comm]
     aesop_cat
-
-
-variable {C}
-
-/-- The "singleton" map `X ⟶ Pow X`.
-In Set, this map sends `x ∈ X` to the
-singleton set containing just `x`.
--/
-def singleton (X : C) : X ⟶ pow X := transpose (Classifier.Predicate.eq X)
-
-
-/-- `singleton X : X ⟶ Pow X` is a monomorphism. -/
-instance singletonMono (X : C) : Mono (singleton X) where
-  right_cancellation := by {
-    intro Z b b' h
-    rw [singleton] at h
-    have h₁ : ((𝟙 _) ⊗ (b ≫ (transpose (Classifier.Predicate.eq X)))) ≫ in_
-    = ((𝟙 _) ⊗ (b' ≫ (transpose (Classifier.Predicate.eq X)))) ≫ in_ := congrFun (congrArg CategoryStruct.comp (congrArg (tensorHom (𝟙 X)) h)) in_
-    rw [id_tensor_comp_assoc, PowerObject.comm, id_tensor_comp_assoc, PowerObject.comm] at h₁
-    have comm : (b ≫ from_ _) ≫ t_ = lift b (𝟙 _) ≫ ((𝟙 _) ⊗ b) ≫ Classifier.Predicate.eq _ := by {
-      rw [comp_from, ←assoc, lift_map, comp_id, id_comp, Classifier.Predicate.lift_eq, Classifier.Predicate.true_]
-    }
-    rw [comp_from, h₁, ←assoc, lift_map, id_comp, comp_id] at comm
-    exact Classifier.Predicate.eq_of_lift_eq (id (Eq.symm comm))
-  }
-
-
-/-- The predicate on `Pow X` which picks out the subobject of "singletons".
--/
-def Predicate.isSingleton (X : C) : pow X ⟶ Ω := char (singleton X)
-
-
-/-- The name ⌈φ⌉ : ⊤_ C ⟶ Pow B of a predicate `φ : X ⟶ Ω C`.
-This is the global element of `Pow X` associated to a predicate
-on `X`.
--/
-def name {X : C} (φ : X ⟶ Ω) : 𝟙_ C ⟶ (pow X) := transpose ((fst X (𝟙_ C)) ≫ φ)
-
-notation "⌜" φ "⌝" => name φ
-
-/-- The inverse of `Name`, sending a global element of `Pow B`
-to the corresponding predicate on `B`.
--/
-def Predicate.fromName {X : C} (φ' : (𝟙_ C) ⟶ pow X) : X ⟶ Ω :=
-  (lift (𝟙 X) (toUnit X)) ≫ transposeInv φ'
-
-
-/-- The condition from the definition of `Name`
-as the `P_transpose` of a morphism.
--/
-
-lemma Predicate.NameDef {X : C} (φ : X ⟶ Ω) : ((𝟙 _) ⊗ ⌜φ⌝) ≫ (in_) = (fst X (𝟙_ C)) ≫ φ :=
-  PowerObject.comm _
-
-
-/-- The equivalence between morphisms `X ⟶ Ω C` and morphisms `⊤_ C ⟶ pow X`,
-which comes from the more general equivalence between morphisms `Y ⨯ X ⟶ Ω C`
-and morphisms `X ⟶ pow Y`.
--/
-def NameEquiv (X : C) : (X ⟶ Ω) ≃ (𝟙_ C ⟶ pow X) where
-  toFun := name
-  invFun := Predicate.fromName
-  left_inv := by
-    intro φ
-    dsimp [name, Predicate.fromName]
-    rw [PowerObject.transpose_left_inv, ←assoc, lift_fst, id_comp]
-  right_inv := by
-    intro φ'
-    dsimp only [name, Predicate.fromName]
-    have h := (ρ_ X).hom_inv_id
-    simp_rw [rightUnitor_hom, rightUnitor_inv] at h
-    rw [←assoc, h, id_comp, transpose_right_inv]

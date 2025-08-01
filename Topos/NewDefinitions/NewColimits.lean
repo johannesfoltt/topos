@@ -133,7 +133,7 @@ instance PowFaithful : Functor.Faithful (powFunctor C) where
     congr
     have h' := congrArg (fun k ↦ transposeInv (singleton X ≫ k)) h
     dsimp only [transposeInv] at h'
-    rw [id_tensor_comp, id_tensor_comp, assoc, assoc, inverseImage_comm, inverseImage_comm, ← assoc, ← tensor_comp, ← assoc, ← tensor_comp, id_comp, comp_id, id_comp, ←comp_id f, ←id_comp (singleton _), ←comp_id g, tensor_comp, tensor_comp, assoc, assoc, ChosenPowerObjects.singleton, PowerObject.comm] at h'
+    rw [id_tensor_comp, id_tensor_comp, assoc, assoc, inverseImage_comm, inverseImage_comm, ← assoc, ← tensor_comp, ← assoc, ← tensor_comp, id_comp, comp_id, id_comp, ←comp_id f, ←id_comp (singleton _), ←comp_id g, tensor_comp, tensor_comp, assoc, assoc, PowerObject.singleton, PowerObject.comm] at h'
     have comm : (f ≫ toUnit _) ≫ t_ = (lift (𝟙 _) f) ≫ (f ⊗ (𝟙 _)) ≫ Predicate.eq _ := by {
       simp
       rw [Predicate.lift_eq]
