@@ -3,6 +3,7 @@ import Topos.NewDefinitions.NewTopos
 import Topos.HelpfulCategoryTheory.PullbackProd
 import Topos.HelpfulCategoryTheory.IsEqualizer
 import Topos.HelpfulCategoryTheory.PreservesColimitOfIsReflexivePairOfIsCoequalizer
+import Topos.HelpfulCategoryTheory.Images
 
 namespace CategoryTheory
 
@@ -198,3 +199,5 @@ instance HasFiniteColimits : HasFiniteColimits C where
     have hasLimitsOfShapeOp : HasLimitsOfShape Jᵒᵖ Cᵒᵖ := (Adjunction.hasLimitsOfShape_of_equivalence (Monad.comparison (powSelfAdj C)))
     exact hasColimitsOfShape_of_hasLimitsOfShape_op
   }
+
+#synth HasImages C
