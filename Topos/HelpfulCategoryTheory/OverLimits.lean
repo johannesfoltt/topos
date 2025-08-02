@@ -63,8 +63,6 @@ variable {P Y₀ Y₁ Z : Over X} {fst : P ⟶ Y₀} {snd : P ⟶ Y₁} {f : Y�
 
 lemma comm_iff_comm_left : fst.left ≫ f.left = snd.left ≫ g.left ↔ fst ≫ f = snd ≫ g := by rw [OverMorphism.ext_iff, comp_left, comp_left]
 
-def PullbackCone_left_ofPullbackCone (s : PullbackCone f g) : PullbackCone f.left g.left := PullbackCone.mk s.fst.left s.snd.left (comm_iff_comm_left.2 s.condition)
-
 def isLimit_PullbackCone_of_isLimit_PullbackCone_left {w : fst.left ≫ f.left = snd.left ≫ g.left} (hL : IsLimit (PullbackCone.mk fst.left snd.left w)) : IsLimit (PullbackCone.mk fst snd (comm_iff_comm_left.1 w)) := by {
   have lift_w (s : PullbackCone f g) : s.pt.hom = PullbackCone.IsLimit.lift hL s.fst.left s.snd.left (comm_iff_comm_left.2 s.condition) ≫ P.hom := by {
     have help := PullbackCone.IsLimit.lift_fst hL s.fst.left s.snd.left (comm_iff_comm_left.2 s.condition)
@@ -105,6 +103,48 @@ def isLimit_PullbackCone_of_isLimit_PullbackCone_left {w : fst.left ≫ f.left =
 
 }
 
-lemma isPullback_of_isPullback_left (hp: IsPullback fst.left snd.left f.left g.left) : IsPullback fst snd f g where
-  w := comm_iff_comm_left.1 hp.w
-  isLimit' := ⟨isLimit_PullbackCone_of_isLimit_PullbackCone_left hp.isLimit'.some⟩
+lemma lift_of_pullbackCone_left_w_snd (s : PullbackCone f.left g.left) : s.snd ≫ Y₁.hom = s.fst ≫ Y₀.hom := by {
+  rw [← Over.w f, ← Over.w g, ← assoc, ← assoc, s.condition]
+}
+
+def isLimit_PullbackCone_left_of_isLimit_PullbackCone {w : fst ≫ f = snd ≫ g} (hL : IsLimit (PullbackCone.mk fst snd w)) : IsLimit (PullbackCone.mk fst.left snd.left (comm_iff_comm_left.2 w)) := by {
+  let lift := fun (s : PullbackCone f.left g.left) ↦ (PullbackCone.IsLimit.lift hL (homMk s.fst : mk (s.fst ≫ Y₀.hom) ⟶ Y₀) (homMk s.snd (lift_of_pullbackCone_left_w_snd s): mk (s.fst ≫ Y₀.hom) ⟶ Y₁) (comm_iff_comm_left.1 s.condition)).left
+  apply PullbackCone.IsLimit.mk _ lift
+  · intro s
+    unfold lift
+    have help := PullbackCone.IsLimit.lift_fst hL (homMk s.fst : mk (s.fst ≫ Y₀.hom) ⟶ Y₀) (homMk s.snd (lift_of_pullbackCone_left_w_snd s): mk (s.fst ≫ Y₀.hom) ⟶ Y₁) (comm_iff_comm_left.1 s.condition)
+    simp at help
+    rw [← comp_left, help]
+    simp
+  · intro s
+    unfold lift
+    have help := PullbackCone.IsLimit.lift_snd hL (homMk s.fst : mk (s.fst ≫ Y₀.hom) ⟶ Y₀) (homMk s.snd (lift_of_pullbackCone_left_w_snd s): mk (s.fst ≫ Y₀.hom) ⟶ Y₁) (comm_iff_comm_left.1 s.condition)
+    simp at help
+    rw [← comp_left, help]
+    simp
+  · intros s l h_fst h_snd
+    unfold lift
+    have h_w : l ≫ P.hom = s.fst ≫ Y₀.hom := by rw [← Over.w fst, ← assoc, h_fst]
+    let l' : mk (s.fst ≫ Y₀.hom) ⟶ P := homMk l
+    change l'.left = _
+    rw [← OverMorphism.ext_iff]
+    apply PullbackCone.IsLimit.hom_ext hL
+    · simp
+      rw [OverMorphism.ext_iff, comp_left]
+      change l ≫ _ = _
+      have help := PullbackCone.IsLimit.lift_fst hL (homMk s.fst : mk (s.fst ≫ Y₀.hom) ⟶ Y₀) (homMk s.snd (lift_of_pullbackCone_left_w_snd s): mk (s.fst ≫ Y₀.hom) ⟶ Y₁) (comm_iff_comm_left.1 s.condition)
+      simp at help
+      rw [h_fst, help]
+      simp
+    · simp
+      rw [OverMorphism.ext_iff, comp_left]
+      change l ≫ _ = _
+      have help := PullbackCone.IsLimit.lift_snd hL (homMk s.fst : mk (s.fst ≫ Y₀.hom) ⟶ Y₀) (homMk s.snd (lift_of_pullbackCone_left_w_snd s): mk (s.fst ≫ Y₀.hom) ⟶ Y₁) (comm_iff_comm_left.1 s.condition)
+      simp at help
+      rw [h_snd, help]
+      simp
+}
+
+theorem isPullback_iff_isPullback_left : IsPullback fst snd f g ↔ IsPullback fst.left snd.left f.left g.left := Iff.intro
+  (fun (h) ↦ ⟨⟨comm_iff_comm_left.2 h.w⟩, ⟨isLimit_PullbackCone_left_of_isLimit_PullbackCone h.isLimit'.some⟩⟩)
+  (fun (h) ↦ ⟨⟨comm_iff_comm_left.1 h.w⟩, ⟨isLimit_PullbackCone_of_isLimit_PullbackCone_left h.isLimit'.some⟩⟩)
