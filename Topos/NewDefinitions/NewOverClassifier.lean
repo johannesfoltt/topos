@@ -14,59 +14,55 @@ noncomputable section
 
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [HasPullbacks C] [Classifier C] {X : C}
 
-instance : CartesianMonoidalCategory (Over X) := by exact cartesianMonoidalCategory X
+instance : CartesianMonoidalCategory (Over X) := cartesianMonoidalCategory X
 
---here, abbrev is needed, because else aesop_cat cannot solve commutativity condition
 
-abbrev classifierOver.Over_Ω : (Over X) := mk (snd Ω X)
-
-abbrev classifierOver.Over_t_ : 𝟙_ (Over X) ⟶ Over_Ω := homMk (lift (Predicate.true_ X) (𝟙 X))
-
-abbrev classifierOver.Over_char {S A : Over X} (m : S ⟶ A) [Mono m] : A ⟶ Over_Ω := homMk (lift (χ_ m.left) (A.hom))
-
-lemma classifierOver.isPullback_lift_condition {S A : Over X} (m : S ⟶ A) [Mono m] (s : PullbackCone (Over_char m) (Over_t_)) : s.fst.left ≫ χ_ m.left = ((s.snd ≫ terminalIso.hom).left ≫ (Limits.prod.leftUnitor X).inv ≫ prod.fst) ≫ c.t := by {
-  have help' := s.condition
-  rw [OverMorphism.ext_iff, comp_left] at help'
-  simp at help'; simp
-  rw [← prod.lift_fst (s.fst.left ≫ c.char m.left) s.pt.hom, ← prod.lift_fst (terminal.from s.pt.left ≫ c.t) (s.snd.left ≫ (mkIdTerminal.from (⊤_ Over X)).left)]
-  exact congrFun (congrArg CategoryStruct.comp help') prod.fst
-}
-
-lemma Over.classifierOver.isPullback_homMk_w (s : PullbackCone (char m) (t c)) : (IsPullback.lift (c.isPullback m.left) s.fst.left ((s.snd ≫ terminalIso.hom).left ≫ (Limits.prod.leftUnitor X).inv ≫ prod.fst) (isPullback_lift_condition s)) ≫ U.hom = s.pt.hom := by {
-  rw [← w m, ← assoc, (c.isPullback m.left).lift_fst s.fst.left ((s.snd ≫ terminalIso.hom).left ≫ (Limits.prod.leftUnitor X).inv ≫ prod.fst) (isPullback_lift_condition s), w s.fst]
-}
-
-abbrev Over.classifierOver.isPullback_lift (s : PullbackCone (char c m) (t c)) := Over.homMk ((c.isPullback m.left).lift s.fst.left ((s.snd ≫ terminalIso.hom).left ≫ (Limits.prod.leftUnitor X).inv ≫ prod.fst) (isPullback_lift_condition s)) (isPullback_homMk_w s)
-
-variable (c) (m)
-
-lemma Over.classifierOver.isPullback : IsPullback m (terminal.from U) (classifierOver.char c m) (classifierOver.t c) where
+omit [HasPullbacks C] in
+lemma classifierOver.isPullback_left {S A : Over X} (m : S ⟶ A) [Mono m] : IsPullback m.left S.hom (lift (χ_ m.left) A.hom) (lift (Predicate.true_ X) (𝟙 X)) where
   w := by {
-    rw [OverMorphism.ext_iff, comp_left, comp_left]; simp
-    refine Limits.prod.hom_ext ?_ ?_
+    rw [comp_lift, comp_lift]
+    apply CartesianMonoidalCategory.hom_ext
     · simp
-      exact (c.isPullback m.left).w
-    · rw [← comp_left]
-      unfold mkIdTerminal
-      unfold CostructuredArrow.mkIdTerminal
-      unfold IsTerminal.from
-      unfold Functor.preimage
-      simp
+      unfold Predicate.true_
+      rw [← assoc, comp_from, Classifier.comm]
+    · simp
   }
   isLimit' := by {
     apply Nonempty.intro
-    apply PullbackCone.IsLimit.mk _ (fun s ↦ isPullback_lift s)
+    have comm (s : PullbackCone (lift (χ_ m.left) A.hom) (lift (Predicate.true_ X) (𝟙 X))) : s.fst ≫ (char m.left) = (s.snd ≫ from_ X) ≫ t_ := by {
+      rw [assoc, ← Predicate.true_]
+      have help := (CartesianMonoidalCategory.hom_ext_iff.1 s.condition).1
+      simp at help
+      assumption
+    }
+    apply PullbackCone.IsLimit.mk _ (fun s ↦ ((isPullback m.left).lift _ _ (comm s)))
     · intro s
-      rw [Over.OverMorphism.ext_iff, comp_left]; simp
+      simp
     · intro s
-      exact terminal.hom_ext (isPullback_lift s ≫ terminal.from U) s.snd
-    · intro s m' h₁ h₂
-      rw [Over.OverMorphism.ext_iff, comp_left] at h₁ h₂
-      rw [Over.OverMorphism.ext_iff]
-      apply (c.isPullback m.left).hom_ext
+      nth_rewrite 2 [← comp_id s.snd]
+      convert_to  _ = s.snd ≫ (lift (Predicate.true_ X) (𝟙 X) ≫ snd Ω X)
+      · exact congrArg (CategoryStruct.comp s.snd) (id (Eq.symm (lift_snd (Predicate.true_ X) (𝟙 X))))
+      rw [← assoc, ← s.condition]
+      simp
+      rw [← Over.w m, ← assoc, (isPullback m.left).lift_fst s.fst (toUnit s.pt) _]
+    · intros s l h_fst h_snd
+      apply (isPullback m.left).hom_ext
       · aesop_cat
       · aesop_cat
   }
+
+
+
+instance classifier : Classifier (Over X) where
+  Ω := mk (snd Ω X)
+  t_ := homMk (lift (Predicate.true_ X) (𝟙 X))
+  char {S A : Over X} (m : S ⟶ A) [Mono m] := homMk (lift (χ_ m.left) (A.hom))
+  isPullback {S A : Over X} (m : S ⟶ A) [Mono m] := by {
+    apply isPullback_of_isPullback_left
+    simp
+    exact classifierOver.isPullback_left m
+  }
+
 
 variable {c} {m}
 
