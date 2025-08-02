@@ -18,9 +18,9 @@ abbrev PowBraiding : X ⊗ ((pow X) ⊗ (pow X) : C) ⟶ (X ⊗ pow X) ⊗ (X �
 def PowOperation : (pow X) ⊗ (pow X) ⟶ (pow X) :=
   ((PowBraiding X) ≫ (in_ ⊗ in_) ≫ op)^
 
-variable {Y : C}
+variable {X} {Y : C}
 
-theorem PowerOperation_transpose_ClassifierOperation (s₀ s₁ : X ⊗ Y ⟶ Ω) : (lift s₀ s₁ ≫ op)^ = (lift (s₀^) (s₁^)) ≫ PowOperation op X  := by {
+theorem PowOperation_transpose_ClassifierOperation (s₀ s₁ : X ⊗ Y ⟶ Ω) : (lift s₀ s₁ ≫ op)^ = (lift (s₀^) (s₁^)) ≫ PowOperation op X  := by {
   apply uniq
   have comm_UL : ((𝟙 X) ⊗ (lift (s₀^) (s₁^))) ≫ PowBraiding X = diag (X ⊗ Y) ≫ (((𝟙 X) ⊗ (s₀^)) ⊗ ((𝟙 X) ⊗ (s₁^))) := by aesop_cat
   have comm_UM : (((𝟙 X) ⊗ (s₀^)) ⊗ ((𝟙 X) ⊗ (s₁^))) ≫ (in_ ⊗ in_) = s₀ ⊗ s₁ := by {
@@ -34,8 +34,8 @@ theorem PowerOperation_transpose_ClassifierOperation (s₀ s₁ : X ⊗ Y ⟶ Ω
   rw [← comp_id (𝟙 X), tensor_comp, ← lift_map, ← comm_UML, assoc, comm_L, assoc, assoc]
 }
 
-lemma PowerOperation_nameClassifierOperation (s₀ s₁ : X ⟶ Ω) : ⌜(lift s₀ s₁ ≫ op)⌝ = lift ⌜s₀⌝ ⌜s₁⌝ ≫ PowOperation op X := by {
+lemma PowOperation_nameClassifierOperation (s₀ s₁ : X ⟶ Ω) : ⌜(lift s₀ s₁ ≫ op)⌝ = lift ⌜s₀⌝ ⌜s₁⌝ ≫ PowOperation op X := by {
   unfold name
   rw [comp_lift_assoc]
-  exact PowerOperation_transpose_ClassifierOperation op X (fst X (𝟙_ C) ≫ s₀) (fst X (𝟙_ C) ≫ s₁)
+  exact PowOperation_transpose_ClassifierOperation op (fst X (𝟙_ C) ≫ s₀) (fst X (𝟙_ C) ≫ s₁)
 }

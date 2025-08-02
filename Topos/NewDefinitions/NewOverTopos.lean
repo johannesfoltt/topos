@@ -1,10 +1,11 @@
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Over
-import Topos.NewDefinitions.NewClassifier
+import Topos.NewDefinitions.NewClassifierMeet
+import Topos.NewDefinitions.NewTopos
 import Topos.HelpfulCategoryTheory.OverLimits
 
 namespace CategoryTheory
 
-open Category Limits Over MonoidalCategory CartesianMonoidalCategory ChosenTerminalObject Classifier
+open Category Limits Over MonoidalCategory CartesianMonoidalCategory ChosenTerminalObject Classifier PowerObject ChosenPowerObjects Topos
 
 universe u v
 
@@ -15,7 +16,6 @@ noncomputable section
 variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory C] [HasPullbacks C] [Classifier C] {X : C}
 
 instance : CartesianMonoidalCategory (Over X) := cartesianMonoidalCategory X
-
 
 omit [HasPullbacks C] in
 lemma classifierOver.isPullback_left {S A : Over X} (m : S ⟶ A) [Mono m] : IsPullback m.left S.hom (lift (χ_ m.left) A.hom) (lift (Predicate.true_ X) (𝟙 X)) where
@@ -90,10 +90,32 @@ instance classifier : Classifier (Over X) where
     simp
     refine CartesianMonoidalCategory.hom_ext χ.left (lift (χ_ m.left) A.hom) ?_ ?_
     · simp
-      apply uniq
+      apply Classifier.uniq
       have hχ' := isPullback_iff_isPullback_left.1 hχ
       simp at hχ'
       exact classifierOver.uniq_isPullback m χ hχ'
     · simp
       exact Over.w χ
   }
+
+
+variable [ChosenPowerObjects C] [HasFiniteLimits C] (A : Over X)
+
+abbrev powObj_t : (pow A.left) ⊗ X ⟶ pow A.left := (𝟙 (pow A.left) ∧_P₂ (singleton X ≫ inverseImage A.hom))
+
+abbrev powObj : Over X := mk (equalizer.ι (fst _ _) (powObj_t A) ≫ (snd _ _))
+
+abbrev powObj_in_hom : (A ⊗ powObj A).left ⟶ (Ω ⊗ X) := lift ((lift (pullback.fst A.hom (equalizer.ι (fst _ _) (powObj_t A) ≫ (snd _ _))) ((pullback.snd A.hom (equalizer.ι (fst _ _) (powObj_t A) ≫ (snd _ _))) ≫ (equalizer.ι (fst _ _) (powObj_t A)) ≫ (fst _ _))) ≫ in_) ((A ⊗ powObj A).hom)
+
+lemma powObj_in_w : (powObj_in_hom A) ≫ (Ω : Over X).hom = (A ⊗ powObj A).hom := by {
+  change _ ≫ (snd Ω X) = _
+  simp
+}
+
+abbrev powObj_in_ : (A ⊗ powObj A) ⟶ (Ω : Over X) := homMk (powObj_in_hom A) (powObj_in_w A)
+
+/-
+instance powerObject : PowerObject A where
+  pow := powObj A
+  in_ := powObj_in_ A
+-/
