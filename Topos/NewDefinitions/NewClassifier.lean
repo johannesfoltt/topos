@@ -103,6 +103,12 @@ abbrev χ_ {U X : C} (m : U ⟶ X) [Mono m] : X ⟶ Ω := char m
 @[reassoc]
 lemma comm {U X : C} (m : U ⟶ X) [Mono m] : m ≫ (char m) = from_ _ ≫ t_ := (isPullback m).w
 
+lemma char_true : 𝟙 (Ω : C) = χ_ t_ := by {
+  apply uniq t_
+  rw [from_self]
+  exact IsPullback.of_id_snd
+}
+
 lemma prodCompClassEqClassOfComp [CartesianMonoidalCategory C] {U X : C} (m : U ⟶ X) [Mono m] : fst _ _ ≫ χ_ m = χ_ ((m) ⊗ (𝟙 (𝟙_ C))) := by {
   apply uniq
   have TOP := IsPullback.isPullbackTensorFst m
@@ -111,6 +117,12 @@ lemma prodCompClassEqClassOfComp [CartesianMonoidalCategory C] {U X : C} (m : U 
   simp at PB
   rw [toUnit_unique (toUnit (𝟙_ C)) (𝟙 (𝟙_ C))] at PB
   assumption
+}
+
+lemma pred_eq_char_of_pullback {X : C} (f : X ⟶ Ω) [HasPullback f t_] : f = χ_ (pullback.fst f t_) := by {
+  apply uniq
+  rw [ChosenTerminalObject.hom_ext (from_ (pullback f t_)) (pullback.snd f t_)]
+  exact IsPullback.of_hasPullback f t_
 }
 
 /-- `c.t` is a regular monomorphism (because it is split). -/
@@ -188,6 +200,30 @@ lemma Predicate.eq_of_lift_eq {X B : C} {b b' : X ⟶ B} (comm' : lift b b' ≫ 
   have t₂ := congrArg (fun k ↦ k ≫ snd _ _) t; simp at t₂
   aesop_cat
 }
+
+omit [CartesianMonoidalCategory C] in
+theorem comp_char {U S X : C} (u : U ⟶ S) [Mono u] (s : S ⟶ X) [Mono s] : s ≫ χ_ (u ≫ s) = χ_ u := by {
+  apply uniq
+  have pbL := IsPullback.comp_IsPullback u s
+  have pbR := isPullback (u ≫ s)
+  have pb := IsPullback.paste_vert pbL pbR
+  simp at pb
+  exact pb
+}
+
+omit [Classifier C] [CartesianMonoidalCategory C] in
+lemma Iso_inv (c : Classifier C) (d : Classifier C) : c.χ_ (d.t_) ≫ d.χ_ (c.t_) = 𝟙 d.Ω := by {
+  rw [char_true]
+  apply uniq
+  rw [ChosenTerminalObject.hom_ext (from_ ⊤_) ((from_ ⊤_) ≫ (from_ ⊤_))]
+  exact IsPullback.paste_vert (c.isPullback d.t_) (d.isPullback c.t_)
+}
+
+def Iso [c : Classifier C] [d : Classifier C] : c.Ω ≅ d.Ω where
+  hom := d.χ_ c.t_
+  inv := c.χ_ d.t_
+  hom_inv_id := Iso_inv d c
+  inv_hom_id := Iso_inv c d
 
 /-
 Do as needed

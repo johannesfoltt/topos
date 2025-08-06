@@ -174,3 +174,28 @@ lemma isPullbackTensorFst {X Y : C} (f : X ⟶ Y) : IsPullback (f ⊗ (toUnit (�
       · simp
         exact CartesianMonoidalCategory.toUnit_unique_iff.mpr trivial
   }
+
+instance mono_pullback_to_tensor {C : Type*} [Category C] [CartesianMonoidalCategory C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+    [HasPullback f g] [HasBinaryProduct X Y] :
+    Mono (CartesianMonoidalCategory.lift (pullback.fst f g) (pullback.snd f g)) :=
+  ⟨fun {W} i₁ i₂ h => by
+    ext
+    · simpa using congrArg (fun f => f ≫ fst _ _) h
+    · simpa using congrArg (fun f => f ≫ snd _ _) h⟩
+
+
+lemma comp_IsPullback {C : Type*} [Category C] {U S X : C} (u : U ⟶ S) (s : S ⟶ X) [Mono s] : IsPullback u (𝟙 U) s (u ≫ s) where
+  w := by simp
+  isLimit' := by {
+    apply Nonempty.intro
+    apply PullbackCone.IsLimit.mk _ (fun (c : PullbackCone s (u ≫ s)) ↦ c.snd)
+    · intro c
+      expose_names
+      apply inst_1.right_cancellation (c.snd ≫ u) c.fst
+      rw [assoc, c.condition]
+    · intro c
+      simp
+    · intros c l h_fst h_snd
+      simp at h_snd
+      assumption
+  }

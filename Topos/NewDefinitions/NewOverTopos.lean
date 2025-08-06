@@ -2,6 +2,8 @@ import Mathlib.CategoryTheory.Monoidal.Cartesian.Over
 import Topos.NewDefinitions.NewClassifierMeet
 import Topos.NewDefinitions.NewTopos
 import Topos.HelpfulCategoryTheory.OverLimits
+import Topos.HelpfulCategoryTheory.CartesianMonoidalCategoryAdditions
+import Topos.HelpfulCategoryTheory.PullbackProd
 
 namespace CategoryTheory
 
@@ -103,19 +105,97 @@ variable [ChosenPowerObjects C] [HasFiniteLimits C] (A : Over X)
 
 abbrev powObj_t : (pow A.left) ⊗ X ⟶ pow A.left := (𝟙 (pow A.left) ∧_P₂ (singleton X ≫ inverseImage A.hom))
 
-abbrev powObj : Over X := mk (equalizer.ι (fst _ _) (powObj_t A) ≫ (snd _ _))
+abbrev powObj_eq := equalizer.ι (fst _ _) (powObj_t A)
 
-abbrev powObj_in_hom : (A ⊗ powObj A).left ⟶ (Ω ⊗ X) := lift ((lift (pullback.fst A.hom (equalizer.ι (fst _ _) (powObj_t A) ≫ (snd _ _))) ((pullback.snd A.hom (equalizer.ι (fst _ _) (powObj_t A) ≫ (snd _ _))) ≫ (equalizer.ι (fst _ _) (powObj_t A)) ≫ (fst _ _))) ≫ in_) ((A ⊗ powObj A).hom)
+abbrev powObj : Over X := mk ((powObj_eq A) ≫ snd _ _)
+
+abbrev powObj_in_hom : (A ⊗ powObj A).left ⟶ (Ω ⊗ X) := lift ((pullback_subObj A.hom ((powObj_eq A) ≫ (snd _ _))) ≫ ((𝟙 A.left) ⊗ (powObj_eq A) ≫ (fst _ _)) ≫ in_) (A ⊗ powObj A).hom
 
 lemma powObj_in_w : (powObj_in_hom A) ≫ (Ω : Over X).hom = (A ⊗ powObj A).hom := by {
   change _ ≫ (snd Ω X) = _
   simp
 }
 
-abbrev powObj_in_ : (A ⊗ powObj A) ⟶ (Ω : Over X) := homMk (powObj_in_hom A) (powObj_in_w A)
+abbrev powObj_in_ : (A ⊗ powObj A) ⟶ Ω := homMk (powObj_in_hom A) (powObj_in_w A)
 
-/-
+variable {B : Over X} (f : A ⊗ B ⟶ Ω)
+
+abbrev powObj_transpose_subObj : pullback (f.left ≫ fst _ _) t_ ⟶ A.left ⊗ B.left :=
+  (pullback.fst (f.left ≫ fst _ _) (t_)) ≫ (pullback_subObj A.hom B.hom)
+
+
+omit [HasFiniteLimits C] in
+lemma powObj_transpose_subObj_meet_condition : ((χ_ (powObj_transpose_subObj A f)) ∧_C₁ (B.hom ≫ (singleton X) ≫ (inverseImage A.hom))^) = χ_ (powObj_transpose_subObj A f) := by {
+  have help : singleton X = singleton ((Functor.fromPUnit X).obj A.right) := rfl
+  change (χ_ (powObj_transpose_subObj A f) ∧_C₁ ((B.hom ≫ singleton X ≫ inverseImage A.hom)^ : (𝟭 C).obj A.left ⊗ (𝟭 C).obj B.left ⟶ Ω)) = χ_ (powObj_transpose_subObj A f)
+  rw [help, pullback_char A.hom B.hom]
+  exact meet_comp (pullback.fst (f.left ≫ fst _ _) t_) (lift (pullback.fst A.hom B.hom) (pullback.snd A.hom B.hom))
+}
+
+omit [HasFiniteLimits C] in
+lemma powObj_transpose_equalizer_condition : (lift ((χ_ (powObj_transpose_subObj A f))^) B.hom) ≫ (fst _ _) = (lift ((χ_ (powObj_transpose_subObj A f))^) B.hom) ≫ powObj_t A := by {
+  slice_lhs 1 3 => {
+    rw [lift_fst, ← powObj_transpose_subObj_meet_condition, meet_transpose, transpose_right_inv]
+    unfold intersection_hom₁
+    rw [← comp_id ((χ_ ( powObj_transpose_subObj A f))^), ← lift_map]
+  }
+  simp
+}
+
+abbrev powObj_transpose : B ⟶ powObj A :=
+  homMk (equalizer.lift (lift ((χ_ (powObj_transpose_subObj A f))^) B.hom) (powObj_transpose_equalizer_condition A f))
+
+
 instance powerObject : PowerObject A where
   pow := powObj A
   in_ := powObj_in_ A
--/
+  transpose {B : Over X} (f : A ⊗ B ⟶ Ω) := powObj_transpose A f
+  comm := by {
+    intros B f
+    rw [OverMorphism.ext_iff, comp_left, tensorHom_left, pullback.map]
+    simp_rw [id_left, comp_id]
+    rw [powObj_transpose]
+    simp_rw [homMk_left]
+    rw [powObj_in_hom, comp_lift]
+    apply CartesianMonoidalCategory.hom_ext
+    · rw [lift_fst, pullback_subObj, ← assoc, comp_lift, ← assoc, lift_map]
+      simp
+      nth_rewrite 1 [← comp_id (pullback.fst A.hom B.hom)]
+      rw [← lift_map, ← pullback_subObj, assoc]
+      change _ ≫ (𝟙 A.left ⊗ _) ≫ in_ = _
+      rw [← transposeInv, transpose_left_inv]
+      simp_rw [← comp_lift]
+      change _ ≫ χ_ (_ ≫ (pullback_subObj A.hom B.hom)) = _
+      rw [comp_char, ← pred_eq_char_of_pullback]
+    · change _ = f.left ≫ (Ω : Over X).hom
+      rw [Over.w f]
+      simp
+  }
+  uniq := by {
+    intros Y f hat' h
+    rw [OverMorphism.ext_iff, powObj_transpose, homMk_left _ _]
+    apply equalizer.hom_ext
+    rw [equalizer.lift_ι]
+    apply CartesianMonoidalCategory.hom_ext
+    · rw [lift_fst, assoc, equalizer.condition]
+      change _ = _ ≫ A.powObj_eq ≫ (𝟙 (pow A.left) ∧_P₂ (singleton X ≫ inverseImage A.hom))
+      apply PowerObject.uniq
+      unfold intersection_hom₂
+      rw [← lift_comp_fst_snd A.powObj_eq]
+      sorry
+      /-
+      rw [lift_fst, assoc, ← powObj_transpose_subObj_meet_condition A f]
+      have help := pullback_char A.hom Y.hom
+      simp at help
+      rw [help, meet_pullback]
+      unfold powObj_transpose_subObj
+      -/
+      /-
+      rw [lift_fst, assoc, ← powObj_transpose_subObj_meet_condition A f, meet_transpose, transpose_right_inv]
+      unfold intersection_hom₁
+      rw [← comp_id (χ_ (A.powObj_transpose_subObj f)^), ← lift_map, assoc, ← intersection_hom₂]
+      change (lift _ _) ≫ (powObj_t A) = _
+    · rw [lift_snd, ← Over.w hat']
+      simp
+      -/
+  }

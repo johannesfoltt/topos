@@ -38,6 +38,11 @@ abbrev transposeInv (f : Y ⟶ pow X) : X ⊗ Y ⟶ Ω :=
 notation f "^" => transpose f
 notation f "^" => transposeInv f
 
+lemma transpose_in_ : (in_ : X ⊗ pow X ⟶ Ω)^ = 𝟙 (pow X) := by {
+  apply PowerObject.uniq
+  simp
+}
+
 /-- Equivalence between Hom(B⨯A,Ω) and Hom(A,P(B)). -/
 def transposeEquiv (X Y : C) [PowerObject X] : (X ⊗ Y ⟶ Ω) ≃ (Y ⟶ pow X) where
   toFun := transpose
@@ -176,6 +181,20 @@ def NameEquiv : (X ⟶ Ω) ≃ (𝟙_ C ⟶ pow X) where
     rw [←assoc, h, id_comp, transpose_right_inv]
 
 
+
+lemma Iso_inv {X : C} (p : PowerObject X) (q : PowerObject X) : p.transpose (q.in_) ≫  q.transpose (p.in_) = 𝟙 (q.pow) := by {
+  rw [← transpose_in_]
+  symm
+  apply PowerObject.uniq
+  rw [← comp_id (𝟙 X), tensor_comp, assoc, q.comm, p.comm]
+}
+
+def Iso {X : C} [p : PowerObject X] [q : PowerObject X] : p.pow ≅ q.pow where
+  hom := q.transpose (p.in_)
+  inv := p.transpose (q.in_)
+  hom_inv_id := Iso_inv q p
+  inv_hom_id := Iso_inv p q
+
 end PowerObject
 
 namespace ChosenPowerObjects
@@ -299,3 +318,23 @@ def powSelfAdj : powFunctorOp C ⊣ powFunctor C := by
     show ((g ⊗ 𝟙 X) ≫ ((𝟙 Y) ⊗ transpose ((β_ X Y).inv ≫ (𝟙 X ⊗ f) ≫ in_))) ≫ in_ = (β_ X Y').inv ≫ (𝟙 X ⊗ (g ≫ (𝟙 Y)) ≫ f) ≫ in_
     slice_lhs 2 4 => rw [PowerObject.comm]
     aesop_cat
+
+variable {C}
+
+noncomputable abbrev pullback_subObj {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [HasPullback f g] := lift (pullback.fst f g) (pullback.snd f g)
+
+lemma pullback_char {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [HasPullback f g] : (g ≫ (singleton Z) ≫ (inverseImage f))^ = χ_ (pullback_subObj f g) := by {
+  unfold transposeInv
+  apply Classifier.uniq
+  have lower_map : ((𝟙 X) ⊗ (g ≫ singleton Z ≫ inverseImage f)) ≫ in_ = (f ⊗ g) ≫ (Predicate.eq Z) := by {
+    rw [← comp_id (𝟙 X), tensor_comp_assoc, ← comp_id (𝟙 X), tensor_comp, assoc, inverseImage_comm]
+    slice_lhs 2 3 => rw [← tensor_comp, id_comp, comp_id, ← comp_id f, ← id_comp (singleton Z), tensor_comp]
+    slice_lhs 3 4 => unfold PowerObject.singleton; change ((Predicate.eq Z)^)^; simp
+    rw [← assoc, ← tensor_comp]
+    simp
+  }
+  rw [lower_map, hom_ext (from_ (pullback f g)) ((pullback.fst f g ≫ f) ≫ from_ Z)]
+  have left := IsPullback.isPullback_Tensor_Fst_of_isPullback (IsPullback.of_hasPullback f g)
+  have right := isPullback (CartesianMonoidalCategory.diag Z)
+  exact IsPullback.paste_vert left right
+}
