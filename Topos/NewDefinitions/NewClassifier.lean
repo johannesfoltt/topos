@@ -84,7 +84,7 @@ class Classifier where
   /-- `char m` forms the appropriate pullback square. -/
   isPullback {U X : C} (m : U ⟶ X) [Mono m] : IsPullback m (from_ U) (char m) t_
   /-- `char m` is the only map `X ⟶ Ω` which forms the appropriate pullback square. -/
-  uniq {U X : C} (m : U ⟶ X) [Mono m] (χ : X ⟶ Ω) (hχ : IsPullback m (from_ U) χ t_) :
+  uniq {U X : C} {m : U ⟶ X} [Mono m] {χ : X ⟶ Ω} (hχ : IsPullback m (from_ U) χ t_) :
     χ = char m
 
 /-
@@ -104,10 +104,18 @@ abbrev χ_ {U X : C} (m : U ⟶ X) [Mono m] : X ⟶ Ω := char m
 lemma comm {U X : C} (m : U ⟶ X) [Mono m] : m ≫ (char m) = from_ _ ≫ t_ := (isPullback m).w
 
 lemma char_true : 𝟙 (Ω : C) = χ_ t_ := by {
-  apply uniq t_
+  apply uniq
   rw [from_self]
   exact IsPullback.of_id_snd
 }
+
+lemma char_iso_hom {U U' X : C} (m : U ⟶ X) [Mono m] (i : U' ≅ U) : χ_ (i.hom ≫ m) = χ_ (m) := by {
+  apply uniq
+  have pb := isPullback (i.hom ≫ m)
+  sorry
+}
+
+lemma char_iso_inv {U U' X : C} (m : U ⟶ X) [Mono m] (i : U ≅ U') : χ_ (i.inv ≫ m) = χ_ (m) := char_iso_hom m i.symm
 
 lemma prodCompClassEqClassOfComp [CartesianMonoidalCategory C] {U X : C} (m : U ⟶ X) [Mono m] : fst _ _ ≫ χ_ m = χ_ ((m) ⊗ (𝟙 (𝟙_ C))) := by {
   apply uniq
@@ -119,7 +127,8 @@ lemma prodCompClassEqClassOfComp [CartesianMonoidalCategory C] {U X : C} (m : U 
   assumption
 }
 
-lemma pred_eq_char_of_pullback {X : C} (f : X ⟶ Ω) [HasPullback f t_] : f = χ_ (pullback.fst f t_) := by {
+lemma pred_eq_char_of_pullback {X : C} (f : X ⟶ Ω) [HasPullback f t_] : χ_ (pullback.fst f t_) = f := by {
+  symm
   apply uniq
   rw [ChosenTerminalObject.hom_ext (from_ (pullback f t_)) (pullback.snd f t_)]
   exact IsPullback.of_hasPullback f t_

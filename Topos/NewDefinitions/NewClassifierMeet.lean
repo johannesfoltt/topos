@@ -61,6 +61,8 @@ notation f₀ " ∧_P₂ " f₁ => intersection_hom₂ f₀ f₁
 
 lemma meet_transpose {X Y : C} [PowerObject X] (f₀ f₁ : X ⊗ Y ⟶ Ω) : (f₀ ∧_C₁ f₁)^ = (f₀^ ∧_P₁ f₁^) := PowOperation_transpose_ClassifierOperation Classifier.meet f₀ f₁
 
+lemma meet_transposeInv {X Y : C} [PowerObject X] (f₀ f₁ : Y ⟶ pow X) : (f₀ ∧_P₁ f₁)^ = (f₀^ ∧_C₁ f₁^) := PowOperation_transposeInv_ClassifierOperation Classifier.meet f₀ f₁
+
 lemma meet_name {X : C} [PowerObject X] (χ₀ χ₁ : X ⟶ Ω) : ⌜(χ₀ ∧_C₁ χ₁)⌝ = (⌜χ₀⌝ ∧_P₁ ⌜χ₁⌝) := by {
   unfold name
   rw [← meet_transpose ((fst _ _) ≫ χ₀) ((fst _ _) ≫ χ₁), comp_lift_assoc]

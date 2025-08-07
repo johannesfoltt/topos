@@ -118,38 +118,140 @@ lemma powObj_in_w : (powObj_in_hom A) ≫ (Ω : Over X).hom = (A ⊗ powObj A).h
 
 abbrev powObj_in_ : (A ⊗ powObj A) ⟶ Ω := homMk (powObj_in_hom A) (powObj_in_w A)
 
-variable {B : Over X} (f : A ⊗ B ⟶ Ω)
+variable {A} {B : Over X} (f : A ⊗ B ⟶ Ω)
 
 abbrev powObj_transpose_subObj : pullback (f.left ≫ fst _ _) t_ ⟶ A.left ⊗ B.left :=
   (pullback.fst (f.left ≫ fst _ _) (t_)) ≫ (pullback_subObj A.hom B.hom)
 
 
 omit [HasFiniteLimits C] in
-lemma powObj_transpose_subObj_meet_condition : ((χ_ (powObj_transpose_subObj A f)) ∧_C₁ (B.hom ≫ (singleton X) ≫ (inverseImage A.hom))^) = χ_ (powObj_transpose_subObj A f) := by {
+lemma powObj_transpose_subObj_meet_condition : ((χ_ (powObj_transpose_subObj f)) ∧_C₁ (B.hom ≫ (singleton X) ≫ (inverseImage A.hom))^) = χ_ (powObj_transpose_subObj f) := by {
   have help : singleton X = singleton ((Functor.fromPUnit X).obj A.right) := rfl
-  change (χ_ (powObj_transpose_subObj A f) ∧_C₁ ((B.hom ≫ singleton X ≫ inverseImage A.hom)^ : (𝟭 C).obj A.left ⊗ (𝟭 C).obj B.left ⟶ Ω)) = χ_ (powObj_transpose_subObj A f)
+  change (χ_ (powObj_transpose_subObj f) ∧_C₁ ((B.hom ≫ singleton X ≫ inverseImage A.hom)^ : (𝟭 C).obj A.left ⊗ (𝟭 C).obj B.left ⟶ Ω)) = χ_ (powObj_transpose_subObj f)
   rw [help, pullback_char A.hom B.hom]
   exact meet_comp (pullback.fst (f.left ≫ fst _ _) t_) (lift (pullback.fst A.hom B.hom) (pullback.snd A.hom B.hom))
 }
 
 omit [HasFiniteLimits C] in
-lemma powObj_transpose_equalizer_condition : (lift ((χ_ (powObj_transpose_subObj A f))^) B.hom) ≫ (fst _ _) = (lift ((χ_ (powObj_transpose_subObj A f))^) B.hom) ≫ powObj_t A := by {
+lemma powObj_transpose_equalizer_condition : (lift ((χ_ (powObj_transpose_subObj f))^) B.hom) ≫ (fst _ _) = (lift ((χ_ (powObj_transpose_subObj f))^) B.hom) ≫ powObj_t A := by {
   slice_lhs 1 3 => {
     rw [lift_fst, ← powObj_transpose_subObj_meet_condition, meet_transpose, transpose_right_inv]
     unfold intersection_hom₁
-    rw [← comp_id ((χ_ ( powObj_transpose_subObj A f))^), ← lift_map]
+    rw [← comp_id ((χ_ ( powObj_transpose_subObj f))^), ← lift_map]
   }
   simp
 }
 
 abbrev powObj_transpose : B ⟶ powObj A :=
-  homMk (equalizer.lift (lift ((χ_ (powObj_transpose_subObj A f))^) B.hom) (powObj_transpose_equalizer_condition A f))
+  homMk (equalizer.lift (lift ((χ_ (powObj_transpose_subObj f))^) B.hom) (powObj_transpose_equalizer_condition f))
 
+abbrev powObj_transposeInv_left (f : B ⟶ powObj A) : (A ⊗ B).left ⟶ (Ω : Over X).left := (pullback_subObj A.hom B.hom) ≫ lift ((f.left ≫ powObj_eq A ≫ (fst (pow A.left) X))^) ((snd _ _) ≫ B.hom)
+
+lemma powObj_transposeInv_w (f : B ⟶ powObj A) : (powObj_transposeInv_left f) ≫ (snd _ _) = (A ⊗ B).hom := by {
+  rw [tensorObj_hom, assoc, lift_snd, pullback_subObj, ← assoc, lift_snd, pullback.condition]
+}
+
+abbrev powObj_transposeInv (f : B ⟶ powObj A) : (A ⊗ B) ⟶ (Ω : Over X) := homMk (powObj_transposeInv_left f) (powObj_transposeInv_w f)
+
+
+abbrev powObj_in' (A : Over X) : (A ⊗ powObj A) ⟶ Ω := powObj_transposeInv (𝟙 (powObj A))
+
+lemma powObj_transpose_left_inv (f : A ⊗ B ⟶ Ω) : powObj_transposeInv (powObj_transpose f) = f := by {
+  rw [powObj_transpose, powObj_transposeInv, OverMorphism.ext_iff]
+  simp
+  apply CartesianMonoidalCategory.hom_ext
+  · simp
+    simp_rw [← comp_lift]
+    change _ ≫ χ_ (_ ≫ pullback_subObj A.hom B.hom) = _
+    rw [comp_char, pred_eq_char_of_pullback]
+  · simp
+    rw [← pullback.condition, ← tensorObj_hom, ← Over.w f]
+    rfl
+}
+
+lemma powObj_transpose_right_inv (f : B ⟶ powObj A) : powObj_transpose (powObj_transposeInv f) = f := by {
+  rw [OverMorphism.ext_iff]
+  simp
+  apply equalizer.hom_ext
+  rw [equalizer.lift_ι]
+  apply CartesianMonoidalCategory.hom_ext
+  · simp
+    simp_rw [← comp_lift]
+    change  (χ_ (pullback.fst (powObj_transposeInv_left f ≫ fst Ω X) t_ ≫ pullback_subObj A.hom B.hom))^ = _
+    /-
+    have h := Over.w f
+    rw [mk_hom] at h
+    slice_rhs 2 3 => {
+      rw [equalizer.condition, ← powObj_eq]
+      unfold powObj_t
+      unfold intersection_hom₂
+    }
+    slice_rhs 1 3 => {
+      rw [← assoc, ← lift_comp_fst_snd (f.left ≫ _)]
+    }
+    rw [lift_map, comp_id]
+    slice_rhs 4 6 => {
+      rw [h]
+    }
+    change _ = _ ∧_P₁ _
+    slice_rhs 2 4 => {
+      rw [← transpose_right_inv (_ ≫ _ ≫ _), pullback_char]
+    }
+    -/
+    have eq : (powObj_transposeInv_left f ≫ fst Ω X) = (pullback_subObj A.hom B.hom) ≫ ((f.left ≫ powObj_eq A ≫ (fst (pow A.left) X))^) := by simp
+    have help : pullback.fst (powObj_transposeInv_left f ≫ fst Ω X) t_ = (pullback.congrHom eq (rfl : t_ = t_)).hom ≫ (pullback.fst (pullback_subObj A.hom B.hom ≫ (f.left ≫ A.powObj_eq ≫ fst (pow A.left) X)^) t_) := by {
+      rw [pullback.congrHom_hom, pullback.map]
+      simp
+    }
+    simp_rw [help, assoc, char_iso_hom]
+    apply PowerObject.uniq
+    change transposeInv _ = _
+    simp only [Functor.id_obj]
+    --rw [meet_transposeInv, transpose_left_inv]
+    --nth_rw 1 [pred_eq_char_of_pullback ((f.left ≫ A.powObj_eq ≫ fst (pow A.left) X)^)]
+    simp_rw [← pullbackRightPullbackFstIso_inv_fst ((f.left ≫ A.powObj_eq ≫ fst (pow A.left) X)^) t_ (pullback_subObj A.hom B.hom), assoc, char_iso_inv, ← meet_pullback]
+    have w : (f.left ≫ A.powObj_eq) ≫ (mk (snd (pow A.left) X)).hom = B.hom := by {
+      rw [← Over.w f]
+      simp
+    }
+    slice_rhs 2 4 => {
+      rw [← assoc]
+    }
+  · simp
+    rw [← Over.w f]
+    simp
+}
+
+lemma powObj_transposeInv_naturality {B B' : Over X} (f : B ⟶ B') (g : B' ⟶ powObj A) : ((𝟙 A) ⊗ f) ≫ (powObj_transposeInv g) = powObj_transposeInv (f ≫ g) := by {
+  rw [OverMorphism.ext_iff, comp_left, powObj_transposeInv, powObj_transposeInv, homMk_left _ _, homMk_left _ _, powObj_transposeInv_left, powObj_transposeInv_left, tensorHom_left, pullback.map]
+  simp
+  apply CartesianMonoidalCategory.hom_ext
+  · simp
+    rw [← assoc, comp_lift, pullback.lift_fst]
+    slice_lhs 1 2 => {
+      slice 1 2
+      rw [pullback.lift_snd]
+    }
+    simp
+  · simp
+}
+
+instance powerObject' : PowerObject A where
+  pow := powObj A
+  in_ := powObj_in' A
+  transpose {B : Over X} (f : A ⊗ B ⟶ Ω) := powObj_transpose f
+  comm {B : Over X} (f : A ⊗ B ⟶ Ω) := by {
+    rw [powObj_transposeInv_naturality, comp_id, powObj_transpose_left_inv]
+  }
+  uniq {B : Over X} {f : A ⊗ B ⟶ Ω} {hat' : B ⟶ A.powObj} (h : (𝟙 A ⊗ hat') ≫ A.powObj_in' = f) := by {
+    rw [powObj_transposeInv_naturality, comp_id] at h
+    rw [← h]
+  }
 
 instance powerObject : PowerObject A where
   pow := powObj A
   in_ := powObj_in_ A
-  transpose {B : Over X} (f : A ⊗ B ⟶ Ω) := powObj_transpose A f
+  transpose {B : Over X} (f : A ⊗ B ⟶ Ω) := powObj_transpose f
   comm := by {
     intros B f
     rw [OverMorphism.ext_iff, comp_left, tensorHom_left, pullback.map]
@@ -166,7 +268,7 @@ instance powerObject : PowerObject A where
       rw [← transposeInv, transpose_left_inv]
       simp_rw [← comp_lift]
       change _ ≫ χ_ (_ ≫ (pullback_subObj A.hom B.hom)) = _
-      rw [comp_char, ← pred_eq_char_of_pullback]
+      rw [comp_char, pred_eq_char_of_pullback]
     · change _ = f.left ≫ (Ω : Over X).hom
       rw [Over.w f]
       simp

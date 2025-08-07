@@ -39,3 +39,7 @@ lemma PowOperation_nameClassifierOperation (s₀ s₁ : X ⟶ Ω) : ⌜(lift s�
   rw [comp_lift_assoc]
   exact PowOperation_transpose_ClassifierOperation op (fst X (𝟙_ C) ≫ s₀) (fst X (𝟙_ C) ≫ s₁)
 }
+
+theorem PowOperation_transposeInv_ClassifierOperation (s₀ s₁ : Y ⟶ pow X) : (lift s₀ s₁ ≫ PowOperation op X)^ = (lift (s₀^) (s₁^)) ≫ op := by {
+  nth_rw 1 [← transpose_right_inv s₀, ← transpose_right_inv s₁, ← PowOperation_transpose_ClassifierOperation, transpose_left_inv]
+}
