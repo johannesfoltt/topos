@@ -111,8 +111,11 @@ lemma char_true : 𝟙 (Ω : C) = χ_ t_ := by {
 
 lemma char_iso_hom {U U' X : C} (m : U ⟶ X) [Mono m] (i : U' ≅ U) : χ_ (i.hom ≫ m) = χ_ (m) := by {
   apply uniq
-  have pb := isPullback (i.hom ≫ m)
-  sorry
+  apply IsPullback.of_iso (isPullback (i.hom ≫ m)) i (Iso.refl _) (Iso.refl _) (Iso.refl _)
+  · simp
+  · simp
+  · simp
+  · simp
 }
 
 lemma char_iso_inv {U U' X : C} (m : U ⟶ X) [Mono m] (i : U ≅ U') : χ_ (i.inv ≫ m) = χ_ (m) := char_iso_hom m i.symm

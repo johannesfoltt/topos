@@ -178,7 +178,6 @@ lemma powObj_transpose_right_inv (f : B ⟶ powObj A) : powObj_transpose (powObj
   · simp
     simp_rw [← comp_lift]
     change  (χ_ (pullback.fst (powObj_transposeInv_left f ≫ fst Ω X) t_ ≫ pullback_subObj A.hom B.hom))^ = _
-    /-
     have h := Over.w f
     rw [mk_hom] at h
     slice_rhs 2 3 => {
@@ -197,7 +196,6 @@ lemma powObj_transpose_right_inv (f : B ⟶ powObj A) : powObj_transpose (powObj
     slice_rhs 2 4 => {
       rw [← transpose_right_inv (_ ≫ _ ≫ _), pullback_char]
     }
-    -/
     have eq : (powObj_transposeInv_left f ≫ fst Ω X) = (pullback_subObj A.hom B.hom) ≫ ((f.left ≫ powObj_eq A ≫ (fst (pow A.left) X))^) := by simp
     have help : pullback.fst (powObj_transposeInv_left f ≫ fst Ω X) t_ = (pullback.congrHom eq (rfl : t_ = t_)).hom ≫ (pullback.fst (pullback_subObj A.hom B.hom ≫ (f.left ≫ A.powObj_eq ≫ fst (pow A.left) X)^) t_) := by {
       rw [pullback.congrHom_hom, pullback.map]
@@ -207,16 +205,14 @@ lemma powObj_transpose_right_inv (f : B ⟶ powObj A) : powObj_transpose (powObj
     apply PowerObject.uniq
     change transposeInv _ = _
     simp only [Functor.id_obj]
-    --rw [meet_transposeInv, transpose_left_inv]
-    --nth_rw 1 [pred_eq_char_of_pullback ((f.left ≫ A.powObj_eq ≫ fst (pow A.left) X)^)]
+    rw [meet_transposeInv, transpose_left_inv]
+    nth_rw 1 [← pred_eq_char_of_pullback ((f.left ≫ A.powObj_eq ≫ fst (pow A.left) X)^)]
     simp_rw [← pullbackRightPullbackFstIso_inv_fst ((f.left ≫ A.powObj_eq ≫ fst (pow A.left) X)^) t_ (pullback_subObj A.hom B.hom), assoc, char_iso_inv, ← meet_pullback]
     have w : (f.left ≫ A.powObj_eq) ≫ (mk (snd (pow A.left) X)).hom = B.hom := by {
       rw [← Over.w f]
       simp
     }
-    slice_rhs 2 4 => {
-      rw [← assoc]
-    }
+    rw [meet_symm₁]
   · simp
     rw [← Over.w f]
     simp
@@ -236,7 +232,7 @@ lemma powObj_transposeInv_naturality {B B' : Over X} (f : B ⟶ B') (g : B' ⟶ 
   · simp
 }
 
-instance powerObject' : PowerObject A where
+instance powerObject : PowerObject A where
   pow := powObj A
   in_ := powObj_in' A
   transpose {B : Over X} (f : A ⊗ B ⟶ Ω) := powObj_transpose f
@@ -245,59 +241,5 @@ instance powerObject' : PowerObject A where
   }
   uniq {B : Over X} {f : A ⊗ B ⟶ Ω} {hat' : B ⟶ A.powObj} (h : (𝟙 A ⊗ hat') ≫ A.powObj_in' = f) := by {
     rw [powObj_transposeInv_naturality, comp_id] at h
-    rw [← h]
-  }
-
-instance powerObject : PowerObject A where
-  pow := powObj A
-  in_ := powObj_in_ A
-  transpose {B : Over X} (f : A ⊗ B ⟶ Ω) := powObj_transpose f
-  comm := by {
-    intros B f
-    rw [OverMorphism.ext_iff, comp_left, tensorHom_left, pullback.map]
-    simp_rw [id_left, comp_id]
-    rw [powObj_transpose]
-    simp_rw [homMk_left]
-    rw [powObj_in_hom, comp_lift]
-    apply CartesianMonoidalCategory.hom_ext
-    · rw [lift_fst, pullback_subObj, ← assoc, comp_lift, ← assoc, lift_map]
-      simp
-      nth_rewrite 1 [← comp_id (pullback.fst A.hom B.hom)]
-      rw [← lift_map, ← pullback_subObj, assoc]
-      change _ ≫ (𝟙 A.left ⊗ _) ≫ in_ = _
-      rw [← transposeInv, transpose_left_inv]
-      simp_rw [← comp_lift]
-      change _ ≫ χ_ (_ ≫ (pullback_subObj A.hom B.hom)) = _
-      rw [comp_char, pred_eq_char_of_pullback]
-    · change _ = f.left ≫ (Ω : Over X).hom
-      rw [Over.w f]
-      simp
-  }
-  uniq := by {
-    intros Y f hat' h
-    rw [OverMorphism.ext_iff, powObj_transpose, homMk_left _ _]
-    apply equalizer.hom_ext
-    rw [equalizer.lift_ι]
-    apply CartesianMonoidalCategory.hom_ext
-    · rw [lift_fst, assoc, equalizer.condition]
-      change _ = _ ≫ A.powObj_eq ≫ (𝟙 (pow A.left) ∧_P₂ (singleton X ≫ inverseImage A.hom))
-      apply PowerObject.uniq
-      unfold intersection_hom₂
-      rw [← lift_comp_fst_snd A.powObj_eq]
-      sorry
-      /-
-      rw [lift_fst, assoc, ← powObj_transpose_subObj_meet_condition A f]
-      have help := pullback_char A.hom Y.hom
-      simp at help
-      rw [help, meet_pullback]
-      unfold powObj_transpose_subObj
-      -/
-      /-
-      rw [lift_fst, assoc, ← powObj_transpose_subObj_meet_condition A f, meet_transpose, transpose_right_inv]
-      unfold intersection_hom₁
-      rw [← comp_id (χ_ (A.powObj_transpose_subObj f)^), ← lift_map, assoc, ← intersection_hom₂]
-      change (lift _ _) ≫ (powObj_t A) = _
-    · rw [lift_snd, ← Over.w hat']
-      simp
-      -/
+    rw [← h, powObj_transpose_right_inv]
   }

@@ -12,6 +12,24 @@ namespace Classifier
 
 def meet : (Ω : C) ⊗ (Ω : C) ⟶ (Ω : C) := χ_ (t_ ⊗ t_)
 
+variable (C)
+
+abbrev meet_char_pullback : IsPullback ((t_ : (𝟙_ C) ⟶ Ω) ⊗ t_) (ChosenTerminalObject.from_ _) (meet) (t_) := isPullback ((t_ : (𝟙_ C) ⟶ Ω) ⊗ t_)
+
+variable {C}
+
+instance : SymmetricCategory C := toSymmetricCategory
+
+lemma meet_braid :
+  (β_ Ω Ω).hom ≫ meet = (meet : ((Ω : C) ⊗ (Ω : C)) ⟶ (Ω : C)) := by {
+    apply Classifier.uniq
+    have pbL := isPullback_braiding (t_ : (𝟙_ C) ⟶ Ω) t_
+    have pbR := meet_char_pullback C
+    have pb := paste_vert pbL pbR
+    rw [ChosenTerminalObject.hom_ext (_ ≫ _) (ChosenTerminalObject.from_ ((⊤_ ⊗ ⊤_) : C))] at pb
+    exact pb
+  }
+
 abbrev meet_hom₁ {X : C} (χ₀ χ₁ : X ⟶ Ω) : X ⟶ Ω := lift χ₀ χ₁ ≫ meet
 
 notation χ₀ " ∧_C₁ " χ₁ => meet_hom₁ χ₀ χ₁
@@ -19,6 +37,19 @@ notation χ₀ " ∧_C₁ " χ₁ => meet_hom₁ χ₀ χ₁
 abbrev meet_hom₂ {X Y : C} (χ₀ : X ⟶ Ω) (χ₁ : Y ⟶ Ω) : X ⊗ Y ⟶ Ω := (χ₀ ⊗ χ₁) ≫ meet
 
 notation χ₀ " ∧_C₂ " χ₁ => meet_hom₂ χ₀ χ₁
+
+lemma meet_symm₁ {X : C} (χ₀ χ₁ : X ⟶ Ω) : (χ₀ ∧_C₁ χ₁) = (χ₁ ∧_C₁ χ₀) := by {
+  nth_rw 1 [meet_hom₁, ← meet_braid]
+  simp
+}
+
+abbrev meet_symm₂ {X Y : C} (χ₀ : X ⟶ Ω) (χ₁ : Y ⟶ Ω) : (β_ X Y).hom ≫ (χ₁ ∧_C₂ χ₀) = (χ₀ ∧_C₂ χ₁):= by {
+  nth_rw 1 [meet_hom₂, ← meet_braid]
+  slice_lhs 1 3 => {
+    rw [BraidedCategory.braiding_naturality]
+  }
+  simp
+}
 
 variable [HasPullbacks C]
 

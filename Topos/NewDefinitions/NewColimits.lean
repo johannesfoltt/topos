@@ -111,7 +111,7 @@ inverseImage g' ≫ directImage n = directImage k ≫ inverseImage g := by {
   have pb₁ := IsPullback.paste_vert pbL₁ pbR₁
   rw [toUnit_unique (_ ≫ _) (toUnit (pullback ((g' ⊗ (𝟙 (pow B'))) ≫ in_) t_)), ← χ_, ← e] at pb₀
   rw [toUnit_unique (_ ≫ _) (toUnit (pullback ((g' ⊗ (𝟙 (pow B'))) ≫ in_) t_)), ← χ_, ← e] at pb₁
-  rw [transposeOfDirectImageInverseImage, transposeOfMapDirectImage, Classifier.uniq _ _ pb₀, Classifier.uniq _ _ pb₁]
+  rw [transposeOfDirectImageInverseImage, transposeOfMapDirectImage, Classifier.uniq pb₀, Classifier.uniq pb₁]
 }
 
 variable (k)

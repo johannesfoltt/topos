@@ -199,3 +199,18 @@ lemma comp_IsPullback {C : Type*} [Category C] {U S X : C} (u : U ⟶ S) (s : S 
       simp at h_snd
       assumption
   }
+
+lemma isPullback_braiding [SymmetricCategory C] {X₀ X₁ Y₀ Y₁ : C} (f₀ : X₀ ⟶ Y₀) (f₁ : X₁ ⟶ Y₁) :
+  IsPullback (f₁ ⊗ f₀) (β_ X₁ X₀).hom (β_ Y₁ Y₀).hom (f₀ ⊗ f₁) where
+  w := by simp
+  isLimit' := by {
+    apply Nonempty.intro
+    apply PullbackCone.IsLimit.mk _ (fun (s : PullbackCone (β_ Y₁ Y₀).hom (f₀ ⊗ f₁)) => s.snd ≫ (β_ X₀ X₁).hom)
+    · intro s
+      rw [assoc, ← BraidedCategory.braiding_naturality, ← assoc, ← s.condition]
+      simp
+    · simp
+    · intros s l h_fst h_snd
+      rw [← h_snd]
+      simp
+  }
