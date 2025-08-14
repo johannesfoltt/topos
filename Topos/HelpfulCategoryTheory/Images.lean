@@ -44,4 +44,14 @@ instance EqualizerPushout_HasImage (f : A ⟶ B) : HasImage f where
 instance EqualizerPushout_HasImages : HasImages C where
   has_image := fun f ↦ EqualizerPushout_HasImage f
 
-omit [IsRegularMonoCategory C] [HasPushouts C]
+
+instance Limits.image.lift_epi_of_epiFac {C : Type u} [Category.{v, u} C] {X Y : C} {f : X ⟶ Y} [HasImage f] (F' : MonoFactorisation f) [Epi F'.e] : Epi (image.lift F') where
+  left_cancellation {Z : C} (g h) (w) := by {
+    expose_names
+    apply inst_6.left_cancellation
+    rw [← fac_lift, assoc, w, ← assoc]
+  }
+
+variable {C : Type u} [Category.{v, u} C] [Balanced C] {X Y : C} {f : X ⟶ Y} [HasImage f] (F' : MonoFactorisation f) [Epi F'.e]
+
+instance Limits.image.iso_of_epiFac_balanced {C : Type u} [Category.{v, u} C] [Balanced C] {X Y : C} {f : X ⟶ Y} [HasImage f] (F' : MonoFactorisation f) [Epi F'.e] : IsIso (image.lift F') := isIso_of_mono_of_epi (lift F')

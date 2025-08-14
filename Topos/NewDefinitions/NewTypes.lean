@@ -1,5 +1,6 @@
 import Mathlib.CategoryTheory.Closed.Types
 import Topos.NewDefinitions.NewTopos
+import Topos.NewDefinitions.NewClassifierMeet
 
 
 namespace CategoryTheory
@@ -73,8 +74,8 @@ instance instPowerObjectType (X : Type u) : PowerObject X where
   pow := Set X
   in_ := fun x => ULift.up (x.1 ∈ x.2)
   transpose {Y : Type u} (f : X ⊗ Y ⟶ Ω) := fun y => {x | (f (x,y)).down}
-  comm {Y : Type u} (f : X ⊗ Y ⟶ Ω) := by aesop
-  uniq {Y : Type u} {f : X ⊗ Y ⟶ Ω} {hat' : Y ⟶ Set X} (h : (𝟙 X ⊗ hat') ≫ (fun x ↦ { down := x.1 ∈ x.2 }) = f) := by aesop
+  comm := by aesop
+  uniq := by aesop
 
 instance instChosenPowerObjectsType : ChosenPowerObjects (Type u) where
   powerObject := instPowerObjectType
