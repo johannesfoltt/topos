@@ -111,7 +111,7 @@ abbrev powObj : Over X := mk ((powObj_eq A) ≫ snd _ _)
 
 variable {A} {B : Over X} (f : A ⊗ B ⟶ Ω)
 
-abbrev powObj_transpose_subObj : pullback (f.left ≫ fst _ _) t_ ⟶ A.left ⊗ B.left :=
+abbrev powObj_transpose_subObj : Limits.pullback (f.left ≫ fst _ _) t_ ⟶ A.left ⊗ B.left :=
   (pullback.fst (f.left ≫ fst _ _) (t_)) ≫ (pullback_subObj A.hom B.hom)
 
 
@@ -144,8 +144,6 @@ lemma powObj_transposeInv_w (f : B ⟶ powObj A) : (powObj_transposeInv_left f) 
 
 abbrev powObj_transposeInv (f : B ⟶ powObj A) : (A ⊗ B) ⟶ (Ω : Over X) := homMk (powObj_transposeInv_left f) (powObj_transposeInv_w f)
 
-
-abbrev powObj_in_ (A : Over X) : (A ⊗ powObj A) ⟶ Ω := powObj_transposeInv (𝟙 (powObj A))
 
 lemma powObj_transpose_left_inv (f : A ⊗ B ⟶ Ω) : powObj_transposeInv (powObj_transpose f) = f := by {
   rw [powObj_transpose, powObj_transposeInv, OverMorphism.ext_iff]
@@ -225,12 +223,7 @@ lemma powObj_transposeInv_naturality {B B' : Over X} (f : B ⟶ B') (g : B' ⟶ 
 
 instance powerObject : PowerObject A where
   pow := powObj A
-  in_ := powObj_in_ A
+  in_ := powObj_transposeInv (𝟙 (powObj A))
   transpose {B : Over X} (f : A ⊗ B ⟶ Ω) := powObj_transpose f
-  comm {B : Over X} (f : A ⊗ B ⟶ Ω) := by {
-    rw [powObj_transposeInv_naturality, comp_id, powObj_transpose_left_inv]
-  }
-  uniq {B : Over X} {f : A ⊗ B ⟶ Ω} {hat' : B ⟶ A.powObj} (h : (𝟙 A ⊗ hat') ≫ A.powObj_in_ = f) := by {
-    rw [powObj_transposeInv_naturality, comp_id] at h
-    rw [← h, powObj_transpose_right_inv]
-  }
+  comm {B : Over X} (f : A ⊗ B ⟶ Ω) := by rw [powObj_transposeInv_naturality, comp_id, powObj_transpose_left_inv]
+  uniq {B} {f} {hat'} (h) := by rw [← h, powObj_transposeInv_naturality, powObj_transpose_right_inv, comp_id]

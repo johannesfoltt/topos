@@ -69,7 +69,6 @@ instance instClassifier : Classifier (Type u) where
     aesop
   }
 
-
 instance instPowerObjectType (X : Type u) : PowerObject X where
   pow := Set X
   in_ := fun x => ULift.up (x.1 ∈ x.2)

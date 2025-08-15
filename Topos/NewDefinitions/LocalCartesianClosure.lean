@@ -1,6 +1,7 @@
 import Mathlib.CategoryTheory.Comma.Over.Pullback
 import Mathlib.CategoryTheory.Closed.Cartesian
 import Mathlib.CategoryTheory.Monoidal.Cartesian.Over
+import Mathlib.CategoryTheory.Subobject.Basic
 
 namespace CategoryTheory.Over
 
@@ -75,8 +76,11 @@ def coreHomEq : Adjunction.CoreHomEquiv (star X) (Γ X) where
     · simp
   }
 
-def starAdjΓ : (star X) ⊣ (Γ X) := Adjunction.mkOfHomEquiv coreHomEq
+def starAdjΓ (X : C) [Exponentiable X] : (star X) ⊣ (Γ X) := Adjunction.mkOfHomEquiv coreHomEq
 
+
+/-
+The following code is useless, because it just defines Over.iteratedSlice again
 variable {X' : C} (f : X' ⟶ X)
 
 def eqvOverOver_functor : Over (mk f) ⥤ Over X' where
@@ -91,14 +95,36 @@ def equvOverOver_unitIso_eq_components (A : Over (mk f)) : (𝟭 (Over (mk f))).
   unfold eqvOverOver_functor
   unfold eqvOverOver_inverse
   simp
-  sorry
+  have h₀ := Over.w A.hom; simp at h₀
+  have h₁ : A.left = mk (A.hom.left ≫ f) := by {
+    apply Comma.ext
+    · simp
+    · simp
+    · simp
+      rw [h₀]
+    }
+  apply Comma.ext
+  · simp
+    exact h₁
+  · simp
+  · simp
+    refine Quiver.heq_of_homOfEq_ext h₁ rfl ?_
+    unfold Quiver.homOfEq
+    simp
+    apply OverMorphism.ext
+    simp
+    congr
+    simp
 }
 
 def equvOverOver_counitIso_eq_components (A : Over X') : (eqvOverOver_inverse f ⋙ eqvOverOver_functor f).obj A = (𝟭 (Over X')).obj A := by {
   unfold eqvOverOver_functor
   unfold eqvOverOver_inverse
   simp
-  sorry
+  apply Comma.ext
+  · simp
+  · simp
+  · simp
 }
 
 def eqvOverOver : Over (mk f) ≌ Over X' where
@@ -114,45 +140,22 @@ def eqvOverOver : Over (mk f) ≌ Over X' where
     rw [OverMorphism.ext_iff, homMk_left _ _]
     simp
   }
-
-/-
-
-instance eqvOverOver_Faithful : (eqvOverOver f).Faithful where
-  map_injective := by {
-    intros A B g g' h
-    apply OverMorphism.ext ∘ OverMorphism.ext
-    unfold eqvOverOver at h; simp at h
-    rw [OverMorphism.ext_iff, homMk_left _ _, homMk_left _ _] at h
-    exact h
-  }
-
-instance eqvOverOver_Full : (eqvOverOver f).Full where
-  map_surjective := by {
-    intros A B g
-    unfold eqvOverOver at g; simp at g
-    unfold eqvOverOver; simp
-    refine Exists.intro ?_ ?_
-    · refine homMk ?_ ?_
-      · refine homMk ?_ ?_
-        · exact g.left
-        · have Ov_g := Over.w g; rw [mk_hom, mk_hom] at Ov_g
-          have Ov_A := Over.w A.hom; simp at Ov_A
-          have Ov_B := Over.w B.hom; simp at Ov_B
-          rw [← Ov_B, ← assoc, Ov_g, Ov_A]
-      · rw [OverMorphism.ext_iff, comp_left, homMk_left _ _]
-        have Ov_g := Over.w g; rw [mk_hom, mk_hom] at Ov_g
-        exact Ov_g
-    · aesop_cat
-  }
-
-instance eqvOverOver_EssSurj : (eqvOverOver f).EssSurj where
-  mem_essImage := by {
-    intro Y
-    use mk (homMk Y.hom : mk (Y.hom ≫ f) ⟶ mk f)
-    apply Nonempty.intro
-    apply Iso.refl
-  }
-
-instance eqvOverOver_IsEquivalence : (eqvOverOver f).IsEquivalence := {faithful := eqvOverOver_Faithful f, full := eqvOverOver_Full f, essSurj := eqvOverOver_EssSurj f}
-
 -/
+
+
+
+local instance {X : C} : CartesianMonoidalCategory (Over X) := cartesianMonoidalCategory X
+
+variable [Exponentiable X] [HasPullbacks C] {X' : C} (f : X ⟶ X')
+
+--Here we get a problem, because two different definitions of product are used
+
+def pullback_star_iso_components_left (A : Over X') : Limits.pullback A.hom f ≅ (mk f ⨯ A).left := by {
+  change (A ⊗ (mk f)).left ≅ _
+  sorry
+}
+variable (A : Over X')
+
+def pullback_star_iso_components (A : Over X') : (pullback f).obj A ≅ (star (mk f) ⋙ (mk f).iteratedSliceForward).obj A := Over.isoMk (pullback_star_iso_components_left f A) (by sorry)
+
+def pullback_star_iso : (pullback f) ≅ (star (mk f) ⋙ (iteratedSliceForward _)) := NatIso.ofComponents (fun A ↦ (pullback_star_iso_components f A)) (by sorry)

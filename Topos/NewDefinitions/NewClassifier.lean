@@ -10,6 +10,7 @@ import Topos.HelpfulCategoryTheory.PullbackProd
 import Mathlib.CategoryTheory.Limits.Shapes.RegularMono
 import Mathlib.CategoryTheory.Functor.ReflectsIso.Balanced
 import Mathlib.CategoryTheory.Limits.Shapes.StrongEpi
+import Mathlib.CategoryTheory.Subobject.Basic
 
 /-!
 
@@ -292,20 +293,23 @@ Subobject.underlying.obj S where
   hom := (subobjectIso1 classifier B S).hom ≫ (subobjectIso2 classifier B S).hom
   inv := (subobjectIso2 classifier B S).inv ≫ (subobjectIso1 classifier B S).inv
 
-def subobjectEquiv (B : C) : (B ⟶ classifier.Ω) ≃ Subobject B where
-  toFun := fun φ => Subobject.mk (pullback.fst φ classifier.t)
-  invFun := fun S => classifier.char S.arrow
+variable [HasPullbacks C]
+
+def subobjectEquiv (B : C) : (B ⟶ Ω) ≃ Subobject B where
+  toFun := fun φ => Subobject.mk (pullback.fst φ t_)
+  invFun := fun S => χ_ S.arrow
   left_inv := by
     intro φ
     simp
     symm
-    apply classifier.uniq
+    apply uniq
     exact subobject_pullback classifier φ
   right_inv := by
     intro S
     ext
     · exact subobjectIso3 classifier B S
     · simp [subobjectIso3, subobjectIso1, subobjectIso2]
+
 
 lemma subobjectClassifierExt {B X Y} {f : X ⟶ B} {g : Y ⟶ B} [Mono f] [Mono g] (h : classifier.char f = classifier.char g) : Subobject.mk f = Subobject.mk g := by {
   sorry
